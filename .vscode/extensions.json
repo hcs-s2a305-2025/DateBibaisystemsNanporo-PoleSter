@@ -18,6 +18,7 @@
         "vscjava.vscode-java-dependency",
         "vscjava.vscode-java-test",
         "vscode-icons-team.vscode-icons",
-        "mosapride.zenkaku"
+        "mosapride.zenkaku",
+        "vmware.vscode-boot-dev-pack"
     ]
 }
