@@ -15,6 +15,10 @@ body {
     flex: 1;
 }
 
+h2,h3{
+    cursor: default;
+}
+
 
 /* ヘッダー部分 */
 .header-content{
@@ -23,23 +27,48 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.system-title a{
+    color: #393939;
+    text-decoration: none;
 }
 
 .header-btn{
     width: 100px;
 }
 
+.header-stampcard{
+    cursor: pointer;
+}
+
 /* コンテンツ */
 /* 基本ブロック */
 .item-block{
+    position: relative;
     background-color: #fffce9;
     min-height: 100px;
     min-width: 300px;
     margin: 20px;
-    padding: 10px;
+    padding: 15px;
     border-radius: 20px;
     /* box-shadow: inset [横方向] [縦方向] [ぼかし] [広がり] [色]; */
-    box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.item-block-text{
+    color: gray;
+    margin-right: 60px;
+}
+
+/* 拡大ボタン */
+.expansion-btn{
+    cursor: pointer;
+    position: absolute; 
+    top: 0;
+    right: 0;
+    margin: 10px;
 }
 
 /* フッター */
@@ -49,6 +78,11 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-left: 40px;
-    padding-right: 40px;
+    padding-left: 100px;
+    padding-right: 100px;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.footer-btn{
+    cursor: pointer;
 }

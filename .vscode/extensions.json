@@ -20,6 +20,7 @@
         "vscode-icons-team.vscode-icons",
         "mosapride.zenkaku",
         "vmware.vscode-boot-dev-pack",
-        "cweijan.vscode-postgresql-client2"
+        "cweijan.vscode-postgresql-client2",
+        "formulahendry.auto-rename-tag"
     ]
 }
