@@ -19,6 +19,7 @@
         "vscjava.vscode-java-test",
         "vscode-icons-team.vscode-icons",
         "mosapride.zenkaku",
-        "vmware.vscode-boot-dev-pack"
+        "vmware.vscode-boot-dev-pack",
+        "cweijan.vscode-postgresql-client2"
     ]
 }

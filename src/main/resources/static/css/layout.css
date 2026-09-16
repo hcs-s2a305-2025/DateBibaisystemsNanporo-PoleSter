@@ -1,0 +1,54 @@
+/* 共通基本レイアウト用のCSS */
+
+/* 基本 */
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content{
+    padding-top: 20px;
+    padding-left: 100px;
+    padding-right: 100px;
+    flex: 1;
+}
+
+
+/* ヘッダー部分 */
+.header-content{
+    background-color: #fffce9;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-btn{
+    width: 100px;
+}
+
+/* コンテンツ */
+/* 基本ブロック */
+.item-block{
+    background-color: #fffce9;
+    min-height: 100px;
+    min-width: 300px;
+    margin: 20px;
+    padding: 10px;
+    border-radius: 20px;
+    /* box-shadow: inset [横方向] [縦方向] [ぼかし] [広がり] [色]; */
+    box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* フッター */
+.footer-content{
+    background-color: #fffce9;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 40px;
+    padding-right: 40px;
+}
