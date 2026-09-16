@@ -1,0 +1,48 @@
+/* スタート画面CSS */
+
+main{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px;
+}
+
+p, h1{
+    margin: 0;
+}
+
+.orbitron {
+    font-family: 'Orbitron', sans-serif;
+
+    font-weight: 200;
+    letter-spacing: 0.05em;
+}
+
+.saira {
+    font-family: 'Saira', sans-serif;
+    font-style: italic; 
+    font-weight: 200;
+}
+
+.login-do{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-input{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 400px;
+}
+
+@media screen and (max-width: 700px) {
+    .login-input{
+        width: auto;
+    }
+}
