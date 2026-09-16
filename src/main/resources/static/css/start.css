@@ -18,12 +18,14 @@ p, h1{
 
     font-weight: 200;
     letter-spacing: 0.05em;
+    cursor: default;
 }
 
 .saira {
     font-family: 'Saira', sans-serif;
     font-style: italic; 
     font-weight: 200;
+    cursor: default;
 }
 
 .login-do{

@@ -16,6 +16,7 @@
 	<!-- Bootstrap JS -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<link href="../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
+    <link href="../static/css/settings.css" th:href="@{/css/settings.css}" rel="stylesheet" />
 </head>
 
 <body>
@@ -30,33 +31,21 @@
             <a href=""><h2>ORDER ZANGI</h2></a>
         </div>
         <div class="header-stampcard header-btn">
-            <a href=""><img src="../static/img/スタンプカード.png" alt="スタンプカード"></a>
+            <img src="../static/img/スタンプカード.png" alt="スタンプカード">
         </div>
     </header>
 
     <!-- メインコンテンツ部 -->
     <main class="main-content">
         <div class="main-PC">
-            <h2>予約中の商品</h2>
-            <div class="item-block">
-                <h5 class="item-block-text">予約中の商品はありません。</h5>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大">
-            </div>
-            <h2>通知</h2>
-            <div class="item-block">
-                <h3>通知1</h3>
-                <p class="item-block-text">ここに新しい通知が届きます。受け取り時間を過ぎた通知も来ます。</p>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大">
-            </div>
-            <div class="item-block">
-                <h3>通知2</h3>
-                <p class="item-block-text">ここに新しい通知が届きます。受け取り時間を過ぎた通知も来ます。</p>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大">
-            </div>
-            <div class="item-block">
-                <h3>通知3</h3>
-                <p class="item-block-text">ここに新しい通知が届きます。受け取り時間を過ぎた通知も来ます。</p>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大">
+            <div class="profile">
+                <div class="upper-item">
+                    <h2>マイページ</h2>
+                    <button class="img-button" ><img class="userEditBtn" src="../static/img/ユーザ情報編集ボタン.png" alt="ユーザ情報編集"></button>
+                </div>
+                <div>
+
+                </div>
             </div>
         </div>
     </main>
@@ -66,19 +55,19 @@
 	<!-- <div th:replace="~{common/footer}"></div> -->
     <footer class="footer-content">
         <div class="footer-btn">
-            <a href=""><img src="../static/img/ホームボタン.png" alt="ホーム"></a>
+            <button id="" class="img-button" ><img src="../static/img/ホームボタン.png" alt="ホーム"></button>
         </div>
         <div class="footer-btn">
-            <a href=""><img src="../static/img/メニューボタン.png" alt="メニュー"></a>
+            <button id="" class="img-button" ><img src="../static/img/メニューボタン.png" alt="メニュー"></button>
         </div>
         <div class="footer-btn" style="position: relative; top: -20px;">
-            <a href=""><img src="../static/img/予約ボタン.png" alt="予約"></a>
+            <button id="" class="img-button" ><img src="../static/img/予約ボタン.png" alt="予約"></button>
         </div>
         <div class="footer-btn">
-            <a href=""><img src="../static/img/履歴ボタン.png" alt="履歴"></a>
+            <button id="" class="img-button" ><img src="../static/img/履歴ボタン.png" alt="履歴"></button>
         </div>
         <div class="footer-btn">
-            <a href=""><img src="../static/img/マイページボタン.png" alt="マイページ"></a>
+            <button id="" class="img-button" ><img src="../static/img/マイページボタン.png" alt="マイページ"></button>
         </div>
     </footer>
 </body>

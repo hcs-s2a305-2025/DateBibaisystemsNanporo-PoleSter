@@ -1,0 +1,24 @@
+/* プロフィール画面 */
+
+/* 上部 */
+
+.img-button{
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.userEditBtn{
+    height: 40px;
+}
+
+.upper-item{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}

@@ -54,6 +54,11 @@ h2,h3{
     padding-right: 3px;
 }
 
+.header-stampcard img{
+    height: 30px;
+    width: auto;
+}
+
 /* コンテンツ */
 /* 基本ブロック */
 .item-block{
@@ -66,6 +71,10 @@ h2,h3{
     border-radius: 20px;
     /* box-shadow: inset [横方向] [縦方向] [ぼかし] [広がり] [色]; */
     box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.item-block:hover{
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .item-block-text{
