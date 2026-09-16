@@ -1,11 +1,19 @@
 /* 共通基本レイアウト用のCSS */
 
+html,body{
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
 /* 基本 */
 body {
     font-family: 'Noto Sans JP', sans-serif;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
+    margin: 0;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .main-content{
@@ -13,6 +21,7 @@ body {
     padding-left: 100px;
     padding-right: 100px;
     flex: 1;
+    overflow-y: auto;
 }
 
 h2,h3{
@@ -22,8 +31,9 @@ h2,h3{
 
 /* ヘッダー部分 */
 .header-content{
+    flex-shrink: 0;
     background-color: #fffce9;
-    height: 80px;
+    height: 70px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -36,11 +46,12 @@ h2,h3{
 }
 
 .header-btn{
-    width: 100px;
+    width: 73px;
 }
 
 .header-stampcard{
     cursor: pointer;
+    padding-right: 3px;
 }
 
 /* コンテンツ */
@@ -73,8 +84,9 @@ h2,h3{
 
 /* フッター */
 .footer-content{
+    flex-shrink: 0;
     background-color: #fffce9;
-    height: 80px;
+    height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -85,4 +97,24 @@ h2,h3{
 
 .footer-btn{
     cursor: pointer;
+}
+
+
+/* --------------------------------
+        モバイルレイアウト
+----------------------------------*/
+
+@media screen and (max-width: 700px) {
+    /* 基本 */
+
+    .main-content{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /* フッター */
+    .footer-content{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
 }
