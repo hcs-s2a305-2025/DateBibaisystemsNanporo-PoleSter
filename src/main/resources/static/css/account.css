@@ -1,0 +1,94 @@
+/* 全体を横並びにして上下中央揃えにする設定 */
+.header-container {
+    display: flex;
+    align-items: center; /* 上下方向の中央揃え */
+    justify-content: space-between; /* 左端と右端に振り分ける */
+    gap: 16px; /* 要素同士の間隔 */
+    padding: 16px;
+    background-color: #f9f9f9;
+}
+
+.title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* 右側のボタンや検索バーを横並びにする設定 */
+.action-items {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 各パーツ間の余白 */
+}
+
+/* 赤いボタン */
+.btn-register {
+    background-color: #f56c6c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* セレクトボックス */
+.select-box {
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: white;
+    outline: none;
+}
+
+/* 検索エリア */
+.search-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 6px 12px;
+    background-color: white;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    margin-left: 6px;
+    font-size: 14px;
+}
+
+/* ヘッダーの背景色をグレーに */
+.custom-table thead th {
+    background-color: #a0a0a0;
+    color: #000;
+    font-weight: bold;
+}
+
+/* ページネーションボタンの四角いデザイン */
+.page-btn {
+    border-radius: 0; /* 角丸をなくす */
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #0d6efd;
+}
+
+/* 選択中のページ（背景グレー） */
+.page-btn.active {
+    background-color: #a0a0a0 !important;
+    border-color: #a0a0a0 !important;
+    color: #fff !important;
+}
+
+/* 押せないボタン (< や >) */
+.page-btn.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
