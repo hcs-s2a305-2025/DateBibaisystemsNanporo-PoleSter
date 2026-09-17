@@ -48,4 +48,8 @@
     .lowwer-item img {
         width: 40%;
     }
+
+    .img-button img{
+        height: 30px;
+    }
 }

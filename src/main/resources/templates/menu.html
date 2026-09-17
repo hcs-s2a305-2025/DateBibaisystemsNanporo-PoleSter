@@ -17,6 +17,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<link href="../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
     <link href="../static/css/menu.css" th:href="@{/css/menu.css}" rel="stylesheet" />
+    <link href="../static/css/settings.css" th:href="@{/css/settings.css}" rel="stylesheet" />
 </head>
 
 <body>
@@ -34,21 +35,27 @@
             </a>
         </div>
     </header>
+
     <!-- メインコンテンツ部 -->
     <main class="main-content">
         <div class="main-PC">
-            <h2>メニュー一覧</h2>
-            
-            <!-- 予約データが存在しない場合 -->
-            <div class="item-block" th:if="${#lists.isEmpty(~List)}">
+            <div class="upper-item">
+                <h2 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">メニュー一覧</h2>
+                <button class="img-button">
+                    <img class="userEditBtn" src="../static/img/AI提案ボタン.png" th:src="@{/img/AI提案ボタン.png}" alt="AI提案">
+                </button>
+            </div>
+        
+            <!-- メニューデータが存在しない場合 -->
+            <div class="item-block" th:if="${#lists.isEmpty(menuList)}">
                 <h5 class="item-block-text">メニューが存在しません。</h5>
             </div>
 
-            <!-- 予約データが存在する場合 -->
-            <div class="item-block menu-item" th:each="item : ${~List}">
-                <div class="name-block">
-                    <!-- 商品名 -->
-                    <h3 th:text="${item.name}">元祖ザンギ弁当（3個）</h3>
+            <!-- メニューデータが存在する場合（th:eachでループ） -->
+            <div class="item-block menu-item" th:each="item : ${menuList}">
+                <div class="name-block" style="min-width: 0;"> <!-- min-width: 0 でflex要素内の ellipsis 崩れを防止 -->
+                    <!-- 商品名（はみ出したら...で切り取り） -->
+                    <h3 class="text-truncate" th:text="${item.name}">元祖ザンギ弁当（3個）</h3>
                     
                     <!-- 金額 -->
                     <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
@@ -59,6 +66,24 @@
             </div>
         </div>
     </main>
+
+    <!-- ソート用カテゴリ（th:eachで動的取得） -->
+    <div class="foot-menu">
+        <div class="foot-menu-select">
+            <!-- 「すべて」タブ -->
+            <a href="/menu" th:href="@{/menu}" 
+                class="foot-menu-select-button text-decoration-none"  
+                th:classappend="${selectedCategoryId == null} ? '' : 'text-secondary'"
+            >すべて</a>
+
+            <!-- 各カテゴリタブ（th:eachでループ表示） -->
+            <a href="#" th:href="@{/menu(categoryId=${category.id})}" 
+                class="foot-menu-select-button text-decoration-none" 
+                th:each="category : ${categoryList}" 
+                th:classappend="${selectedCategoryId == category.id} ? '' : 'text-secondary'"
+                th:text="${category.name}">ザンギ弁当</a>
+        </div>
+    </div>
 
     <!-- フッダー部 -->
     <!-- いずれ移行 -->
