@@ -23,40 +23,51 @@
     <!-- いずれ移行 -->
 	<!-- <div th:replace="~{common/header}"></div> -->
     <header class="header-content">
-        <div class="header-btn">
-
-        </div>
+        <div class="header-btn"></div>
         <div class="system-title">
-            <a href=""><h2>ORDER ZANGI</h2></a>
+            <a href="/" th:href="@{/}"><h2>ORDER ZANGI</h2></a>
         </div>
         <div class="header-stampcard header-btn">
-            <a href=""><img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" alt="スタンプカード"></a>
+            <a href="/stampcard" th:href="@{/stampcard}">
+                <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
+            </a>
         </div>
     </header>
-
     <!-- メインコンテンツ部 -->
     <main class="main-content">
         <div class="main-PC">
+            <!-- 予約中の商品 -->
             <h2>予約中の商品</h2>
-            <div class="item-block">
+            
+            <!-- 予約データが存在しない場合 -->
+            <div class="item-block" th:if="${#lists.isEmpty(reservedList)}">
                 <h5 class="item-block-text">予約中の商品はありません。</h5>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大" style="width: 50px; height: auto;">
             </div>
+
+            <!-- 予約データが存在する場合（th:eachでループ） -->
+            <div class="item-block" th:each="item : ${reservedList}">
+                <div class="item-block-info">
+                    <p th:text="${'注文番号：' + item.orderNumber + '番'}">注文番号：8番</p>
+                    <p th:text="${'会計：' + #numbers.formatInteger(item.totalPrice, 1, 'COMMA') + '円'}">会計：780円</p>
+                    <p th:text="${'受け取り予定：' + item.pickupTime}">受け取り予定：12:30</p>
+                </div>
+                <h3 th:text="${'注文商品：' + item.name}">注文商品：元祖ザンギ弁当（5個）</h3>
+                <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
+            </div>
+
+            <!-- お店からの通知一覧 -->
             <h2>通知</h2>
-            <div class="item-block">
-                <h3>通知1</h3>
-                <p class="item-block-text">ここに新しい通知が届きます。受け取り時間を過ぎた通知も来ます。</p>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大" style="width: 50px; height: auto;">
+
+            <!-- 通知データが存在しない場合 -->
+            <div class="item-block" th:if="${#lists.isEmpty(notificationList)}">
+                <p class="item-block-text">新しい通知はありません。</p>
             </div>
-            <div class="item-block">
-                <h3>通知2</h3>
-                <p class="item-block-text">ここに新しい通知が届きます。受け取り時間を過ぎた通知も来ます。</p>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大" style="width: 50px; height: auto;">
-            </div>
-            <div class="item-block">
-                <h3>通知3</h3>
-                <p class="item-block-text">ここに新しい通知が届きます。受け取り時間を過ぎた通知も来ます。</p>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" alt="拡大" style="width: 50px; height: auto;">
+
+            <!-- 通知データが存在する場合（th:eachでループ） -->
+            <div class="item-block" th:each="notice : ${notificationList}" th:unless="${#lists.isEmpty(notificationList)}">
+                <h3 th:text="${notice.title}">通知タイトル</h3>
+                <p class="item-block-text" th:text="${notice.content}">通知の内容がここに入ります。</p>
+                <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
             </div>
         </div>
     </main>

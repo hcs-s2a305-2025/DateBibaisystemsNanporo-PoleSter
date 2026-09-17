@@ -77,6 +77,17 @@ h2,h3{
     margin-right: 60px;
 }
 
+.item-block-info {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 15px;   
+    margin-bottom: 8px;
+}
+
+.item-block-info p {
+    margin: 0;      /* pタグのデフォルト余白をクリア */
+}
+
 /* 拡大ボタン */
 .expansion-btn{
     cursor: pointer;
