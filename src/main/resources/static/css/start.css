@@ -43,6 +43,34 @@ p, h1{
     width: 400px;
 }
 
+/* 1. リンクの色とホバー効果をセット */
+.login-input a {
+    color: #0d6efd; /* Bootstrap標準の青 */
+    text-decoration: underline;
+    cursor: pointer;
+    position: relative;
+    z-index: 10; /* 前面に配置して確実にクリックできるようにする */
+}
+
+.login-input a:hover {
+    color: #0a58ca;
+}
+
+/* 2. フォーム全体を前面に持ち上げて被さりを防止 */
+.login-input {
+    position: relative;
+    z-index: 5;
+}
+
+/* 3. 背景の見出し（Polestar）がクリックを遮断しないように設定 */
+.orbitron {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 200;
+    letter-spacing: 0.05em;
+    cursor: default;
+    pointer-events: none;
+}
+
 @media screen and (max-width: 700px) {
     .login-input{
         width: auto;

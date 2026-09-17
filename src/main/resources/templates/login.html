@@ -29,21 +29,39 @@
             <h2>ORDER ZANGI</h2>
             <h2>にログインする</h2>
         </div>
-        <div class="login-input">
+        <form class="login-input" th:action="@{/login}" method="POST">
+            
             <div class="input-group mb-4 w-100">
-                <input type="text" class="form-control" id="mail" placeholder="メールアドレス" aria-label="メールアドレス">
+                <input type="email" class="form-control" id="mail" name="mail" placeholder="メールアドレス" aria-label="メールアドレス" autocomplete="mail" required>
             </div>
+            
             <div class="input-group mb-2 w-100">
-                <input type="password" class="form-control" id="password" placeholder="パスワードを入力" aria-label="パスワード">
+                <input type="password" class="form-control" id="password" name="password" placeholder="パスワードを入力" aria-label="パスワード" autocomplete="current-password" required>
             </div>
+
             <div class="mb-5 w-100">
-                <a id="rePasswordBtn" href="">パスワードを忘れた場合はこちら</a>
+                <a id="rePasswordBtn" 
+                    href="/repassword" 
+                    th:href="@{/repassword}" 
+                    class="link-primary position-relative d-inline-block text-decoration-underline" 
+                    style="z-index: 999; cursor: pointer;">
+                    パスワードを忘れた場合はこちら</a>
             </div>
+
             <div class="mb-5 w-100">
                 <button id="loginBtn" type="submit" class="btn btn-primary w-100">ログイン</button>
             </div>
-            <a id="signUpBtn" href="">アカウントを作成する場合はこちら</a>
-        </div>
+
+            <div class="text-center">
+                <a id="signUpBtn" 
+                    href="/signup" 
+                    th:href="@{/signup}" 
+                    class="link-primary position-relative d-inline-block text-decoration-underline" 
+                    style="z-index: 999; cursor: pointer;">
+                    アカウントを作成する場合はこちら</a>
+            </div>
+            
+        </form>
         <h1 class="orbitron">Pole<span style="color: #ffd736;">star</span></h1>
     </main>
 </body>

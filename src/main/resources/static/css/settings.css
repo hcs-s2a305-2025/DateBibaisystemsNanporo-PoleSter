@@ -22,3 +22,30 @@
     justify-content: space-between;
     align-items: center;
 }
+
+.lowwer-item{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lowwer-item img {
+    border-radius: 100%;
+    margin-top: 30px;
+    width: 15%;
+}
+
+.username{
+    margin-top: 10px;
+}
+
+/* --------------------------------
+        モバイルレイアウト
+----------------------------------*/
+
+@media screen and (max-width: 700px) {
+    .lowwer-item img {
+        width: 40%;
+    }
+}

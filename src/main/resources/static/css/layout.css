@@ -54,11 +54,6 @@ h2,h3{
     padding-right: 3px;
 }
 
-.header-stampcard img{
-    height: 30px;
-    width: auto;
-}
-
 /* コンテンツ */
 /* 基本ブロック */
 .item-block{
@@ -80,6 +75,17 @@ h2,h3{
 .item-block-text{
     color: gray;
     margin-right: 60px;
+}
+
+.item-block-info {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 15px;   
+    margin-bottom: 8px;
+}
+
+.item-block-info p {
+    margin: 0;      /* pタグのデフォルト余白をクリア */
 }
 
 /* 拡大ボタン */

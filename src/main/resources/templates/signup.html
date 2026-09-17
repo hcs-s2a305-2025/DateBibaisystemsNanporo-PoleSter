@@ -29,20 +29,31 @@
             <h2>ORDER ZANGI</h2>
             <h2>に登録する</h2>
         </div>
-        <div class="login-input">
+        <form class="login-input position-relative" style="z-index: 10;" th:action="@{/signup}" method="POST">
+            
             <div class="input-group mb-4 w-100">
-                <input type="text" class="form-control" id="mail" placeholder="メールアドレス" aria-label="メールアドレス">
+                <input type="email" class="form-control" id="mail" name="mail" placeholder="メールアドレス" aria-label="メールアドレス" autocomplete="email" required>
             </div>
+            
             <div class="input-group mb-4 w-100">
-                <input type="password" class="form-control" id="password" placeholder="パスワードを入力" aria-label="パスワード">
+                <input type="password" class="form-control" id="password" name="password" placeholder="パスワードを入力" aria-label="パスワード" autocomplete="new-password" required>
             </div>
+            
             <div class="input-group mb-4 w-100">
-                <input type="password" class="form-control" id="passwordagain" placeholder="パスワード確認用" aria-label="パスワード">
+                <input type="password" class="form-control" id="passwordagain" name="passwordConfirm" placeholder="パスワード確認用" aria-label="パスワード確認" autocomplete="new-password" required>
             </div>
-            <div class="mb-5 w-100">
+
+            <div class="mb-4 w-100">
                 <button id="createSignUpBtn" type="submit" class="btn btn-primary w-100">新規作成</button>
             </div>
-        </div>
+
+            <!-- ログイン画面に戻るリンク -->
+            <div class="text-center w-100">
+                <a id="loginLink" href="/login" th:href="@{/login}" class="link-primary position-relative text-decoration-none" style="z-index: 999; cursor: pointer;">
+                    すでにアカウントをお持ちの方はこちら
+                </a>
+            </div>
+        </form>
         <h1 class="orbitron">Pole<span style="color: #ffd736;">star</span></h1>
     </main>
 </body>
