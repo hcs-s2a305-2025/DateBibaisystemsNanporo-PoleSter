@@ -8,10 +8,39 @@
     margin: 10px;
 }
 
+.menu-item{
+    display: flex;
+    justify-content: space-between;
+}
 
-@media screen and (max-width: 700px) {
+.name-block{
+    width: 70%;
+}
+
+.menu-item h3{
+    white-space: nowrap;
+    overflow: hidden; 
+    text-overflow: ellipsis;
+}
+
+.menu-item img{
+    height: 90px;
+    border-radius: 10px;
+}
+
+
+@media screen and (max-width: 800px) {
     .product-img{
         width: auto;
         height: 40px;
+    }
+
+    .name-block{
+        width: 70%;
+    }
+
+    .menu-item img{
+        height: 40px;
+        border-radius: 10px;
     }
 }

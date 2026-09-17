@@ -40,36 +40,22 @@
             <h2>メニュー一覧</h2>
             
             <!-- 予約データが存在しない場合 -->
-            <div class="item-block" th:if="${#lists.isEmpty(reservedList)}">
-                <h5 class="item-block-text">注文履歴はありません。</h5>
+            <div class="item-block" th:if="${#lists.isEmpty(~List)}">
+                <h5 class="item-block-text">メニューが存在しません。</h5>
             </div>
 
             <!-- 予約データが存在する場合 -->
-            <div class="item-block" th:each="item : ${reservedList}">
-                <!-- 注文日 -->
-                <h3 th:text="${item.orderDate}">2026年9月7日</h3>
-                
-                <!-- 商品名 -->
-                <h4 th:text="${item.name}">元祖ザンギ弁当（5個）</h4>
-                
-                <!-- 金額 -->
-                <h5 th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>
-                
-                <!-- 商品画像 -->
-                <img class="product-img" src="../static/img/ザンギ弁当.jpg" th:src="@{${item.imageUrl}}" alt="商品画像">
-                
-                <!-- トッピング・ソース一覧 -->
-                <div th:each="sauce : ${item.sauceList}">
-                    <p class="text-secondary mb-1" th:text="${sauce.name + '(+' + sauce.price + '円)'}">タルタルソース(+50円)</p>
+            <div class="item-block menu-item" th:each="item : ${~List}">
+                <div class="name-block">
+                    <!-- 商品名 -->
+                    <h3 th:text="${item.name}">元祖ザンギ弁当（3個）</h3>
+                    
+                    <!-- 金額 -->
+                    <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
                 </div>
-                
-                <hr class="my-4">
-                
-                <!-- 再注文フォーム -->
-                <form th:action="@{/reorder}" method="POST" class="d-inline">
-                    <input type="hidden" name="itemId" th:value="${item.id}">
-                    <button type="submit" class="btn btn-warning px-4 text-white fw-bold" style="box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);">もう一度注文する</button>
-                </form>
+
+                <!-- 商品画像 -->
+                <img src="../static/img/ザンギ弁当.jpg" th:src="@{${item.imageUrl}}" alt="商品画像">
             </div>
         </div>
     </main>

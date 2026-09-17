@@ -71,7 +71,7 @@ p, h1{
     pointer-events: none;
 }
 
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 800px) {
     .login-input{
         width: auto;
     }
