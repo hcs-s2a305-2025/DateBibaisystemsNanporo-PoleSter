@@ -92,3 +92,9 @@
     opacity: 0.5;
     pointer-events: none;
 }
+
+.search-icon img {
+    width: 16px;   /* 画像の横幅（お好みで調整） */
+    height: 16px;  /* 画像の高さ */
+    vertical-align: middle; /* 上下中央揃え */
+}

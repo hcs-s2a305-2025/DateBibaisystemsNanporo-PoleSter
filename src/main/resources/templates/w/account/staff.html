@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>PortalLink.com</title>
+        <title>従業員管理</title>
         <!-- Bootstrap -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -52,23 +52,28 @@
         </nav>
 
             <!-- メインコンテンツ -->
-            <main class="col-12 col-lg-10 p-4">
+            <main class="col-12 col-lg-10 mx-auto p-4">
                 <div class="header-container">
                     <!-- 左側のタイトル -->
                     <h1 class="title">従業員管理</h1>
 
                     <!-- 右側の操作要素まとめ -->
                     <div class="action-items">
-                        <button type="button" class="btn-register">従業員登録</button>
+                        <!-- ボタンに onclick を追加 -->
+                        <button type="button" class="btn-register" onclick="openRegisterModal()">従業員登録</button>
 
-                        <select class="select-box">
-                            <option value="no">No</option>
-                            <!-- 他の選択肢 -->
-                        </select>
+                        <a th:href="@{/w/account/staff(page=0, sort=${sort == 'asc' ? 'desc' : 'asc'})}" 
+                        class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                            <span>No</span>
+                            <!-- 現在のソート状態に合わせて矢印アイコンを表示 -->
+                            <i class="bi" th:classappend="${sort == 'desc'} ? 'bi-caret-down-fill' : 'bi-caret-up-fill'"></i>
+                        </a>
 
                         <div class="search-box">
-                            <span class="search-icon">🔍</span>
-                            <input type="text" placeholder="検索またはURLを入力" />
+                            <span class="search-icon" onclick="executeSearch()" style="cursor: pointer;">
+                                <img th:src="@{/img/検索マーク.png}" alt="検索">
+                            </span>
+                            <input type="text" id="searchInput" placeholder="検索またはURLを入力" onkeyup="filterTable()" />
                         </div>
                     </div>
                 </div>
@@ -81,7 +86,7 @@
                             <th scope="col">権限</th>
                             <th scope="col">名前</th>
                             <th scope="col">状態</th>
-                            <th scope="col"></th> <!-- ボタン用カラム -->
+                            <th scope="col"></th> <!-- ボタン用 -->
                         </tr>
                     </thead>
                     <tbody>
@@ -96,7 +101,7 @@
                                 <button type="button" class="btn btn-sm btn-outline-danger ms-1">削除</button>
                             </td>
                         </tr> -->
-                        <tr th:each="user, stat : ${response.users}">
+                        <tr th:each="user, stat : ${response.users}" class="user-row">
                             <!-- 番号 -->
                             <td th:text="${stat.count}">1</td>
 
@@ -114,8 +119,10 @@
 
                             <!-- 操作ボタン -->
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-outline-primary">編集</button>
-                                <button type="button" class="btn btn-sm btn-outline-danger ms-1">削除</button>
+                                <!-- 編集ボタン -->
+                                <button type="button" class="btn-edit" th:data-mail="${user.mail}" onclick="openEditModal(this)">編集</button>
+                                <!-- 削除ボタン -->
+                                <button type="button" class="btn-delete" th:data-mail="${user.mail}" onclick="deleteStaff(this)">削除</button>
                             </td>
                         </tr>
                     </tbody>
@@ -142,6 +149,212 @@
                     th:classappend="${currentPage + 1 == response.totalPages} ? 'disabled'">&gt;</a>
                 </div>
             </main>
-        </div>
+            <!-- 編集用モーダル画面 -->
+            <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="editForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title">従業員情報編集</h5>
+                            </div>
+                            <div class="modal-body">
+                                <!-- メールアドレス -->
+                                <div class="mb-3">
+                                    <label class="form-label">メールアドレス</label>
+                                    <input type="email" id="modalMail" name="mail" class="form-control" readonly>
+                                </div>
+                                <!-- 名前 -->
+                                <div class="mb-3">
+                                    <label class="form-label">名前</label>
+                                    <input type="text" id="modalName" name="name" class="form-control" required>
+                                </div>
+                                <!-- 権限 -->
+                                <div class="mb-3">
+                                <label class="form-label">権限</label>
+                                    <select id="modalRole" name="role" class="form-control">
+                                        <option value="店員">店員</option>
+                                        <option value="店長">店長</option>
+                                    </select>
+                                </div>
+                                <!-- 状態 -->
+                                <div class="mb-3">
+                                    <label class="form-label">状態</label>
+                                    <select id="modalAlive" name="alive" class="form-control">
+                                        <option value="true">有効</option>
+                                        <option value="false">無効</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" onclick="submitUpdate()">更新</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- 登録用モーダル画面 -->
+            <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="registerForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title">従業員新規登録</h5>
+                            </div>
+                            <div class="modal-body">
+                                <!-- メールアドレス -->
+                                <div class="mb-3">
+                                    <label class="form-label">メールアドレス</label>
+                                    <input type="email" name="mail" class="form-control" required>
+                                </div>
+                                <!-- 名前 -->
+                                <div class="mb-3">
+                                    <label class="form-label">名前</label>
+                                    <input type="text" name="name" class="form-control" required>
+                                </div>
+                                <!-- 権限 -->
+                                <div class="mb-3">
+                                    <label class="form-label">権限</label>
+                                    <select name="role" class="form-control">
+                                        <option value="店員">店員</option>
+                                        <option value="店長">店長</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" onclick="submitRegister()">登録</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <script>
+            let editModal;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Bootstrapモーダルの初期化
+                editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            });
+
+            function openEditModal(button) {
+                const mail = button.getAttribute('data-mail');
+
+                // 編集ボタン押下時
+                fetch(`/w/account/staff/detail?mail=${encodeURIComponent(mail)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('modalMail').value = data.mail;
+                        document.getElementById('modalName').value = data.name;
+                        document.getElementById('modalRole').value = data.role;
+                        document.getElementById('modalAlive').value = String(data.alive);
+                        
+                        editModal.show();
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            // 更新
+            function submitUpdate() {
+                const form = document.getElementById('editForm');
+                const formData = new FormData(form);
+
+                fetch('/w/account/staff/update', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('変更を保存しました');
+                        location.reload();
+                    } else {
+                        alert('変更できませんでした。もう一度お試しください。');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            // 削除ボタン押下時
+            function deleteStaff(button) {
+                const mail = button.getAttribute('data-mail');
+
+                // 確認ダイアログを表示
+                if (confirm('このユーザを削除してもよろしいですか。')) {
+                    fetch(`/w/account/staff/delete?mail=${encodeURIComponent(mail)}`, {
+                        method: 'POST'
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('変更を保存しました。');
+                            location.reload();
+                        } else {
+                            alert('変更できませんでした。もう一度お試しください。');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('変更できませんでした。もう一度お試しください。');
+                    });
+                }
+            }
+
+            let registerModal;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            // 登録用モーダルの初期化
+            registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+        });
+
+        // 登録モーダルを開く
+        function openRegisterModal() {
+            document.getElementById('registerForm').reset(); // フォームのリセット
+            registerModal.show();
+        }
+
+        // 登録処理
+        function submitRegister() {
+            const form = document.getElementById('registerForm');
+            const formData = new FormData(form);
+
+            fetch('/w/account/staff/register', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    alert('変更を保存しました。');
+                    location.reload();
+                } else if (response.status === 409) { // 重複エラー
+                    alert('すでに登録済みのアカウントです。');
+                } else {
+                    alert('ユーザの登録に失敗しました。もう一度お試しください。');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('ユーザの登録に失敗しました。もう一度お試しください。');
+            });
+        }
+
+        // 検索処理
+        function filterTable() {
+            // 入力値を取得
+            const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            // すべての行を取得
+            const rows = document.querySelectorAll('.user-row');
+
+            // 各行と入力値を比較
+            rows.forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                
+                // 含まれていれば表示、含まれていなければ非表示
+                if (rowText.includes(keyword)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        </script>
     </body>
 </html> 
