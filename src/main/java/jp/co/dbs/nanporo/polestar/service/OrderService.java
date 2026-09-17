@@ -3,7 +3,9 @@ package jp.co.dbs.nanporo.polestar.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +20,7 @@ import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
 import jp.co.dbs.nanporo.polestar.repository.OrderRepository;
 import jp.co.dbs.nanporo.polestar.request.OrderDetailRequest;
 import jp.co.dbs.nanporo.polestar.request.OrderRegisterRequest;
+import jp.co.dbs.nanporo.polestar.response.OrderHistoryResponse;
 import jp.co.dbs.nanporo.polestar.response.OrderRegisterResponse;
 
 @Service 
@@ -106,6 +109,49 @@ public class OrderService {
         }
 
         return orderList;
+    }
+
+    /**
+     * ログインユーザーの予約履歴一覧を取得します。
+     */
+    public List<OrderHistoryResponse> getOrderHistory(String mail) {
+        List<Map<String, Object>> rows = orderRepository.getOrderHistoryByMail(mail);
+        Map<Integer, OrderHistoryResponse> historyMap = new LinkedHashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年M月d日");
+
+        for (Map<String, Object> row : rows) {
+            Integer orderId = (Integer) row.get("order_id");
+
+            // 注文親データの生成（初回のみ）
+            OrderHistoryResponse response = historyMap.computeIfAbsent(orderId, id -> {
+                OrderHistoryResponse res = new OrderHistoryResponse();
+                res.setOrderId(id);
+                res.setOrderNumber((String) row.get("order_number"));
+                res.setSumMoney((Integer) row.get("sum_money"));
+                
+                if (row.get("get_time") != null) {
+                    java.sql.Timestamp getTime = (java.sql.Timestamp) row.get("get_time");
+                    res.setFormattedDate(getTime.toLocalDateTime().format(formatter));
+                }
+                res.setItems(new ArrayList<>());
+                return res;
+            });
+
+            // 明細データの追加（マスタ等から名称・価格を取得する想定）
+            if (row.get("goods_id") != null) {
+                OrderHistoryResponse.OrderDetailItem item = new OrderHistoryResponse.OrderDetailItem();
+                // ※実際の開発では goods_id / custom_id から商品マスタを参照してセットします
+                item.setGoodsName("元祖ザンギ弁当 (5個)"); 
+                item.setGoodsPrice(780);
+                item.setCustomName("タルタルソース");
+                item.setCustomPrice(50);
+                item.setCount((Integer) row.get("count"));
+                
+                response.getItems().add(item);
+            }
+        }
+
+        return new ArrayList<>(historyMap.values());
     }
     
 }

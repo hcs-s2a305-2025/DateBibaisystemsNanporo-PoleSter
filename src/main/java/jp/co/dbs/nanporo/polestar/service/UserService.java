@@ -7,8 +7,10 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import jp.co.dbs.nanporo.polestar.data.UserData;
 import jp.co.dbs.nanporo.polestar.entity.UserEntity;
 import jp.co.dbs.nanporo.polestar.repository.UserRepository;
 import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
@@ -19,6 +21,51 @@ public class UserService {
     @Autowired 
     private UserRepository repository;
 
+    /**
+     * 指定されたメールアドレスからユーザを検索するメソッド
+     * @param data ユーザデータ
+     * @return UserEntity 検索されたユーザエンティティ
+     * @throws UsernameNotFoundException 該当するユーザが存在しない場合
+     */
+    // ログイン画面で入力されたメールアドレスをもとに、ユーザ情報を取得する
+    public UserEntity getUser(UserData data){
+        // リポジトリへ問い合わせ
+        List<Map<String, Object>> table = repository.findByMail(data);
+
+        // テーブルからエンティティへ変換
+        List<UserEntity> list = tableToEntity(table);
+
+        if (list.size() == 1){
+            return list.get(0);
+        } else {
+            throw new UsernameNotFoundException("ユーザが見つかりません： " + data.getMail());
+        }
+    }
+
+    /**
+     * テーブル（List<Map>）を UserEntity のリストに変換するヘルパー関数
+     * LoginUserDetails で使用されるフィールド名に合わせてマッピングします。
+     * @param table ユーザデータが含まれたテーブル
+     * @return エンティティ型に変換されたリスト
+     */
+    private List<UserEntity> tableToEntity(List<Map<String, Object>> table) {
+        List<UserEntity> list = new ArrayList<>();
+
+        for (Map<String, Object> row : table) {
+            UserEntity entity = new UserEntity();
+            entity.setMail((String) row.get("mail"));
+            entity.setPassword((String) row.get("password"));
+            entity.setRole((String) row.get("role"));
+            entity.setName((String) row.get("name"));
+            entity.setAlive((Boolean) row.get("alive"));
+            
+            list.add(entity);
+        }
+
+        return list;
+    }
+
+    // 従業員の一覧取得
     public  UserGetResponse getStaffList(Pageable pageable, String sort) {
         // リポジトリに処理を依頼
         List<Map<String, Object>> resultSet = repository.getStaffList(pageable, sort);
