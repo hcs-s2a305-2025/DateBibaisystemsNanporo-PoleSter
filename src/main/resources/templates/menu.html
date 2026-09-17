@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Polestar | ORDER ZANGI</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<link href="../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
+    <link href="../static/css/menu.css" th:href="@{/css/menu.css}" rel="stylesheet" />
+    <link href="../static/css/settings.css" th:href="@{/css/settings.css}" rel="stylesheet" />
+</head>
+
+<body>
+	<!-- ヘッダー部 -->
+    <!-- いずれ移行 -->
+	<!-- <div th:replace="~{common/header}"></div> -->
+    <header class="header-content">
+        <div class="header-btn"></div>
+        <div class="system-title">
+            <a href="/" th:href="@{/}"><h2>ORDER ZANGI</h2></a>
+        </div>
+        <div class="header-stampcard header-btn">
+            <a href="/stampcard" th:href="@{/stampcard}">
+                <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
+            </a>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ部 -->
+    <main class="main-content">
+        <div class="main-PC">
+            <div class="upper-item">
+                <h2 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">メニュー一覧</h2>
+                <button class="img-button">
+                    <img class="userEditBtn" src="../static/img/AI提案ボタン.png" th:src="@{/img/AI提案ボタン.png}" alt="AI提案">
+                </button>
+            </div>
+        
+            <!-- メニューデータが存在しない場合 -->
+            <div class="item-block" th:if="${#lists.isEmpty(menuList)}">
+                <h5 class="item-block-text">メニューが存在しません。</h5>
+            </div>
+
+            <!-- メニューデータが存在する場合（th:eachでループ） -->
+            <div class="item-block menu-item" th:each="item : ${menuList}">
+                <div class="name-block" style="min-width: 0;"> <!-- min-width: 0 でflex要素内の ellipsis 崩れを防止 -->
+                    <!-- 商品名（はみ出したら...で切り取り） -->
+                    <h3 class="text-truncate" th:text="${item.name}">元祖ザンギ弁当（3個）</h3>
+                    
+                    <!-- 金額 -->
+                    <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
+                </div>
+
+                <!-- 商品画像 -->
+                <img src="../static/img/ザンギ弁当.jpg" th:src="@{${item.imageUrl}}" alt="商品画像">
+            </div>
+        </div>
+    </main>
+
+    <!-- ソート用カテゴリ（th:eachで動的取得） -->
+    <div class="foot-menu">
+        <div class="foot-menu-select">
+            <!-- 「すべて」タブ -->
+            <a href="/menu" th:href="@{/menu}" 
+                class="foot-menu-select-button text-decoration-none"  
+                th:classappend="${selectedCategoryId == null} ? '' : 'text-secondary'"
+            >すべて</a>
+
+            <!-- 各カテゴリタブ（th:eachでループ表示） -->
+            <a href="#" th:href="@{/menu(categoryId=${category.id})}" 
+                class="foot-menu-select-button text-decoration-none" 
+                th:each="category : ${categoryList}" 
+                th:classappend="${selectedCategoryId == category.id} ? '' : 'text-secondary'"
+                th:text="${category.name}">ザンギ弁当</a>
+        </div>
+    </div>
+
+    <!-- フッダー部 -->
+    <!-- いずれ移行 -->
+	<!-- <div th:replace="~{common/footer}"></div> -->
+    <footer class="footer-content">
+        <div class="footer-btn">
+            <a href=""><img style="width: 36px; height: 53px;" src="../static/img/ホームボタン.png" alt="ホーム"></a>
+        </div>
+        <div class="footer-btn">
+            <a href=""><img style="width: 48px; height: 53px;"  src="../static/img/メニューボタン.png" alt="メニュー"></a>
+        </div>
+        <div class="footer-btn" style="position: relative; top: -20px;">
+            <a href=""><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" alt="予約"></a>
+        </div>
+        <div class="footer-btn">
+            <a href=""><img style="width: 33px; height: 51px;" src="../static/img/履歴ボタン.png" alt="履歴"></a>
+        </div>
+        <div class="footer-btn">
+            <a href=""><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" alt="マイページ"></a>
+        </div>
+    </footer>
+</body>
+
+</html>
