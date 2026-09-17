@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Polestar | ORDER ZANGI</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<link href="../../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
+    <link href="../../static/css/settings.css" th:href="@{/css/settings.css}" rel="stylesheet" />
+</head>
+
+<body>
+	<!-- ヘッダー部 -->
+    <!-- いずれ移行 -->
+	<!-- <div th:replace="~{common/header}"></div> -->
+    <header class="header-content">
+        <div class="header-btn">
+
+        </div>
+        <div class="system-title">
+            <a href=""><h2>ORDER ZANGI</h2></a>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ部 -->
+    <main class="main-content">
+        <div class="main-PC">
+            <div class="profile">
+                <div>
+                    <!-- 上部 -->
+                    <div  class="upper-item">
+                        <h2>マイページ</h2>
+                        <button class="img-button" ><img class="userEditBtn" src="../../static/img/ユーザ情報編集ボタン.png" alt="ユーザ情報編集"></button>
+                    </div>
+                    <!-- ユーザ情報を表示 -->
+                    <div  class="lowwer-item">
+                        <img src="../../static/img/sibainu1.jpg" alt="プロフィール画像">
+                        <h5 class="username">店長</h5>
+                        <p>zangui@ben.com</p>
+                    </div>
+                </div>
+                <!-- ここから、システム自動停止制御 -->
+                <div>
+                    <div>
+                        <form class="p-3">
+                            <!-- トグルスイッチ -->
+                            <div class="form-check form-switch form-check-reverse d-inline-block mb-3">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggleSchedule" checked>
+                                <label class="form-check-label me-2 fw-bold" for="toggleSchedule">システム自動停止</label>
+                            </div>
+
+                            <!-- 設定エリア -->
+                            <div class="ps-3" id="scheduleInputs">
+                            <!-- 停止時刻設定 -->
+                            <div class="mb-3">
+                                <label class="form-label d-block text-secondary mb-1">システム自動停止時刻：</label>
+                                <div class="lh-lg fs-5 d-flex align-items-center flex-wrap">
+                                    <span>毎週</span>
+                                    <select class="form-select form-select-sm w-auto mx-2 align-middle schedule-control" name="stop_day">
+                                        <option value="月">月</option>
+                                        <option value="火">火</option>
+                                        <option value="水">水</option>
+                                        <option value="木">木</option>
+                                        <option value="金">金</option>
+                                        <option value="土">土</option>
+                                        <option value="日">日</option>
+                                    </select>
+                                    <span>曜日</span>
+
+                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                            name="stop_hour" min="0" max="23" placeholder="00" style="width: 70px !important;">
+                                    <span>時</span>
+
+                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                            name="stop_minute" min="0" max="59" placeholder="00" style="width: 70px !important;">
+                                    <span>分</span>
+                                </div>
+                            </div>
+
+                            <!-- 開始時刻設定 -->
+                            <div class="mb-3">
+                                <label class="form-label d-block text-secondary mb-1">システム自動開始時刻：</label>
+                                <div class="lh-lg fs-5 d-flex align-items-center flex-wrap">
+                                    <span>毎週</span>
+                                    <select class="form-select form-select-sm w-auto mx-2 align-middle schedule-control" name="start_day">
+                                        <option value="月">月</option>
+                                        <option value="火">火</option>
+                                        <option value="水">水</option>
+                                        <option value="木">木</option>
+                                        <option value="金">金</option>
+                                        <option value="土">土</option>
+                                        <option value="日">日</option>
+                                    </select>
+                                    <span>曜日</span>
+
+                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                            name="start_hour" min="0" max="23" placeholder="00" style="width: 70px !important;">
+                                    <span>時</span>
+
+                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                            name="start_minute" min="0" max="59" placeholder="00" style="width: 70px !important;">
+                                    <span>分</span>
+                                </div>
+                            </div>
+
+                            <!-- 保存ボタン -->
+                            <button type="submit" class="btn btn-primary mt-2 schedule-control">設定を保存</button>
+                            </div>
+                        </form>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="../../static/js/settings.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>casherhistory</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<link href="../../../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
+</head>
+
+<body>
+
+    <!-- ヘッダー部分 (共通レイアウト) -->
+    <header class="">
+        <div class="">
+        <a href="../editmenu.html">＜戻る</a>
+        <span>ログイン：店長</span>
+        </div>
+        <div class="system-title">ORDER ZANGI</div>
+    </header>
+
+    <!-- メインコンテンツ領域 (共通レイアウト) -->
+    <main class="">
+        
+        <div class="">
+
+        <!-- 画像 + 基本情報入力領域 -->
+        <div class="">
+            <!-- 商品画像 -->
+            <img src="../../../static/img/ザンギ弁当.jpg" alt="元祖ザンギ弁当" class="">
+
+            <div class="">
+            <!-- 画像アップロード -->
+            <div class="">
+                <input type="text" class="" value="画像をアップロード" readonly>
+                <button type="button" class="">参照</button>
+            </div>
+
+            <!-- 商品名入力 -->
+            <div class="">
+                <input type="text" value="元祖ザンギ弁当（5個）">
+                <span class="">✎</span>
+            </div>
+
+            <!-- 価格 & 注文可能ランク -->
+            <div class="">
+                <div class="">
+                <input type="text" value="￥ 780">
+                <span class="">✎</span>
+                </div>
+                <div class="">
+                <label for="">注文可能ランク：</label>
+                <select id="rank">
+                    <option>一般</option>
+                </select>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- ごはんの量 オプション -->
+        <div class="">
+            <div class="">ごはんの量：</div>
+            <div class="">
+            <div class="">
+                <div class="">小盛り</div>
+                <div class="">￥ －50</div>
+            </div>
+            <div class="">
+                <div class="">普通</div>
+                <div class="">￥ 0</div>
+            </div>
+            <div class="">
+                <div class="">大盛り</div>
+                <div class="">￥ 50</div>
+            </div>
+            <div class="">
+                <div class="">特盛</div>
+                <div class="">￥ 100</div>
+            </div>
+            <button type="button" class="">＋</button>
+            </div>
+        </div>
+
+        <!-- ソース オプション -->
+        <div class="">
+            <div class="">ソース：</div>
+            <div class="">
+            <div class="">
+                <div class="">おろしポン酢ソ…</div>
+                <div class="">￥ 50</div>
+            </div>
+            <div class="">
+                <div class="">自家製タルタル…</div>
+                <div class="">￥ 80</div>
+            </div>
+            <div class="">
+                <div class="">油淋鶏風ネギダレ</div>
+                <div class="">￥ 80</div>
+            </div>
+            <div class="">
+                <div class="">旨辣麻婆ソース</div>
+                <div class="">￥ 100</div>
+            </div>
+            <button type="button" class="">＋</button>
+            </div>
+        </div>
+
+        <!-- 商品分類 セレクト -->
+        <div class="">
+            <div class="">商品分類：</div>
+            <div class="">
+            <select>
+                <option>ザンギ弁当</option>
+            </select>
+            </div>
+        </div>
+
+        <!-- アレルゲン セレクト -->
+        <div class="">
+            <div class="">アレルゲン：</div>
+            <div class="">
+            <select>
+                <option value="wheat">小麦粉</option>
+            </select>
+            </div>
+        </div>
+
+        <!-- 下部ボタン領域 -->
+        <div class="">
+            <button type="submit" class="">変更を保存</button>
+            <button type="button" class="" onclick="history.back()">変更を破棄して戻る</button>
+        </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
