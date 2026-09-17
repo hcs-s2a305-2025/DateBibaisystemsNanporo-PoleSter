@@ -32,4 +32,7 @@ public class OrderData {
 
     // ステータス
     private String status;
+
+    /** 注文区分 (例: RESERVATION / STORE) */
+    private String orderType;
 }

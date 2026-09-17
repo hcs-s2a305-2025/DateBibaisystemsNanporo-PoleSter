@@ -13,6 +13,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import jp.co.dbs.nanporo.polestar.data.OrderData;
+import jp.co.dbs.nanporo.polestar.data.OrderDetailData;
 import jp.co.dbs.nanporo.polestar.entity.OrderDetailEntity;
 import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
 
@@ -22,153 +24,138 @@ public class OrderRepository {
     @Autowired
     private NamedParameterJdbcTemplate jdbc;
 
-    // --- SQL定義 ---
-    // 指定日の最大注文番号を取得（日ごとリセット用）
-    private static final String SELECT_MAX_ORDER_NUMBER = 
-            "SELECT COALESCE(MAX(CAST(order_number AS INT)), 0) FROM order_t "
-            + "WHERE get_time >= :startOfDay AND get_time < :endOfDay";
-
-    // 注文トラン登録
+    // 注文親データを追加するSQL
     private static final String INSERT_ORDER = 
-            "INSERT INTO order_t (order_number, get_time, mail, register_time, sum_money, memo, status) "
-            + "VALUES (:orderNumber, :getTime, :mail, CURRENT_TIMESTAMP, :sumMoney, :memo, :status)";
+            "INSERT INTO order_t ("
+            + "order_number, get_time, mail, register_time, sum_money, memo, status"
+            + ") VALUES ("
+            + ":orderNumber, :getTime, :mail, :registerTime, :sumMoney, :memo, :status"
+            + ")";
 
-    // 注文明細トラン登録
-    private static final String INSERT_ORDER_DETAIL = 
-            "INSERT INTO order_detail_t (order_id, order_count, goods_id, set_goods_id, count, plus_zangi_count, custom_id) "
-            + "VALUES (:orderId, :orderCount, :goodsId, :setGoodsId, :count, :plusZangiCount, :customId)";
+    /**
+     * 注文情報をデータベースに登録し、自動採番された order_id を返します。
+     */
+    public int insertOrder(OrderData data) {
+        // 1. 注文区分（予約/店頭）に応じた本日の注文番号を自動採番
+        String orderNumber = generateOrderNumber(data.getOrderType());
+        data.setOrderNumber(orderNumber);
 
-    // 注文一覧取得（ユーザー用）
-    private static final String SELECT_ORDERS_BY_MAIL = 
-            "SELECT * FROM order_t WHERE mail = :mail ORDER BY get_time DESC";
-
-    // 注文1件の詳細取得
-    private static final String SELECT_ORDER_BY_ID = 
-            "SELECT * FROM order_t WHERE order_id = :orderId";
-
-    // 注文明細リストの取得
-    private static final String SELECT_ORDER_DETAILS_BY_ORDER_ID = 
-            "SELECT * FROM order_detail_t WHERE order_id = :orderId ORDER BY order_count";
-
-    // 注文トラン更新（内容変更）
-    private static final String UPDATE_ORDER = 
-            "UPDATE order_t SET get_time = :getTime, sum_money = :sumMoney, memo = :memo "
-            + "WHERE order_id = :orderId AND mail = :mail";
-
-    // 注文ステータス更新
-    private static final String UPDATE_ORDER_STATUS = 
-            "UPDATE order_t SET status = :status WHERE order_id = :orderId";
-
-    // 注文明細削除（更新・削除時に使用）
-    private static final String DELETE_ORDER_DETAILS = 
-            "DELETE FROM order_detail_t WHERE order_id = :orderId";
-
-    // 注文トラン削除
-    private static final String DELETE_ORDER = 
-            "DELETE FROM order_t WHERE order_id = :orderId AND mail = :mail";
-
-
-    // --- メソッド実装 ---
-
-    /** 指定日の最大の注文番号（数値）を取得します */
-    public int getMaxOrderNumberByDate(LocalDateTime startOfDay, LocalDateTime endOfDay) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("startOfDay", startOfDay);
-        params.put("endOfDay", endOfDay);
-        
-        Integer maxNo = jdbc.queryForObject(SELECT_MAX_ORDER_NUMBER, params, Integer.class);
-        return maxNo != null ? maxNo : 0;
-    }
-
-    /** 注文親データ（order_t）を登録し、自動採番された order_id を返します */
-    public int insertOrder(OrderEntity order) {
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("orderNumber", order.getOrderNumber())
-                .addValue("getTime", order.getGetTime())
-                .addValue("mail", order.getMail())
-                .addValue("sumMoney", order.getSumMoney())
-                .addValue("memo", order.getMemo())
-                .addValue("status", order.getStatus() != null ? order.getStatus() : "受付");
+        // 2. パラメータの設定と KeyHolder による自動生成IDの取得準備
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("orderNumber", data.getOrderNumber());
+        params.addValue("getTime", data.getGetTime());
+        params.addValue("mail", data.getMail());
+        params.addValue("registerTime", data.getRegisterTime());
+        params.addValue("sumMoney", data.getSumMoney());
+        params.addValue("memo", data.getMemo());
+        params.addValue("status", data.getStatus());
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        // SQLを実行して生成された order_id を取得
         jdbc.update(INSERT_ORDER, params, keyHolder, new String[] { "order_id" });
-        return keyHolder.getKey().intValue();
+
+        // 自動採番された order_id を返す
+        Number key = keyHolder.getKey();
+        return (key != null) ? key.intValue() : 0;
+    }
+    
+    // モバイル予約の当日の最大注文番号（M0001〜M9999）を取得するSQL
+    private static final String SELECT_MAX_MOBILE_ORDER_NUMBER = 
+            "SELECT order_number FROM order_t "
+            + "WHERE order_number LIKE 'M%' "
+            + "  AND register_time >= CURRENT_DATE AND register_time < CURRENT_DATE + INTERVAL '1 day' "
+            + "ORDER BY order_number DESC LIMIT 1";
+
+    // 店頭注文の当日の最大注文番号（0001〜9999）を取得するSQL
+    private static final String SELECT_MAX_STORE_ORDER_NUMBER = 
+            "SELECT order_number FROM order_t "
+            + "WHERE order_number NOT LIKE 'M%' "
+            + "  AND register_time >= CURRENT_DATE AND register_time < CURRENT_DATE + INTERVAL '1 day' "
+            + "ORDER BY order_number DESC LIMIT 1";
+
+    /**
+     * 注文番号の自動採番ロジック
+     * 店頭注文: 0001〜9999
+     * モバイル予約: M0001〜M9999
+     */
+    private String generateOrderNumber(String orderType) {
+        boolean isMobile = "RESERVATION".equalsIgnoreCase(orderType) || "MOBILE".equalsIgnoreCase(orderType);
+        String sql = isMobile ? SELECT_MAX_MOBILE_ORDER_NUMBER : SELECT_MAX_STORE_ORDER_NUMBER;
+
+        List<String> resultList = jdbc.queryForList(sql, new HashMap<>(), String.class);
+
+        int nextSeq = 1;
+        if (!resultList.isEmpty() && resultList.get(0) != null) {
+            String maxOrderNum = resultList.get(0); // 例: "M0005" や "0005"
+            String numStr = maxOrderNum.replace("M", "");
+            nextSeq = Integer.parseInt(numStr) + 1;
+        }
+
+        // 4桁数字のゼロ埋め（例: 1 -> "0001"）
+        String formattedSeq = String.format("%04d", nextSeq);
+
+        // モバイル予約の場合は先頭に "M" を付与
+        return isMobile ? "M" + formattedSeq : formattedSeq;
     }
 
-    /** 注文明細データ（order_detail_t）を1件登録します */
-    public int insertOrderDetail(OrderDetailEntity detail) {
+    // 注文明細データを追加するSQL
+    private static final String INSERT_ORDER_DETAIL = 
+            "INSERT INTO order_detail_t ("
+            + "order_id, order_count, goods_id, set_goods_id, count, plus_zangi_count, custom_id"
+            + ") VALUES ("
+            + ":orderId, :orderCount, :goodsId, :setGoodsId, :count, :plusZangiCount, :customId"
+            + ")";
+
+    /**
+     * 注文明細情報をデータベースに登録します。
+     */
+    public int insertOrderDetail(OrderDetailData detail) {
         Map<String, Object> params = new HashMap<>();
         params.put("orderId", detail.getOrderId());
         params.put("orderCount", detail.getOrderCount());
         params.put("goodsId", detail.getGoodsId());
         params.put("setGoodsId", detail.getSetGoodsId());
         params.put("count", detail.getCount());
-        params.put("plusZangiCount", detail.getPlusZangiCount() != null ? detail.getPlusZangiCount() : 0);
+        params.put("plusZangiCount", detail.getPlusZangiCount());
         params.put("customId", detail.getCustomId());
 
         return jdbc.update(INSERT_ORDER_DETAIL, params);
     }
 
-    /** ユーザーの注文一覧を取得します */
-    public List<Map<String, Object>> getOrdersByMail(String mail) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("mail", mail);
-        return jdbc.queryForList(SELECT_ORDERS_BY_MAIL, params);
-    }
+    // 注文1件の詳細情報を取得するSQL
+    private static final String SELECT_ORDER_DETAIL = 
+            "SELECT * FROM order_t WHERE order_id = :orderId";
 
-    /** 注文1件の情報を取得します */
+    /**
+     * 注文IDを条件に、指定された1件の注文詳細情報を取得します。
+     */
     public Map<String, Object> getOrderById(int orderId) {
         Map<String, Object> params = new HashMap<>();
         params.put("orderId", orderId);
+
         try {
-            return jdbc.queryForMap(SELECT_ORDER_BY_ID, params);
+            return jdbc.queryForMap(SELECT_ORDER_DETAIL, params);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
 
-    /** 注文に紐づく明細一覧を取得します */
-    public List<Map<String, Object>> getOrderDetailsByOrderId(int orderId) {
+    // ユーザーの「予約中（受付・調理中・完成）」の注文一覧を取得するSQL
+    private static final String SELECT_ACTIVE_ORDERS_BY_MAIL = 
+            "SELECT * FROM order_t "
+            + "WHERE mail = :mail "
+            + "  AND status IN ('受付', '調理中', '完成') "
+            + "ORDER BY get_time ASC";
+
+    /**
+     * ログインユーザーの予約中（受付・調理中・完成）の注文一覧を取得します。
+     */
+    public List<Map<String, Object>> getActiveOrdersByMail(String mail) {
         Map<String, Object> params = new HashMap<>();
-        params.put("orderId", orderId);
-        return jdbc.queryForList(SELECT_ORDER_DETAILS_BY_ORDER_ID, params);
-    }
-
-    /** 注文内容（受取日時・金額・メモ）を更新します */
-    public int updateOrder(OrderEntity order) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("orderId", order.getOrderId());
-        params.put("mail", order.getMail());
-        params.put("getTime", order.getGetTime());
-        params.put("sumMoney", order.getSumMoney());
-        params.put("memo", order.getMemo());
-
-        return jdbc.update(UPDATE_ORDER, params);
-    }
-
-    /** 注文ステータスのみ更新します */
-    public int updateOrderStatus(int orderId, String status) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("orderId", orderId);
-        params.put("status", status);
-
-        return jdbc.update(UPDATE_ORDER_STATUS, params);
-    }
-
-    /** 指定された注文IDの明細をすべて削除します（注文内容変更時の再登録用） */
-    public int deleteOrderDetails(int orderId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("orderId", orderId);
-
-        return jdbc.update(DELETE_ORDER_DETAILS, params);
-    }
-
-    /** 注文データ（order_t）を削除します */
-    public int deleteOrder(int orderId, String mail) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("orderId", orderId);
         params.put("mail", mail);
 
-        return jdbc.update(DELETE_ORDER, params);
+        return jdbc.queryForList(SELECT_ACTIVE_ORDERS_BY_MAIL, params);
     }
+
 }
