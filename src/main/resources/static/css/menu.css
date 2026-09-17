@@ -6,6 +6,8 @@
     top: 0;
     right: 0;
     margin: 10px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
 }
 
 .menu-item{
@@ -26,6 +28,8 @@
 .menu-item img{
     height: 90px;
     border-radius: 10px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
 }
 
 .foot-menu{
@@ -57,8 +61,7 @@
 
 @media screen and (max-width: 800px) {
     .product-img{
-        width: auto;
-        height: 40px;
+        height: 60%;
     }
 
     .name-block{

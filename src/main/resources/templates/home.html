@@ -44,7 +44,7 @@
                 <h5 class="item-block-text">予約中の商品はありません。</h5>
             </div>
 
-            <!-- 予約データが存在する場合（th:eachでループ） -->
+            <!-- 予約データが存在する場合 -->
             <div class="item-block" th:each="item : ${reservedList}">
                 <div class="item-block-info">
                     <p th:text="${'注文番号：' + item.orderNumber + '番'}">注文番号：8番</p>
@@ -63,7 +63,7 @@
                 <p class="item-block-text">新しい通知はありません。</p>
             </div>
 
-            <!-- 通知データが存在する場合（th:eachでループ） -->
+            <!-- 通知データが存在する場合 -->
             <div class="item-block" th:each="notice : ${notificationList}" th:unless="${#lists.isEmpty(notificationList)}">
                 <h3 th:text="${notice.title}">通知タイトル</h3>
                 <p class="item-block-text" th:text="${notice.content}">通知の内容がここに入ります。</p>
