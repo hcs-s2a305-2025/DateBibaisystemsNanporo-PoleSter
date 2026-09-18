@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+	<title>Polestar | ORDER ZANGI</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<link href="../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
+</head>
+
+<body>
+	<!-- ヘッダー部 -->
+    <!-- いずれ移行 -->
+	<!-- <div th:replace="~{common/header}"></div> -->
+    <header class="header-content">
+        <div class="header-btn"></div>
+        <div class="system-title">
+            <a href="/" th:href="@{/}"><h2>ORDER ZANGI</h2></a>
+        </div>
+        <div class="header-stampcard header-btn">
+            <a href="/stampcard" th:href="@{/stampcard}">
+                <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
+            </a>
+        </div>
+    </header>
+    <!-- メインコンテンツ部 -->
+    <main class="main-content">
+        <div class="main-PC">
+            <!-- ダッシュボード -->
+            <h2>ダッシュボード</h2>
+            
+            <div class="dashboard-grid">
+                <!-- 時間別売上フラッシュ -->
+                <div class="card card-sales">
+                    <h2>時間別売上フラッシュ</h2>
+                    <div class="sales-box">
+                        <!-- 動的な時間帯 (例: 15:00 〜 16:00) -->
+                        <div th:text="${salesFlash.timeRange}">13:00 〜 14:00</div>
+                        
+                        <div class="sales-row">
+                            <span>売上：</span>
+                            <!-- 3桁カンマ区切りで表示 (例: ￥4,900) -->
+                            <span th:text="'￥' + ${#numbers.formatInteger(salesFlash.totalSales, 1, 'COMMA')}">￥68200</span>
+                        </div>
+                        
+                        <div class="sales-row">
+                            <span>客数：</span>
+                            <span th:text="${salesFlash.customerCount} + '人'">64人</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 予約数 -->
+                <div class="card card-reservation">
+                    <h2>予約数</h2>
+                    <div class="reservation-count" th:text="${orderCnt} + '人'">
+                        32人
+                    </div>
+                </div>
+
+                <!-- 右側のアクションボタン -->
+                <div class="action-group">
+                    <form th:action="@{/w/dashboard/close}" method="post" style="width: 100%;">
+                        <button type="button" class="card card-action" onclick="closeSystem()">
+                            システムを<br>休止する
+                        </button>
+                    </form>
+                    <button type="button" class="card card-action" data-bs-toggle="modal" data-bs-target="#noticeModal">
+                        一斉通知<br>を送信する
+                    </button>
+                </div>
+            </div>
+
+            <!-- お店からの通知一覧 -->
+            <h2>通知</h2>
+
+            <!-- 通知データが存在しない場合 -->
+            <div class="item-block" th:if="${#lists.isEmpty(notificationList)}">
+                <p class="item-block-text">新しい通知はありません。</p>
+            </div>
+
+            <!-- 通知データが存在する場合 -->
+            <div class="item-block" th:each="notice : ${notificationList}" th:unless="${#lists.isEmpty(notificationList)}">
+                <h3 th:text="${notice.title}">通知タイトル</h3>
+                <p class="item-block-text" th:text="${notice.content}">通知の内容がここに入ります。</p>
+                <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
+            </div>
+        </div>
+    </main>
+
+    <!-- 一斉通知モーダル -->
+    <div class="modal fade" id="noticeModal" tabindex="-1" aria-labelledby="noticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="noticeModalLabel">一斉通知の送信</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+            <label for="noticeContent" class="form-label">通知内容</label>
+            <textarea class="form-control" id="noticeContent" rows="4" maxlength="255" placeholder="通知内容を入力してください"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="sendBroadcastNotice()">送信</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- フッダー部 -->
+    <!-- いずれ移行 -->
+	<!-- <div th:replace="~{common/footer}"></div> -->
+    <footer class="footer-content">
+        <div class="footer-btn">
+            <a href=""><img style="width: 36px; height: 53px;" src="../static/img/ホームボタン.png" alt="ホーム"></a>
+        </div>
+        <div class="footer-btn">
+            <a href=""><img style="width: 48px; height: 53px;"  src="../static/img/メニューボタン.png" alt="メニュー"></a>
+        </div>
+        <div class="footer-btn" style="position: relative; top: -20px;">
+            <a href=""><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" alt="予約"></a>
+        </div>
+        <div class="footer-btn">
+            <a href=""><img style="width: 33px; height: 51px;" src="../static/img/履歴ボタン.png" alt="履歴"></a>
+        </div>
+        <div class="footer-btn">
+            <a href=""><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" alt="マイページ"></a>
+        </div>
+    </footer>
+    <script>
+        // システム休止ボタン押下時
+        function closeSystem() {
+            // CSRFトークンを取得
+            const tokenElement = document.querySelector("meta[name='_csrf']");
+            const headerElement = document.querySelector("meta[name='_csrf_header']");
+
+            const token = tokenElement ? tokenElement.getAttribute("content") : '';
+            const header = headerElement ? headerElement.getAttribute("content") : '';
+
+            // 確認ダイアログを表示
+            if (confirm('システムを休止してもよろしいですか。')) {
+                fetch('/w/dashboard/close', {
+                    method: 'POST',
+                    headers: {
+                        [header]: token
+                    }
+                })
+                .then(response => {
+                    if (response.status === 200) {
+                        alert('システムを休止しました。');
+                        location.reload();
+                    } else if (response.status === 409) {
+                        alert('本日は既にシステム休止済みです。');
+                    } else {
+                        alert('システムを休止できませんでした。もう一度お試しください。');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('システムを休止できませんでした。もう一度お試しください。');
+                });
+            }
+        }
+
+        // 一斉通知送信処理
+        function sendBroadcastNotice() {
+            const content = document.getElementById('noticeContent').value.trim();
+
+            if (!content) {
+                alert('内容を入力してください。');
+                return;
+            }
+
+            const tokenElement = document.querySelector("meta[name='_csrf']");
+            const headerElement = document.querySelector("meta[name='_csrf_header']");
+            const token = tokenElement ? tokenElement.getAttribute("content") : '';
+            const header = headerElement ? headerElement.getAttribute("content") : '';
+
+            const formData = new FormData();
+            formData.append('content', content);
+
+            fetch('/w/dashboard/notice/broadcast', {
+                method: 'POST',
+                headers: {
+                    [header]: token
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('通知を送信しました。');
+                    location.reload();
+                } else {
+                    alert('一斉送信できませんでした。もう一度お試しください。');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('一斉送信できませんでした。もう一度お試しください。');
+            });
+        }
+    </script>
+</body>
+</html>

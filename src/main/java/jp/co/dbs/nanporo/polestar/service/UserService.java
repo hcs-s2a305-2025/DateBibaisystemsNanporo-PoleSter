@@ -1,6 +1,8 @@
 package jp.co.dbs.nanporo.polestar.service;
 
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,9 +12,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import jp.co.dbs.nanporo.polestar.data.UserData;
 import jp.co.dbs.nanporo.polestar.entity.UserEntity;
 import jp.co.dbs.nanporo.polestar.repository.UserRepository;
+import jp.co.dbs.nanporo.polestar.repository.UserRepository.SalesFlashDto;
 import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
 
 @Service 
@@ -161,5 +165,54 @@ public class UserService {
     // 解除処理
     public void resumeUser(String mail) {
         repository.resumeUser(mail);
+    }
+
+    // 予約数
+    public int countOrder() {
+        // 今日の日付
+        LocalDate today = LocalDate.now();
+        int cnt = repository.countOrder(today);
+
+        return cnt;
+    }
+
+    // 休業日追加
+    public void insertClose() {
+        // 今日の日付
+        LocalDate today = LocalDate.now();
+        repository.insertClose(today, "臨時休業");
+    }
+
+    // 売上フラッシュ
+    public SalesFlashDto getHourlySalesFlash() {
+        // 現在の時間を取得
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = now.withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = now.withMinute(59).withSecond(59).withNano(999999999);
+
+        // 表示用の時間帯文字列を作成
+        String timeRange = String.format("%02d:00 〜 %02d:00", now.getHour(), now.getHour() + 1);
+
+        return repository.getHourlySalesFlash(timeRange, start, end);
+    }
+
+    // 一斉送信
+    @Transactional
+    public void sendBroadcastNotice(String content) {
+        List<String> customerEmails = repository.findCustomerEmails();
+        if (customerEmails.isEmpty()) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 最大値取得
+        int nextId = repository.getMaxNoticeId() + 1;
+
+        // 顧客の人数分ループ
+        for (String email : customerEmails) {
+            repository.insertNoticeWithId(nextId, email, now, content);
+            nextId++; // ID+1
+        }
     }
 }
