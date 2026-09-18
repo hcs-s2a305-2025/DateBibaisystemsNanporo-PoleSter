@@ -35,7 +35,7 @@ public class UserRepository {
         return jdbc.queryForList(SELECT_BY_MAIL, params);
     }
 
-    
+    // 従業員表示
     private static final String COUNT_STAFF_LIST = 
         "SELECT COUNT(*) FROM user_m WHERE role = '店員' OR role = '店長'";
 
@@ -56,9 +56,35 @@ public class UserRepository {
         return jdbc.queryForList(SELECT_STAFF_LIST, params);
     }
     
-    // 総件数を取得
+    // 従業員の総件数を取得
     public int countStaffList() {
         return jdbc.queryForObject(COUNT_STAFF_LIST, new HashMap<>(), Integer.class);
+    }
+
+        // 顧客表示
+    private static final String COUNT_CUSTOMER_LIST = 
+        "SELECT COUNT(*) FROM user_m WHERE role = '顧客'";
+
+    public List<Map<String, Object>> getCustomerList(Pageable pageable, String sort) {
+
+        String order = "desc".equalsIgnoreCase(sort) ? "DESC" : "ASC";
+
+        // 権限が顧客のユーザ一覧を取得
+        String SELECT_CUSTOMER_LIST = 
+        "SELECT * FROM user_m WHERE role = '顧客' ORDER BY mail " + order +  " LIMIT :limit OFFSET :offset";
+
+        // クエリのパラメータを設定するマップ
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("limit", pageable.getPageSize());
+        params.put("offset", pageable.getOffset());
+
+        // SELECT_STAFF_LISTクエリを実行し、結果を取得
+        return jdbc.queryForList(SELECT_CUSTOMER_LIST, params);
+    }
+    
+    // 顧客の総件数を取得
+    public int countCustomerList() {
+        return jdbc.queryForObject(COUNT_CUSTOMER_LIST, new HashMap<>(), Integer.class);
     }
 
     // 1件取得
@@ -81,7 +107,7 @@ public class UserRepository {
     }
 
     // 削除
-    public void deleteStaff(String mail) {
+    public void deleteUser(String mail) {
         String sql = "DELETE FROM user_m WHERE mail = :mail";
         
         Map<String, Object> params = new HashMap<>();
@@ -91,21 +117,40 @@ public class UserRepository {
     }
 
     // 新規登録
-   public void registerStaff(String mail, String name, String role) {
-    String sql = "INSERT INTO user_m (mail, name, password, role, member_rank, gender, birthday, cancel_count, alive, point, point_card_complete) "
-    + "VALUES (:mail, :name, :password, :role, :member_rank, :gender, :birthday, :cancel_count, true, 0, 0 )";
-    
-    Map<String, Object> params = new HashMap<>();
-    params.put("mail", mail);
-    params.put("name", name);
-    params.put("password", "password"); // 初期パスワード
-    params.put("role", role);
-    
-    params.put("member_rank", "NONE");
-    params.put("gender", "未");
-    params.put("birthday", java.sql.Date.valueOf("2000-01-01"));
-    params.put("cancel_count", 0);
+    public void registerStaff(String mail, String name, String role) {
+        String sql = "INSERT INTO user_m (mail, name, password, role, member_rank, gender, birthday, cancel_count, alive, point, point_card_complete) "
+        + "VALUES (:mail, :name, :password, :role, :member_rank, :gender, :birthday, :cancel_count, true, 0, 0 )";
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+        params.put("name", name);
+        params.put("password", "password"); // 初期パスワード
+        params.put("role", role);
+        params.put("member_rank", "NONE");
+        params.put("gender", "未");
+        params.put("birthday", java.sql.Date.valueOf("2000-01-01"));
+        params.put("cancel_count", 0);
 
-    jdbc.update(sql, params);
-}
+        jdbc.update(sql, params);
+    }
+
+    // 停止
+    public void stopUser(String mail) {
+        String sql = "UPDATE user_m SET alive = true WHERE mail = :mail";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+
+        jdbc.update(sql, params);
+    }
+
+    // 解除
+    public void resumeUser(String mail) {
+        String sql = "UPDATE user_m SET alive = false WHERE mail = :mail";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+
+        jdbc.update(sql, params);
+    }
 }

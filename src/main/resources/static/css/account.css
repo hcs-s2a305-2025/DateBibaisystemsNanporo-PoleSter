@@ -66,20 +66,6 @@
     font-weight: bold;
 }
 
-/* ページネーションボタンの四角いデザイン */
-.page-btn {
-    border-radius: 0; /* 角丸をなくす */
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    color: #0d6efd;
-}
-
 /* 選択中のページ（背景グレー） */
 .page-btn.active {
     background-color: #a0a0a0 !important;
@@ -87,14 +73,64 @@
     color: #fff !important;
 }
 
-/* 押せないボタン (< や >) */
-.page-btn.disabled {
-    opacity: 0.5;
+.search-icon img {
+    width: 16px;   /* 画像の横幅 */
+    height: 16px;  /* 画像の高さ */
+    vertical-align: middle; /* 上下中央揃え */
+}
+
+/* 矢印ボタン（< >） */
+.pagination-arrow {
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 0 8px;
+    cursor: pointer;
+}
+
+.pagination-arrow.disabled {
+    color: #ccc;
     pointer-events: none;
 }
 
-.search-icon img {
-    width: 16px;   /* 画像の横幅（お好みで調整） */
-    height: 16px;  /* 画像の高さ */
-    vertical-align: middle; /* 上下中央揃え */
+.pagination-arrow:hover {
+    color: #000;
+}
+
+/* 数字ボタン */
+.pagination-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: #fcfcfc;
+    color: #1a0dab; /* リンクの青色 */
+    text-decoration: underline; /* 選択中以外の文字に下線 */
+    font-size: 1.1rem;
+    
+    /* 立体感のある四角形枠線 */
+    border: 1px solid #dcdcdc;
+    border-bottom: 2px solid #b0b0b0;
+    border-right: 2px solid #b0b0b0;
+    border-radius: 0px; /* 直角の四角形 */
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    
+    transition: all 0.1s ease;
+}
+
+.pagination-num:hover {
+    color: #0056b3;
+    background-color: #f0f0f0;
+}
+
+/* アクティブ（選択中）の数字ボタン */
+.pagination-num.active {
+    background-color: #bebebe; /* グレー背景 */
+    color: #1a0dab;
+    border-color: #888;
+    border-bottom: 2px solid #666;
+    border-right: 2px solid #666;
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2); /* 凹んだ立体感 */
 }

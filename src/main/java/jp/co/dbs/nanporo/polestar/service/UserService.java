@@ -83,6 +83,24 @@ public class UserService {
         return response;
     }
 
+    // 顧客の一覧取得
+    public  UserGetResponse getCustomerList(Pageable pageable, String sort) {
+        // リポジトリに処理を依頼
+        List<Map<String, Object>> resultSet = repository.getCustomerList(pageable, sort);
+        
+        // テーブル構成からエンティティクラスへ変換
+        List<UserEntity> customerList = toResponse(resultSet);
+
+        int totalCount = repository.countCustomerList();
+        int totalPages = (int) Math.ceil((double) totalCount / pageable.getPageSize());
+
+        // レスポンスクラスを生成
+        UserGetResponse response = new UserGetResponse();
+        response.setUsers(customerList);
+        response.setTotalPages(totalPages);
+        return response;
+    }
+
     private List<UserEntity> toResponse(List<Map<String, Object>> resultSet) {
         // 配列の初期化
         List<UserEntity> users = new ArrayList<UserEntity>();
@@ -126,12 +144,22 @@ public class UserService {
     }
 
     // 削除処理
-    public void deleteStaff(String mail) {
-    repository.deleteStaff(mail);
+    public void deleteUser(String mail) {
+    repository.deleteUser(mail);
     }
 
     // 新規登録処理
     public void registerStaff(String mail, String name, String role) {
         repository.registerStaff(mail, name, role);
+    }
+
+    // 停止処理
+    public void stopUser(String mail) {
+        repository.stopUser(mail);
+    }
+
+    // 解除処理
+    public void resumeUser(String mail) {
+        repository.resumeUser(mail);
     }
 }

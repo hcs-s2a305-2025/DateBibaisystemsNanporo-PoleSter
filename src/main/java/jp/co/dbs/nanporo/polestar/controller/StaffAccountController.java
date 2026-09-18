@@ -26,7 +26,7 @@ public class StaffAccountController {
     private  UserService service;
 
     // 従業員管理画面表示
-    // @PreAuthorize("hasAuthority('店長')")
+    @PreAuthorize("hasAuthority('店長')")
     @GetMapping ("/w/account/staff")
     public  String getStaffAccount(
         @PageableDefault(size=10) Pageable pageable,
@@ -65,7 +65,7 @@ public class StaffAccountController {
     @PostMapping("/w/account/staff/delete")
     @ResponseBody
     public ResponseEntity<String> deleteStaff(@RequestParam("mail") String mail) {
-        service.deleteStaff(mail);
+        service.deleteUser(mail);
         return ResponseEntity.ok("OK");
     }
 
