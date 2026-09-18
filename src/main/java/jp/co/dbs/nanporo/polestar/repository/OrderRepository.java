@@ -158,4 +158,23 @@ public class OrderRepository {
         return jdbc.queryForList(SELECT_ACTIVE_ORDERS_BY_MAIL, params);
     }
 
+    // ユーザーの予約履歴一覧（降順）を取得するSQL
+    private static final String SELECT_ORDER_HISTORY_BY_MAIL = 
+            "SELECT o.order_id, o.order_number, o.get_time, o.sum_money, "
+            + "       d.goods_id, d.count, d.custom_id "
+            + "FROM order_t o "
+            + "LEFT JOIN order_detail_t d ON o.order_id = d.order_id "
+            + "WHERE o.mail = :mail "
+            + "ORDER BY o.get_time DESC";
+
+    /**
+     * メールアドレスから過去の注文履歴一覧を取得します。
+     */
+    public List<Map<String, Object>> getOrderHistoryByMail(String mail) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+
+        return jdbc.queryForList(SELECT_ORDER_HISTORY_BY_MAIL, params);
+    }
+
 }

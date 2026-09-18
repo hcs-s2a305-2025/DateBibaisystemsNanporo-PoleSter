@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import jp.co.dbs.nanporo.polestar.entity.UserEntity;
 import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
@@ -25,6 +26,7 @@ public class StaffAccountController {
     private  UserService service;
 
     // 従業員管理画面表示
+    // @PreAuthorize("hasAuthority('店長')")
     @GetMapping ("/w/account/staff")
     public  String getStaffAccount(
         @PageableDefault(size=10) Pageable pageable,

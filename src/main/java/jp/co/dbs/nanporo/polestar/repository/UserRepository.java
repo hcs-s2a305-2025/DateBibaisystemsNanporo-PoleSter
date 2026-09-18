@@ -19,6 +19,23 @@ public class UserRepository {
     @Autowired 
     private NamedParameterJdbcTemplate jdbc;
 
+    /** ユーザ情報をメールアドレスで1件取得するSQL */
+    private static final String SELECT_BY_MAIL = 
+            "SELECT * FROM user_m WHERE mail = :mail";
+
+    /**
+     * メールアドレスを条件にユーザ情報を取得します。
+     * @param data ユーザデータ
+     * @return 取得結果のマップリスト
+     */
+    public List<Map<String, Object>> findByMail(UserData data) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", data.getMail());
+
+        return jdbc.queryForList(SELECT_BY_MAIL, params);
+    }
+
+    
     private static final String COUNT_STAFF_LIST = 
         "SELECT COUNT(*) FROM user_m WHERE role = '店員' OR role = '店長'";
 

@@ -32,7 +32,7 @@ public class UserEntity {
     private int cancelCount;
 
     // 状態　BOOLEAN型
-    private boolean alive;
+    private Boolean alive;
 
     // ポイント　INTEGER型
     private int point;

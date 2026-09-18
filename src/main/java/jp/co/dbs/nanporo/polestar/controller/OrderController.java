@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jp.co.dbs.nanporo.polestar.data.OrderData;
 import jp.co.dbs.nanporo.polestar.request.OrderRegisterRequest;
+import jp.co.dbs.nanporo.polestar.response.OrderHistoryResponse;
 import jp.co.dbs.nanporo.polestar.service.OrderService;
 
 @Controller 
@@ -25,7 +26,7 @@ public class OrderController {
     /**
      * ホーム画面を表示します。
      */
-    @GetMapping("/")
+    @GetMapping("/home/order")
     public String index(Model model, Principal principal) {
         if (principal != null) {
             String mail = principal.getName();
@@ -36,6 +37,22 @@ public class OrderController {
 
         return "home";
     }
+
+    /**
+     * 予約履歴画面を表示します。
+     */
+    @GetMapping("/history")
+    public String showHistory(Model model, Principal principal) {
+        if (principal != null) {
+            String mail = principal.getName();
+            // 予約履歴を取得してModelへセット
+            List<OrderHistoryResponse> historyList = orderService.getOrderHistory(mail);
+            model.addAttribute("historyList", historyList);
+        }
+
+        return "history";
+    }
+    
 
     /**
      * 注文データを登録します（予約注文 または 店頭注文）
