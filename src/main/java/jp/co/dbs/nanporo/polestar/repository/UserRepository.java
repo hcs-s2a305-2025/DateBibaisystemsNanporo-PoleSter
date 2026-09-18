@@ -1,5 +1,7 @@
 package jp.co.dbs.nanporo.polestar.repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +152,84 @@ public class UserRepository {
 
         Map<String, Object> params = new HashMap<>();
         params.put("mail", mail);
+
+        jdbc.update(sql, params);
+    }
+
+    // 予約数
+    public int countOrder(LocalDate getTime) {
+        String sql = "SELECT COUNT(*) FROM order_t WHERE DATE(get_time) = :getTime AND status != 'キャンセル'";
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("getTime", getTime);
+
+        int count = jdbc.queryForObject(sql, params, Integer.class);
+
+        return count;
+    }
+
+    // 休業日追加
+    public void insertClose(LocalDate today, String type) {
+        String sql = "INSERT INTO close_t (close_day, close_type) VALUES (:today, :type)";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("today", today);
+        params.put("type", type);
+
+        jdbc.update(sql, params);
+    }
+
+    // 売上フラッシュ
+    // 時間帯別集計用のDTOクラス
+    public record SalesFlashDto(String timeRange, int totalSales, int customerCount) {}
+
+    public SalesFlashDto getHourlySalesFlash(String timeRange, LocalDateTime start, LocalDateTime end) {
+
+        String sql = """
+            SELECT 
+                COALESCE(SUM(sum_money), 0) AS total_sales,
+                COUNT(*) AS customer_count
+            FROM order_t
+            WHERE get_time BETWEEN :start AND :end
+            AND status != 'キャンセル'
+            """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("start", start);
+        params.put("end", end);
+
+        return jdbc.queryForObject(sql, params, (rs, rowNum) -> new SalesFlashDto(
+            timeRange,
+            rs.getInt("total_sales"),
+            rs.getInt("customer_count")
+        ));
+    }
+
+    // 顧客のメールアドレスを取得
+    public List<String> findCustomerEmails() {
+        String sql = "SELECT mail FROM user_m WHERE role = '顧客'";
+        return jdbc.getJdbcTemplate().queryForList(sql, String.class);
+    }
+
+    // 通知ID最大値取得
+    public int getMaxNoticeId() {
+        String sql = "SELECT COALESCE(MAX(notice_id), 0) FROM notice_t";
+        Integer maxId = jdbc.getJdbcTemplate().queryForObject(sql, Integer.class);
+        return maxId != null ? maxId : 0;
+    }
+
+    // 通知登録
+    public void insertNoticeWithId(int noticeId, String mail, LocalDateTime registerTime, String content) {
+        String sql = """
+            INSERT INTO notice_t (notice_id, mail, register_time, content)
+            VALUES (:noticeId, :mail, :registerTime, :content)
+            """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("noticeId", noticeId);
+        params.put("mail", mail);
+        params.put("registerTime", registerTime);
+        params.put("content", content);
 
         jdbc.update(sql, params);
     }
