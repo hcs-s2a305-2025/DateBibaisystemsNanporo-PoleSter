@@ -142,11 +142,19 @@ public class OrderRepository {
     }
 
     // ユーザーの「予約中（受付・調理中・完成）」の注文一覧を取得するSQL
-    private static final String SELECT_ACTIVE_ORDERS_BY_MAIL = 
-            "SELECT * FROM order_t "
-            + "WHERE mail = :mail "
-            + "  AND status IN ('受付', '調理中', '完成') "
-            + "ORDER BY get_time ASC";
+    // private static final String SELECT_ACTIVE_ORDERS_BY_MAIL = 
+    //         "SELECT * FROM order_t "
+    //         + "WHERE mail = :mail "
+    //         + "  AND status IN ('受付', '調理中', '完成') "
+    //         + "ORDER BY get_time ASC";
+    private static final String SELECT_ACTIVE_ORDERS_WITH_DETAILS = 
+            "SELECT o.order_id, o.order_number, o.get_time, o.mail, o.sum_money, o.memo, o.status, "
+            + "       d.order_count, d.goods_id, d.count, g.goods_name "
+            + "FROM order_t o "
+            + "LEFT JOIN order_detail_t d ON o.order_id = d.order_id "
+            + "LEFT JOIN goods_m g ON d.goods_id = g.goods_id "
+            + "WHERE o.mail = :mail AND o.status IN ('受付', '調理中', '完成') "
+            + "ORDER BY o.get_time ASC, d.order_count ASC";
 
     /**
      * ログインユーザーの予約中（受付・調理中・完成）の注文一覧を取得します。
@@ -155,7 +163,7 @@ public class OrderRepository {
         Map<String, Object> params = new HashMap<>();
         params.put("mail", mail);
 
-        return jdbc.queryForList(SELECT_ACTIVE_ORDERS_BY_MAIL, params);
+        return jdbc.queryForList(SELECT_ACTIVE_ORDERS_WITH_DETAILS, params);
     }
 
     // ユーザーの予約履歴一覧（降順）を取得するSQL

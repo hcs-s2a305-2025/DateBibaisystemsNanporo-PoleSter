@@ -9,10 +9,10 @@ public class OrderDetailEntity {
     private Integer orderId;
 
     // 品目番号
-    private String orderCount;
+    private Integer orderCount;
 
     // 商品ID
-    private Integer goodsId;
+    private String goodsId;
 
     // セット商品ID
     private Integer setGoodsId;

@@ -40,18 +40,19 @@
             <h2>予約中の商品</h2>
             
             <!-- 予約データが存在しない場合 -->
-            <div class="item-block" th:if="${#lists.isEmpty(reservedList)}">
+            <div class="item-block" th:if="${#lists.isEmpty(activeOrders)}">
                 <h5 class="item-block-text">予約中の商品はありません。</h5>
             </div>
 
             <!-- 予約データが存在する場合 -->
-            <div class="item-block" th:each="item : ${reservedList}">
+            <div class="item-block" th:each="item : ${activeOrders}">
                 <div class="item-block-info">
-                    <p th:text="${'注文番号：' + item.orderNumber + '番'}">注文番号：8番</p>
-                    <p th:text="${'会計：' + #numbers.formatInteger(item.totalPrice, 1, 'COMMA') + '円'}">会計：780円</p>
-                    <p th:text="${'受け取り予定：' + item.pickupTime}">受け取り予定：12:30</p>
+                    <p th:text="${'注文番号：' + item.order.orderNumber }">注文番号：M0001</p>
+                    <p th:text="${'会計：' + #numbers.formatInteger(item.order.sumMoney, 1, 'COMMA') + '円'}">会計：780円</p>
+                    <p th:text="${'受け取り予定：' + #dates.format(item.order.getTime, 'yyyy/MM/dd HH:mm')}">受け取り予定：12:30</p>
+                    <p th:text="${'ステータス：' + item.order.status}">ステータス：受付</p>
                 </div>
-                <h3 th:text="${'注文商品：' + item.name}">注文商品：元祖ザンギ弁当（5個）</h3>
+                <h3 th:text="${'注文商品：' + item.goodsNames}">注文商品：元祖ザンギ弁当（5個）</h3>
                 <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
             </div>
 
@@ -77,19 +78,19 @@
 	<!-- <div th:replace="~{common/footer}"></div> -->
     <footer class="footer-content">
         <div class="footer-btn">
-            <a href=""><img style="width: 36px; height: 53px;" src="../static/img/ホームボタン.png" alt="ホーム"></a>
+            <a href="home"><img style="width: 36px; height: 53px;" src="../static/img/ホームボタン.png" th:src="@{/img/ホームボタン.png}" alt="ホーム"></a>
         </div>
         <div class="footer-btn">
-            <a href=""><img style="width: 48px; height: 53px;"  src="../static/img/メニューボタン.png" alt="メニュー"></a>
+            <a href="menu"><img style="width: 48px; height: 53px;"  src="../static/img/メニューボタン.png" th:src="@{/img/メニューボタン.png}" alt="メニュー"></a>
         </div>
         <div class="footer-btn" style="position: relative; top: -20px;">
-            <a href=""><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" alt="予約"></a>
+            <a href="reserve"><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" th:src="@{/img/予約ボタン.png}" alt="予約"></a>
         </div>
         <div class="footer-btn">
-            <a href=""><img style="width: 33px; height: 51px;" src="../static/img/履歴ボタン.png" alt="履歴"></a>
+            <a href="history"><img style="width: 33px; height: 51px;" src="../static/img/履歴ボタン.png" th:src="@{/img/履歴ボタン.png}" alt="履歴"></a>
         </div>
         <div class="footer-btn">
-            <a href=""><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" alt="マイページ"></a>
+            <a href="settings"><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" th:src="@{/img/マイページボタン.png}" alt="マイページ"></a>
         </div>
     </footer>
 </body>

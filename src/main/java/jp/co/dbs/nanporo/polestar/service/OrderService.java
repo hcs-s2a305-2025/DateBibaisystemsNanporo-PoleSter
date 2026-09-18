@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
 import jp.co.dbs.nanporo.polestar.repository.OrderRepository;
 import jp.co.dbs.nanporo.polestar.request.OrderDetailRequest;
 import jp.co.dbs.nanporo.polestar.request.OrderRegisterRequest;
+import jp.co.dbs.nanporo.polestar.response.ActiveOrderResponse;
 import jp.co.dbs.nanporo.polestar.response.OrderHistoryResponse;
 import jp.co.dbs.nanporo.polestar.response.OrderRegisterResponse;
 
@@ -28,6 +30,20 @@ public class OrderService {
 
     @Autowired 
     private OrderRepository orderRepository;
+
+    // 文字列や数値型を安全に Integer へ変換するメソッド
+    private Integer toInteger(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        return Integer.parseInt(value.toString());
+    }
 
     /**
      * 新規注文を登録します。
@@ -64,7 +80,7 @@ public class OrderService {
                 // 親の orderId と明細連番をセット
                 OrderDetailData detail = new OrderDetailData();
                 detail.setOrderId(orderId);
-                detail.setOrderCount(String.valueOf(orderCount++));
+                detail.setOrderCount(Integer.valueOf(orderCount++));
                 detail.setGoodsId(detailRequest.getGoodsId());
                 detail.setSetGoodsId(detailRequest.getSetGoodsId());
                 detail.setCount(detailRequest.getCount());
@@ -88,27 +104,54 @@ public class OrderService {
     /**
      * ログインユーザーの予約中の注文（受付・調理中・完成）を取得します。
      */
-    public List<OrderData> getActiveOrders(String mail) {
+    public List<ActiveOrderResponse> getActiveOrders(String mail) {
         List<Map<String, Object>> rows = orderRepository.getActiveOrdersByMail(mail);
-        List<OrderData> orderList = new ArrayList<>();
+        Map<Integer, ActiveOrderResponse> map = new LinkedHashMap<>();
 
         for (Map<String, Object> row : rows) {
-            OrderData order = new OrderData();
-            order.setOrderId((Integer) row.get("order_id"));
-            order.setOrderNumber((String) row.get("order_number"));
-            
-            if (row.get("get_time") != null) {
+            // Integer orderId = (Integer) row.get("order_id");
+            Integer orderId = toInteger(row.get("order_id"));
+
+            // 親データの生成（初回のみ）
+            ActiveOrderResponse response = map.computeIfAbsent(orderId, id -> {
+                ActiveOrderResponse res = new ActiveOrderResponse();
+                
+                OrderData order = new OrderData();
+                order.setOrderId(id);
+                order.setOrderNumber((String) row.get("order_number"));
                 order.setGetTime((java.sql.Timestamp) row.get("get_time"));
+                order.setMail((String) row.get("mail"));
+                // order.setSumMoney((Integer) row.get("sum_money"));
+                Integer sumMoney = toInteger(row.get("sum_money"));
+                order.setSumMoney(sumMoney != null ? sumMoney : 0);
+                order.setMemo((String) row.get("memo"));
+                order.setStatus((String) row.get("status"));
+                
+                res.setOrder(order);
+                res.setDetails(new ArrayList<>());
+                return res;
+            });
+
+            // 明細データの追加
+            if (row.get("goods_id") != null) {
+                ActiveOrderResponse.OrderDetailItem item = new ActiveOrderResponse.OrderDetailItem();
+                item.setGoodsId((String) row.get("goods_id"));
+                item.setGoodsName((String) row.get("goods_name"));
+                // item.setCount((Integer) row.get("count"));
+                item.setCount(toInteger(row.get("count")));
+                response.getDetails().add(item);
             }
-            order.setMail((String) row.get("mail"));
-            order.setSumMoney((Integer) row.get("sum_money"));
-            order.setMemo((String) row.get("memo"));
-            order.setStatus((String) row.get("status"));
-            
-            orderList.add(order);
         }
 
-        return orderList;
+        // 表示用の商品名文字列（カンマ区切り）を生成
+        for (ActiveOrderResponse res : map.values()) {
+            String names = res.getDetails().stream()
+                    .map(ActiveOrderResponse.OrderDetailItem::getGoodsName)
+                    .collect(Collectors.joining(", "));
+            res.setGoodsNames(names);
+        }
+
+        return new ArrayList<>(map.values());
     }
 
     /**

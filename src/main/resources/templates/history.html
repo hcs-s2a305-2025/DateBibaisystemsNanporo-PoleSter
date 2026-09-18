@@ -40,26 +40,26 @@
             <h2>予約した商品</h2>
             
             <!-- 予約データが存在しない場合 -->
-            <div class="item-block" th:if="${#lists.isEmpty(reservedList)}">
+            <div class="item-block" th:if="${#lists.isEmpty(historyList)}">
                 <h5 class="item-block-text">注文履歴はありません。</h5>
             </div>
 
             <!-- 予約データが存在する場合 -->
-            <div class="item-block" th:each="item : ${reservedList}">
+            <div class="item-block" th:each="order : ${historyList}">
                 <!-- 注文日 -->
-                <h3 th:text="${item.orderDate}">2026年9月7日</h3>
+                <h3 th:text="${order.formattedDate}">2026年9月7日</h3>
                 
                 <!-- 商品名 -->
-                <h4 th:text="${item.name}">元祖ザンギ弁当（5個）</h4>
+                <h4 th:text="${item.goodsname}">元祖ザンギ弁当（5個）</h4>
                 
                 <!-- 金額 -->
-                <h5 th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>
+                <h5 th:text="${#numbers.formatInteger(item.goodsprice, 1, 'COMMA') + '円'}">780円</h5>
                 
                 <!-- 商品画像 -->
                 <img class="product-img" src="../static/img/ザンギ弁当.jpg" th:src="@{${item.imageUrl}}" alt="商品画像">
                 
                 <!-- トッピング・ソース一覧 -->
-                <div th:each="sauce : ${item.sauceList}">
+                <div th:each="sauce : ${item.customList}">
                     <p class="text-secondary mb-1" th:text="${sauce.name + '(+' + sauce.price + '円)'}">タルタルソース(+50円)</p>
                 </div>
                 

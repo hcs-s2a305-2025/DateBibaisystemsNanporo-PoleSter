@@ -52,17 +52,20 @@
             </div>
 
             <!-- メニューデータが存在する場合（th:eachでループ） -->
-            <div class="item-block menu-item" th:each="item : ${menuList}">
-                <div class="name-block" style="min-width: 0;"> <!-- min-width: 0 でflex要素内の ellipsis 崩れを防止 -->
-                    <!-- 商品名（はみ出したら...で切り取り） -->
-                    <h3 class="text-truncate" th:text="${item.name}">元祖ザンギ弁当（3個）</h3>
-                    
-                    <!-- 金額 -->
-                    <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
-                </div>
+            <div class="item-block menu-item"
+                th:each="item : ${menuList}"
+                th:onclick="|location.href='@{/menu/add(goodsId=${item.goodsId})}'|"
+                style="cursor: pointer;">
+                    <div class="name-block" style="min-width: 0;" > <!-- min-width: 0 でflex要素内の ellipsis 崩れを防止 -->
+                        <!-- 商品名（はみ出したら...で切り取り） -->
+                        <h3 class="text-truncate" th:text="${item.goodsName}">元祖ザンギ弁当（3個）</h3>
+                        
+                        <!-- 金額 -->
+                        <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
+                    </div>
 
-                <!-- 商品画像 -->
-                <img src="../static/img/ザンギ弁当.jpg" th:src="@{${item.imageUrl}}" alt="商品画像">
+                    <!-- 商品画像 -->
+                    <img src="../static/img/ザンギ弁当.jpg" th:src="@{${item.photo}}" alt="商品画像">
             </div>
         </div>
     </main>

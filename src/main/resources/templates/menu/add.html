@@ -38,12 +38,16 @@
 
     <!-- メインコンテンツ部 -->
     <main class="main-content">
-        <div class="main-PC">
-            <div class="additem-block">
-                <img class="add-product-img" src="../../static/img/ザンギ弁当.jpg" alt="">
+        <div class="main-PC" th:if="${goods != null}">
+            <!-- カート追加用フォーム -->
+            <form th:action="@{/cart/add}" method="POST" class="additem-block">
+                <!-- 商品IDの保持 -->
+                <input type="hidden" name="goodsId" th:value="${goods.goodsId}">
+
+                <img class="add-product-img" th:src="@{${goods.photo}}" src="../../static/img/ザンギ弁当.jpg" alt="">
                 <div class="add-select">
-                    <h1>元祖ザンギ弁当（5個）</h1>
-                    <h3>￥780円</h3>
+                    <h1 th:text="${goods.goodsName}">元祖ザンギ弁当（5個）</h1>
+                    <h3 th:text="${'￥' + #numbers.formatInteger(goods.price, 1, 'COMMA') + '円'}">￥780円</h3>
                     <br><br>
                     <div class="add-selector d-flex align-items-center mb-3">
                         <h2 class="fs-5 me-3 mb-0 col-auto">ご飯の量：</h2>
@@ -63,13 +67,15 @@
                             <option value="min">旨辣麻婆ソース</option>
                         </select>
                     </div>
-                    <h1 class="mt-5" style="display: flex; justify-content: center;">合計：￥960円</h1>
+
+                    <h1 class="mt-5" style="display: flex; justify-content: center;"
+                    th:text="${'合計：￥' + #numbers.formatInteger(goods.price, 1, 'COMMA') + '円'}">合計：￥960円</h1>
                     <div class="gap-2 pt-2" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <button id="changesConfirmedBtn" type="submit" class="btn btn-warning mt-4" style="width: 50%;">カートに入れる</button>
-                        <a href="/dashboard" id="discardChanges" class="btn btn-outline-secondary mt-3" style="width: 30%;">破棄して戻る</a>
+                        <a href="/menu" th:href="@{/menu}" id="discardChanges" class="btn btn-outline-secondary mt-3" style="width: 30%;">破棄して戻る</a>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     </main>
 

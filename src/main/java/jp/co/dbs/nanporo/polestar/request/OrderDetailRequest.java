@@ -6,7 +6,7 @@ import lombok.Data;
 public class OrderDetailRequest {
 
     // 商品ID
-    private Integer goodsId;
+    private String goodsId;
 
     // セット商品ID
     private Integer setGoodsId;

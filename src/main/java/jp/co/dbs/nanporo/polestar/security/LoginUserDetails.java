@@ -29,7 +29,7 @@ public class LoginUserDetails implements UserDetails {
     }
     @Override
     public String getUsername() {
-        return userEntity.getName();
+        return userEntity.getMail();
     }
     @Override
     public boolean isAccountNonExpired() {
