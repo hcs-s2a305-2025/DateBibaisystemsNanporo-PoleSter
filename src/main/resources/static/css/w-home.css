@@ -1,0 +1,30 @@
+.menu-grid{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-block-w{
+    position: relative;
+    background-color: #fffce9;
+    height: 100px;
+    width: 200px;
+    margin: 20px;
+    padding: 15px;
+    border-radius: 20px;
+    /* box-shadow: inset [横方向] [縦方向] [ぼかし] [広がり] [色]; */
+    box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+    color: #303030;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.air-block-w{
+    position: relative;
+    height: 100px;
+    width: 200px;
+    margin: 20px;
+    padding: 15px;
+}

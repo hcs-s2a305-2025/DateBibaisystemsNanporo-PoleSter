@@ -55,6 +55,17 @@ h2,h3{
     padding-right: 3px;
 }
 
+.header-btn-w{
+    width: 150px;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+.header-btn-w a{
+    color: #393939;
+    text-decoration: none;
+}
+
 /* コンテンツ */
 /* 基本ブロック */
 .item-block{
