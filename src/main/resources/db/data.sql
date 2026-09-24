@@ -47,7 +47,7 @@ VALUES
 ),
 -- 店長と店員
 (
-    'hiroshimaatushi@example.com',
+    'hiroshimaatsushi@example.com',
     '廣島暖士',
     '$2a$10$xRTXvpMWly0oGiu65WZlm.3YL95LGVV2ASFjDhe6WF4.Qji1huIPa',
     '店長',

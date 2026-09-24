@@ -23,6 +23,8 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/signup/**", "/css/**", "/js/**", "/img/**", "/error", "/favicon.ico").permitAll()
+                // 店員・店長専用パスのアクセス制御（必要に応じて）
+                .requestMatchers("/w/**").hasAnyAuthority("店長", "店員", "ROLE_店長", "ROLE_店員")
                 .requestMatchers("/user", "/user/**").hasRole("2")
                 .anyRequest().authenticated()
             )
@@ -31,7 +33,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login") // POSTでログイン処理するURL
                 .usernameParameter("mail") // ユーザ名のパラメータ名
                 .passwordParameter("password") // パスワードのパラメータ名
-                .defaultSuccessUrl("/", true)
+                .defaultSuccessUrl("/login-success", true) // ★ログイン成功後に判定エンドポイントへ遷移
                 .failureUrl("/login?error=true")
                 .permitAll()
             )

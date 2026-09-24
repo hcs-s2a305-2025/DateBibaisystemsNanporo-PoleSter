@@ -35,4 +35,12 @@ public class polestarController {
     public String homeRedirect() {
         return "redirect:/"; // 「/」の表示処理へ転送
     }
+
+    /**
+     * 店員・店長用ホーム画面 (templates/w/home.html)
+     */
+    @GetMapping("/w/home")
+    public String workerHome() {
+        return "w/home"; // templates/w/home.html を表示
+    }
 }
