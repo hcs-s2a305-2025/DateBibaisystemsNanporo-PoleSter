@@ -42,9 +42,9 @@
             </a>
         </div>
         <div class="header-item d-flex justify-content-end">
-            <div class="edit-btn">
+            <button class="edit-btn">
                 <a href="" style="color: #0047A3; text-decoration: none;">編集</a>
-            </div>
+            </button>
         </div>
         <div class="header-btn">
             <h5 id="date"></h5>
@@ -57,75 +57,75 @@
         <div class="row">
             <!-- 商品選択ブロックエリア -->
             <div class="selector-area col-5">
-                <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                    <div class="col selecter-Button-item">
+                <div class="row selectbutton">
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>ザンギB 3</p>
                         <p>580円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>ザンギB 4</p>
                         <p>680円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>ザンギB 5</p>
                         <p>780円</p>
-                    </div>
+                    </button>
                 </div>
-                <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                    <div class="col selecter-Button-item">
+                <div class="row selectbutton">
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>ザンギB追加1</p>
                         <p>100円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>三元豚トンカツB</p>
                         <p>750円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>特タレ生姜焼きB</p>
                         <p>720円</p>
-                    </div>
+                    </button>
                 </div>
-                <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                    <div class="col selecter-Button-item">
+                <div class="row selectbutton">
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>出汁チキン南蛮B</p>
                         <p>780円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>S 満腹ザンギ</p>
                         <p>200円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>S 定番コンビ</p>
                         <p>200円</p>
-                    </div>
+                    </button>
                 </div>
-                <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                    <div class="col selecter-Button-item">
+                <div class="row selectbutton">
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>単ザンギ</p>
                         <p>120円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>単トンカツ</p>
                         <p>550円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>日替味噌汁</p>
                         <p>100円</p>
-                    </div>
+                    </button>
                 </div>
-                <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                    <div class="col selecter-Button-item">
+                <div class="row selectbutton">
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>ミニカレールー</p>
                         <p>200円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>自家製ポテトサラダ</p>
                         <p>150円</p>
-                    </div>
-                    <div class="col selecter-Button-item">
+                    </button>
+                    <button class="col selecter-Button-item" data-bs-toggle="modal" data-bs-target="#posModal1" style="cursor: pointer;">
                         <p>おろし大根シャキサラ</p>
                         <p>150円</p>
-                    </div>
+                    </button>
                 </div>
                 <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 40px;">
                     <!-- ページネーションエリア -->
@@ -149,24 +149,26 @@
                         class="pagination-arrow" 
                         th:classappend="${currentPage + 1 == response.totalPages} ? 'disabled'">&gt;</a>
                     </div>
-                    <div class="edit-btn yellow-btn" style="margin-left: 20px;">
+                    <button class="edit-btn yellow-btn" style="margin-left: 20px;">
                         <a href=""  style="color: #0047A3; text-decoration: none;">QR</a>
-                    </div>
+                    </button>
                 </div>
                 
             </div>
 
             <!-- 計算エリア -->
             <div class="clac-area col-7">
-                <div></div>
                 <div>
                     <div class="pay-disp">
-                        <div class="edit-btn">
-                            <a href="" style="color: #0047A3; text-decoration: none;">詳細</a>
-                        </div>
+                        <button class="edit-btn">
+                            <a href="" style="color: #0047A3; text-decoration: none;" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#posModal3"
+                            >詳細</a>
+                        </button>
                         <div class="pay-amount">
                             <h3>合計</h3>
-                            <h1><h1><h1></h1></h1></h1>
+                            <h1></h1>
                             <h1>660</h1>
                             <h3>円</h3>
                         </div>
@@ -178,381 +180,398 @@
                     <div class="clac-button">
                         <!-- 1行目: アクションボタン上部 -->
                         <div class="row">
-                            <div class="col selecter-Button-narrow blue-btn">
+                            <button class="col selecter-Button-narrow blue-btn">
                                 <p>C</p>
-                            </div>
+                            </button>
                             <!-- アクション1のボタン群 -->
-                            <div class="col selecter-Button-narrow blue-btn action-group-1">
+                            <button class="col selecter-Button-narrow blue-btn action-group-1">
                                 <p>取消</p>
-                            </div>
-                            <div class="col selecter-Button-narrow yellow-btn action-group-1">
+                            </button>
+                            <button class="col selecter-Button-narrow yellow-btn action-group-1">
                                 <p>万券</p>
-                            </div>
+                            </button>
                             <!-- アクション2のボタン群（初期は非表示） -->
-                            <div class="col selecter-Button-narrow red-btn action-group-2 d-none">
+                            <button class="col selecter-Button-narrow red-btn action-group-2 d-none">
                                 <p>返品</p>
-                            </div>
-                            <div class="col selecter-Button-narrow pink-btn action-group-2 d-none">
+                            </button>
+                            <button class="col selecter-Button-narrow pink-btn action-group-2 d-none">
                                 <p>値引</p>
-                            </div>
+                            </button>
                         </div>
 
                         <!-- 2行目: テンキー (7, 8, 9) -->
                         <div class="row">
-                            <div class="col selecter-Button"><p>7</p></div>
-                            <div class="col selecter-Button"><p>8</p></div>
-                            <div class="col selecter-Button"><p>9</p></div>
+                            <button class="col selecter-Button"><p>7</p></button>
+                            <button class="col selecter-Button"><p>8</p></button>
+                            <button class="col selecter-Button"><p>9</p></button>
                         </div>
 
                         <!-- 3行目: テンキー (4, 5, 6) -->
                         <div class="row">
-                            <div class="col selecter-Button"><p>4</p></div>
-                            <div class="col selecter-Button"><p>5</p></div>
-                            <div class="col selecter-Button"><p>6</p></div>
+                            <button class="col selecter-Button"><p>4</p></button>
+                            <button class="col selecter-Button"><p>5</p></button>
+                            <button class="col selecter-Button"><p>6</p></button>
                         </div>
 
                         <!-- 4行目: テンキー (1, 2, 3) -->
                         <div class="row">
-                            <div class="col selecter-Button"><p>1</p></div>
-                            <div class="col selecter-Button"><p>2</p></div>
-                            <div class="col selecter-Button"><p>3</p></div>
+                            <button class="col selecter-Button"><p>1</p></button>
+                            <button class="col selecter-Button"><p>2</p></button>
+                            <button class="col selecter-Button"><p>3</p></button>
                         </div>
 
                         <!-- 5行目: テンキー (0, 00, M/取消) -->
                         <div class="row">
-                            <div class="col selecter-Button"><p>0</p></div>
-                            <div class="col selecter-Button"><p>00</p></div>
-                            <div class="col selecter-Button green-btn action-group-1"><p>M</p></div>
-                            <div class="col selecter-Button blue-btn action-group-2 d-none"><p>取消</p></div>
+                            <button class="col selecter-Button"><p>0</p></button>
+                            <button class="col selecter-Button"><p>00</p></button>
+                            <button class="col selecter-Button green-btn action-group-1"><p>M</p></button>
+                            <button class="col selecter-Button blue-btn action-group-2 d-none"><p>取消</p></button>
                         </div>
 
                         <!-- 6行目: アクション切り替え ＆ 決定行 -->
                         <div class="row">
                             <!-- 切替実行ボタン -->
-                            <div class="selecter-Button-square" id="toggle-action-btn" style="cursor: pointer;">
+                            <button class="selecter-Button-square" id="toggle-action-btn" style="cursor: pointer;">
                                 <p>切替</p>
-                            </div>
-                            <div class="selecter-Button-square">
+                            </button>
+                            <button class="selecter-Button-square">
                                 <p>×</p>
-                            </div>
+                            </button>
                             
                             <!-- アクション1決定 -->
-                            <div class="col selecter-Button-narrow yellow-btn action-group-1">
+                            <button class="col selecter-Button-narrow yellow-btn action-group-1">
                                 <p>決定</p>
-                            </div>
+                            </button>
 
                             <!-- アクション2拡張ボタン -->
-                            <div class=" selecter-Button-square yellow-btn action-group-2 d-none">
+                            <button class=" selecter-Button-square yellow-btn action-group-2 d-none">
                                 <p>両替</p>
-                            </div>
-                            <div class=" selecter-Button-square action-group-2 d-none">
+                            </button>
+                            <button class=" selecter-Button-square action-group-2 d-none">
                                 <p>領収書</p>
-                            </div>
+                            </button>
 
-                            <div class="col selecter-Button-narrow orange-btn">
+                            <button class="col selecter-Button-narrow orange-btn" data-bs-toggle="modal" data-bs-target="#posModal2" style="cursor: pointer;">
                                 <p>小計</p>
-                            </div>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 商品詳細モーダル(作り終わったらclassにmodalを入れる) -->
+
+        <!-- 商品詳細モーダル -->
         <div id="posModal1" class="modal modal-window">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title">商品詳細</h2>
-                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
+            <h2 class="modal-title">商品詳細</h2>
+            <div class="modal-body">
+                <div class="modal-productname row">
+                    <h2 class="col" th:text="${product.name}">元祖ザンギ弁当（３個）</h2>
+                    <hr class="my-1">
+                    <h4 class="col" th:text="${product.description}">ｶﾞﾝｿｻﾞﾝｷﾞﾍﾞﾝﾄｳｻﾝｺｲﾘ</h4>
                 </div>
-                <div class="modal-body">
-                    <div class="modal-productname row">
-                        <h2 class="col" th:text="${product.name}">元祖ザンギ弁当（３個）</h2>
-                        <hr class="my-1">
-                        <h4 class="col" th:text="${product.description}">ｶﾞﾝｿｻﾞﾝｷﾞﾍﾞﾝﾄｳｻﾝｺｲﾘ</h4>
+                <div class="modal-select col-5">
+                    <div class="row selectbutton">
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>ごはん小盛り</p>
+                            <p>-50円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>ごはん普通</p>
+                            <p>0円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>ごはん大盛り</p>
+                            <p>+50円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>ごはん特盛</p>
+                            <p>+100円</p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
                     </div>
-                    <div class="modal-select col-5">
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>ごはん小盛り</p>
-                                <p>-50円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>ごはん普通</p>
-                                <p>0円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>ごはん大盛り</p>
-                                <p>+50円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>ごはん特盛</p>
-                                <p>+100円</p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                        </div>
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>おろしポン酢</p>
-                                <p>+50円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>自家製タルタル</p>
-                                <p>+80円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>油淋鶏風ネギダレ</p>
-                                <p>+80円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>旨辣麻婆ソース</p>
-                                <p>+100円</p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                        </div>
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>追加ザンギ</p>
-                                <p>+100円</p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
+                    <div class="row selectbutton">
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>おろしポン酢</p>
+                            <p>+50円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>自家製タルタル</p>
+                            <p>+80円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>油淋鶏風ネギダレ</p>
+                            <p>+80円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>旨辣麻婆ソース</p>
+                            <p>+100円</p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                    </div>
+                    <div class="row selectbutton">
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>追加ザンギ</p>
+                            <p>+100円</p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                    </div>
+                    <div class="row selectbutton">
+                        <div class="col-5 pay-disp">
+                            <div class="pay-amount">
+                                <h3>合計</h3>
+                                <h1></h1>
+                                <h1>660</h1>
+                                <h3>円</h3>
                             </div>
                         </div>
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col-5 pay-disp">
-                                <div class="pay-amount">
-                                    <h3>合計</h3>
-                                    <h1><h1><h1></h1></h1></h1>
-                                    <h1>660</h1>
-                                    <h3>円</h3>
-                                </div>
-                            </div>
-                            <div class="col selecter-Button-modal modal-warning">
-                                <h3>販売停止</h3>
-                            </div>
-                            <div class="col selecter-Button-modal modal-add">
-                                <h3>追加する</h3>
-                            </div>
-                            <div class="col selecter-Button-modal modal-close">
-                                <h3>閉じる</h3>
-                            </div>
-                        </div>
+                        <button class="col selecter-Button-modal modal-warning">
+                            <h3>販売停止</h3>
+                        </button>
+                        <button class="col selecter-Button-modal modal-add">
+                            <h3>追加する</h3>
+                        </button>
+                        <button class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
+                            <h3>閉じる</h3>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 小計操作モーダル(作り終わったらclassにmodalを入れる) -->
+        <!-- 小計操作モーダル -->
         <div id="posModal2" class="modal modal-window">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title">小計操作</h2>
-                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
-                </div>
-                <div class="modal-body">
-                    <div class="col pay-disp" style="margin-top: 10px; margin-left: 50px; margin-right: 50px;">
-                        <div class="pay-amount">
-                            <h3>合計</h3>
-                            <h1><h1><h1></h1></h1></h1>
-                            <h1>660</h1>
-                            <h3>円</h3>
-                        </div>
+            <h2 class="modal-title">小計操作</h2>
+            <div class="modal-body">
+                <div class="col pay-disp" style="margin-top: 10px; margin-left: 50px; margin-right: 50px;">
+                    <div class="pay-amount">
+                        <h3>合計</h3>
+                        <h1></h1>
+                        <h1>660</h1>
+                        <h3>円</h3>
                     </div>
-                    <div class="modal-select col-5">
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>割引 学生</p>
-                                <p>-50円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>スタンプカード割引</p>
-                                <p>-100円</p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>スタンプカード唐揚げ1無料</p>
-                                <p>-100円</p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
+                </div>
+                <div class="modal-select col-5">
+                    <div class="row selectbutton">
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>割引 学生</p>
+                            <p>-50円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>スタンプカード割引</p>
+                            <p>-100円</p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>スタンプカード唐揚げ1無料</p>
+                            <p>-100円</p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                    </div>
+                    <div class="row selectbutton">
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                    </div>
+                    <div class="row selectbutton">
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>5%</p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal modal-nomal">
+                            <p>10%</p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                        <button class="col selecter-Button-modal">
+                            <p></p>
+                            <p></p>
+                        </button>
+                    </div>
+                    <div class="row select-button">
+                        <button class="col selecter-Button-modal modal-warning">
+                            <h3>小計割引</h3>
+                        </button>
+                        <div class="col selecter-Button-modal-dummy">
+                            <p></p>
+                            <p></p>
                         </div>
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
+                        <button class="col selecter-Button-modal modal-submit">
+                            <h3>預/現計</h3>
+                        </button>
+                        <div class="col selecter-Button-modal-dummy">
+                            <p></p>
+                            <p></p>
                         </div>
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>5%</p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-nomal">
-                                <p>10%</p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal">
-                                <p></p>
-                                <p></p>
-                            </div>
-                        </div>
-                        <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                            <div class="col selecter-Button-modal modal-warning">
-                                <h3>小計割引</h3>
-                            </div>
-                            <div class="col selecter-Button-modal-dummy">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-submit">
-                                <h3>預/現計</h3>
-                            </div>
-                            <div class="col selecter-Button-modal-dummy">
-                                <p></p>
-                                <p></p>
-                            </div>
-                            <div class="col selecter-Button-modal modal-close">
-                                <h3>閉じる</h3>
-                            </div>
-                        </div>
+                        <button class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
+                            <h3>閉じる</h3>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         
-        <!-- 商品詳細モーダル(作り終わったらclassにmodalを入れる) -->
+        <!-- 登録詳細モーダル -->
         <div id="posModal3" class="modal modal-window">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title">登録詳細</h2>
-                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
-                </div>
-                <div class="modal-body">
-                    <table class="table table-hover align-middle custom-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">No</th>
-                                <th scope="col">商品名</th>
-                                <th scope="col">数量</th>
-                                <th scope="col">単価</th>
-                                <th scope="col">割引額</th>
-                                <th scope="col">合計</th>
-                                <th scope="col"></th> <!-- ボタン用 -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="user, stat : ${response.users}" class="user-row">
-                                <!-- 番号 -->
-                                <td th:text="${stat.count}">1</td>
+            <h2 class="modal-title">登録詳細</h2>
+            <div class="modal-body">
+                <table class="table table-hover align-middle custom-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">No</th>
+                            <th scope="col">商品名</th>
+                            <th scope="col">数量</th>
+                            <th scope="col">単価</th>
+                            <th scope="col">割引額</th>
+                            <th scope="col">合計</th>
+                            <th scope="col"></th> <!-- ボタン用 -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user, stat : ${response.users}" class="user-row">
+                            <!-- 番号 -->
+                            <td th:text="${stat.count}">1</td>
 
-                                <!-- 商品名 -->
-                                <td th:text="${user.mail}">元祖ザンギ弁当（3個）</td>
+                            <!-- 商品名 -->
+                            <td th:text="${user.mail}">元祖ザンギ弁当（3個）</td>
 
-                                <!-- 数量 -->
-                                <td th:text="${user.memberRank}">1</td>
+                            <!-- 数量 -->
+                            <td th:text="${user.memberRank}">1</td>
 
-                                <!-- 単価 -->
-                                <td th:text="${user.cancelCount}">660</td>
-                                
-                                <!-- 割引額 -->
-                                <td th:text="${user.name}">0</td>
-                                
-                                <!-- 合計 -->
-                                <td th:text="${user.alive ? '無効' : '有効'}">660</td>
+                            <!-- 単価 -->
+                            <td th:text="${user.cancelCount}">660</td>
+                            
+                            <!-- 割引額 -->
+                            <td th:text="${user.name}">0</td>
+                            
+                            <!-- 合計 -->
+                            <td th:text="${user.alive ? '無効' : '有効'}">660</td>
 
-                                <!-- 操作ボタン -->
-                                <td class="text-end">
-                                    <!-- 削除ボタン -->
-                                    <button type="button" class="btn-delete" th:data-mail="${user.mail}" onclick="deleteCustomer(this)">削除</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="row selectbutton" th:each="i : ${#numbers.sequence(1, 5)}">
-                        <div class="col-5 pay-disp">
-                            <div class="pay-amount">
-                                <h3>合計</h3>
-                                <h1><h1><h1></h1></h1></h1>
-                                <h1>660</h1>
-                                <h3>円</h3>
-                            </div>
-                        </div>
-                        <div class="col-2"></div>
-                        <div class="col-3"></div>
-                        <div class="col selecter-Button-modal modal-close">
-                            <h3>閉じる</h3>
+                            <!-- 操作ボタン -->
+                            <td class="text-end">
+                                <!-- 削除ボタン -->
+                                <button type="button" class="btn-delete" th:data-mail="${user.mail}" onclick="deleteCustomer(this)">削除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="row selectbutton">
+                    <div class="col-5 pay-disp">
+                        <div class="pay-amount">
+                            <h3>合計</h3>
+                            <h1></h1>
+                            <h1>660</h1>
+                            <h3>円</h3>
                         </div>
                     </div>
+                    <div class="col-2"></div>
+                    <div class="col-3"></div>
+                    <button type="button" class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
+                        <h3>閉じる</h3>
+                    </button>
                 </div>
             </div>
         </div>
     </main>
-    
 
-    <!-- JS -->
-    <script src="../../static/js/time.js"></script>
+    <!-- 機能拡張用スクリプト -->
     <script>
+        // 日付・時計のリアルタイム表示
+        function updateClock() {
+            const now = new Date();
+            const dateElem = document.getElementById('date');
+            const clockElem = document.querySelector('.clock');
+            
+            if (dateElem && clockElem) {
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                
+                dateElem.textContent = `${year}/${month}/${day}`;
+                clockElem.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 電卓のアクション切り替えボタン機能
         document.addEventListener('DOMContentLoaded', () => {
             const toggleBtn = document.getElementById('toggle-action-btn');
-            const group1 = document.querySelectorAll('.action-group-1');
-            const group2 = document.querySelectorAll('.action-group-2');
-
-            toggleBtn.addEventListener('click', () => {
-                group1.forEach(el => el.classList.toggle('d-none'));
-                group2.forEach(el => el.classList.toggle('d-none'));
-            });
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    const group1 = document.querySelectorAll('.action-group-1');
+                    const group2 = document.querySelectorAll('.action-group-2');
+                    
+                    group1.forEach(el => el.classList.toggle('d-none'));
+                    group2.forEach(el => el.classList.toggle('d-none'));
+                });
+            }
         });
+
+        // 登録詳細モーダルの「削除」ボタン処理
+        function deleteCustomer(btn) {
+            if (confirm('この商品を削除してもよろしいですか？')) {
+                const row = btn.closest('tr');
+                if (row) {
+                    row.remove();
+                }
+            }
+        }
     </script>
 </body>
-
 </html>
