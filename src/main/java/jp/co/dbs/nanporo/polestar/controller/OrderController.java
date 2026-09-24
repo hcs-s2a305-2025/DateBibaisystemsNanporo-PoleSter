@@ -306,6 +306,37 @@ public class OrderController {
         return "redirect:/home"; // 注文完了画面へ
     }
 
+    /**
+     * 注文を取り消します（キャンセル）
+     */
+    @PostMapping("/order/cancel")
+    public String cancelOrder(@RequestParam("orderId") Integer orderId, Principal principal) {
+        if (principal != null) {
+            orderService.cancelOrder(orderId);
+        }
+        return "redirect:/";
+    }
+
+    /**
+     * 既存の注文データを復元してカートへ移動し、元の注文をキャンセルします（注文変更機能）
+     */
+    @GetMapping("/order/edit")
+    public String editOrder(@RequestParam("orderId") Integer orderId, HttpSession session, Principal principal) {
+        if (principal != null) {
+            // 1. 指定された注文から CartData のリストを復元
+            List<CartData> restoredCart = orderService.restoreCartFromOrder(orderId);
+            
+            if (restoredCart != null && !restoredCart.isEmpty()) {
+                // セッションのカートに復元データをセット
+                session.setAttribute("cart", restoredCart);
+                
+                // 2. カートに復元できたため、既存の注文は取り消し
+                orderService.cancelOrder(orderId);
+            }
+        }
+        return "redirect:/cart";
+    }
+
     // --- 加算料金・名称変換ユーティリティ ---
     
     // ザンギの加算料金計算（例: 標準5個、1個追加ごとに+100円）

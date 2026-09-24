@@ -185,4 +185,44 @@ public class OrderRepository {
         return jdbc.queryForList(SELECT_ORDER_HISTORY_BY_MAIL, params);
     }
 
+    /* ==================================================
+     *  注文キャンセル・カート復元用クエリ
+     * ================================================== */
+
+    private static final String DELETE_ORDER_DETAILS_BY_ORDER_ID = 
+            "DELETE FROM order_detail_t WHERE order_id = :orderId";
+
+    private static final String DELETE_ORDER_BY_ID = 
+            "DELETE FROM order_t WHERE order_id = :orderId";
+
+    /**
+     * 指定された order_id の注文親データおよび明細データを削除します。
+     */
+    public void deleteOrder(int orderId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("orderId", orderId);
+        
+        // 外部キー制約を考慮し、明細データから順に削除
+        jdbc.update(DELETE_ORDER_DETAILS_BY_ORDER_ID, params);
+        jdbc.update(DELETE_ORDER_BY_ID, params);
+    }
+
+    private static final String SELECT_ORDER_DETAILS_WITH_GOODS_BY_ORDER_ID = 
+            "SELECT d.order_id, d.order_count, d.goods_id, d.count, d.plus_zangi_count, d.custom_id, "
+            + "       g.goods_name, g.price, g.photo "
+            + "FROM order_detail_t d "
+            + "LEFT JOIN goods_m g ON d.goods_id = g.goods_id "
+            + "WHERE d.order_id = :orderId "
+            + "ORDER BY d.order_count ASC";
+
+    /**
+     * 指定された order_id の注文明細と商品情報を取得します。
+     */
+    public List<Map<String, Object>> getOrderDetailsByOrderId(int orderId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("orderId", orderId);
+
+        return jdbc.queryForList(SELECT_ORDER_DETAILS_WITH_GOODS_BY_ORDER_ID, params);
+    }
+
 }

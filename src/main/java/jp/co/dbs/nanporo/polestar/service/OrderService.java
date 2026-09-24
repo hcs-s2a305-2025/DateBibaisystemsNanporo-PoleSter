@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jp.co.dbs.nanporo.polestar.data.CartData;
 import jp.co.dbs.nanporo.polestar.data.OrderData;
 import jp.co.dbs.nanporo.polestar.data.OrderDetailData;
 import jp.co.dbs.nanporo.polestar.entity.OrderDetailEntity;
@@ -195,6 +197,132 @@ public class OrderService {
         }
 
         return new ArrayList<>(historyMap.values());
+    }
+
+    /* ==================================================
+     *  注文取り消し・カート復元処理
+     * ================================================== */
+
+    /**
+     * 指定された注文を取り消し（削除）します。
+     */
+    @Transactional
+    public void cancelOrder(Integer orderId) {
+        if (orderId != null) {
+            orderRepository.deleteOrder(orderId);
+        }
+    }
+
+    /**
+     * 指定された注文から情報を復元し、カート保持用の List<CartData> を構築します。
+     */
+    public List<CartData> restoreCartFromOrder(Integer orderId) {
+        if (orderId == null) {
+            return new ArrayList<>();
+        }
+
+        List<Map<String, Object>> details = orderRepository.getOrderDetailsByOrderId(orderId);
+        List<CartData> cartList = new ArrayList<>();
+
+        for (Map<String, Object> row : details) {
+            CartData item = new CartData();
+            item.setCartItemId(UUID.randomUUID().toString());
+
+            String goodsId = (String) row.get("goods_id");
+            item.setGoodsId(goodsId);
+            item.setGoodsName((String) row.get("goods_name"));
+
+            Integer basePrice = toInteger(row.get("price"));
+            item.setPrice(basePrice != null ? basePrice : 0);
+            item.setPhoto((String) row.get("photo"));
+            item.setOrderDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy年M月d日")));
+
+            // ザンギ追加数と加算額
+            Integer zangiCount = toInteger(row.get("plus_zangi_count"));
+            item.setZangiCount(zangiCount != null ? zangiCount : 0);
+            int zPrice = getZangiPrice(item.getZangiCount());
+            item.setZangiPrice(zPrice);
+
+            // ソースコードと加算額
+            Integer customIdObj = toInteger(row.get("custom_id"));
+            String sourceCode = customIdObj != null ? String.valueOf(customIdObj) : "0";
+            item.setSourceCode(sourceCode);
+            item.setSourceType(getSourceName(sourceCode));
+            int sPrice = getSourcePrice(sourceCode);
+            item.setSourcePrice(sPrice);
+
+            // ライスコード（初期値: 標準 "20"）
+            String riceCode = "20";
+            item.setRiceCode(riceCode);
+            item.setRiceAmount(getRiceName(riceCode));
+            int rPrice = getRicePrice(riceCode);
+            item.setRicePrice(rPrice);
+
+            // 合計金額の算出
+            item.setTotalPrice(item.getPrice() + zPrice + rPrice + sPrice);
+
+            cartList.add(item);
+        }
+
+        return cartList;
+    }
+
+    // --- 加算料金・名称計算ヘルパーメソッド ---
+
+    private int getZangiPrice(int count) {
+        int baseCount = 5;
+        if (count > baseCount) {
+            return (count - baseCount) * 100;
+        }
+        return 0;
+    }
+
+    private String getRiceName(String key) {
+        return switch (key) {
+            case "10" -> "小盛り (150g)";
+            case "30" -> "大盛り (350g)";
+            case "40" -> "特盛 (450g)";
+            default -> "普通 (250g)";
+        };
+    }
+
+    private int getRicePrice(String key) {
+        return switch (key) {
+            case "10" -> -30;
+            case "30" -> 50;
+            case "40" -> 100;
+            default -> 0;
+        };
+    }
+
+    private String getSourceName(String key) {
+        return switch (key) {
+            case "50" -> "おろしポン酢ソース";
+            case "51" -> "おろしポン酢ソースだく";
+            case "52" -> "おろしポン酢ソースだくだく";
+            case "60" -> "自家製タルタルソース";
+            case "61" -> "自家製タルタルソースだく";
+            case "62" -> "自家製タルタルソースだくだく";
+            case "70" -> "油淋鶏風ネギダレ";
+            case "71" -> "油淋鶏風ネギダレだく";
+            case "72" -> "油淋鶏風ネギダレだくだく";
+            case "80" -> "皆辣麻婆ソース";
+            case "81" -> "皆辣麻婆ソースだく";
+            case "82" -> "皆辣麻婆ソースだくだく";
+            default -> "なし";
+        };
+    }
+
+    private int getSourcePrice(String key) {
+        return switch (key) {
+            case "50", "60", "70" -> 80;
+            case "51", "61", "71" -> 120;
+            case "52", "62", "72" -> 150;
+            case "80" -> 100;
+            case "81" -> 140;
+            case "82" -> 180;
+            default -> 0;
+        };
     }
     
 }

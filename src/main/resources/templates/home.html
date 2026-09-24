@@ -45,7 +45,10 @@
             </div>
 
             <!-- 予約データが存在する場合 -->
-            <div class="item-block" th:each="item : ${activeOrders}">
+            <div class="item-block" th:each="item : ${activeOrders}"
+                    style="cursor: pointer;"
+                    data-bs-toggle="modal" 
+                    th:data-bs-target="${'#orderModal-' + item.order.orderId}">
                 <div class="item-block-info">
                     <p th:text="${'注文番号：' + item.order.orderNumber }">注文番号：M0001</p>
                     <p th:text="${'会計：' + #numbers.formatInteger(item.order.sumMoney, 1, 'COMMA') + '円'}">会計：780円</p>
@@ -54,6 +57,52 @@
                 </div>
                 <h3 th:text="${'注文商品：' + item.goodsNames}">注文商品：元祖ザンギ弁当（5個）</h3>
                 <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
+
+            <!-- 注文詳細モーダル -->
+                <div class="modal fade text-start" th:id="${'orderModal-' + item.order.orderId}" tabindex="-1" aria-hidden="true" onclick="event.stopPropagation();">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" th:text="${'注文詳細 (番号: ' + item.order.orderNumber + ')'}">注文詳細</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <strong>ステータス：</strong>
+                                    <span class="badge bg-primary fs-6" th:text="${item.order.status}">受付</span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>受け取り予定日時：</strong>
+                                    <p class="mb-0 fs-5 fw-bold text-dark" th:text="${#dates.format(item.order.getTime, 'yyyy/MM/dd HH:mm')}">2026/09/24 13:10</p>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>注文商品：</strong>
+                                    <p class="mb-0" th:text="${item.goodsNames}">名物！ザンギ弁当（3個入り）</p>
+                                </div>
+                                <div class="mb-3" th:if="${item.order.memo != null and !#strings.isEmpty(item.order.memo)}">
+                                    <strong>備考・要望：</strong>
+                                    <p class="mb-0" th:text="${item.order.memo}">特になし</p>
+                                </div>
+                                <hr />
+                                <div class="text-end fs-5 fw-bold text-danger">
+                                    合計金額：<span th:text="${#numbers.formatInteger(item.order.sumMoney, 1, 'COMMA') + '円'}">1,300円</span>
+                                </div>
+                            </div>
+                            <div class="modal-footer d-flex justify-content-between">
+                                <!-- 取り消しボタン（確認アラート表示後にPOST送信） -->
+                                <form th:action="@{/order/cancel}" method="post" onsubmit="return confirm('この注文を取り消しますか？\n取り消した注文は元に戻せません。');" class="m-0">
+                                    <input type="hidden" name="orderId" th:value="${item.order.orderId}" />
+                                    <button type="submit" class="btn btn-outline-danger">注文を取り消す</button>
+                                </form>
+
+                                <div>
+                                    <!-- 変更ボタン（カート編集画面へ遷移） -->
+                                    <a th:href="@{/order/edit(orderId=${item.order.orderId})}" class="btn btn-warning me-2">注文を変更する</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- お店からの通知一覧 -->
@@ -84,7 +133,7 @@
             <a href="menu"><img style="width: 48px; height: 53px;"  src="../static/img/メニューボタン.png" th:src="@{/img/メニューボタン.png}" alt="メニュー"></a>
         </div>
         <div class="footer-btn" style="position: relative; top: -20px;">
-            <a href="reserve"><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" th:src="@{/img/予約ボタン.png}" alt="予約"></a>
+            <a href="cart"><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" th:src="@{/img/予約ボタン.png}" alt="予約"></a>
         </div>
         <div class="footer-btn">
             <a href="history"><img style="width: 33px; height: 51px;" src="../static/img/履歴ボタン.png" th:src="@{/img/履歴ボタン.png}" alt="履歴"></a>
