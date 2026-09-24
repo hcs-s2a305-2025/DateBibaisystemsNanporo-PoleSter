@@ -263,98 +263,102 @@
 
         <!-- 商品詳細モーダル -->
         <div id="posModal1" class="modal modal-window">
-            <h2 class="modal-title">商品詳細</h2>
-            <div class="modal-body">
-                <div class="modal-productname row">
-                    <h2 class="col" th:text="${product.name}">元祖ザンギ弁当（３個）</h2>
-                    <hr class="my-1">
-                    <h4 class="col" th:text="${product.description}">ｶﾞﾝｿｻﾞﾝｷﾞﾍﾞﾝﾄｳｻﾝｺｲﾘ</h4>
-                </div>
-                <div class="modal-select col-5">
-                    <div class="row selectbutton">
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>ごはん小盛り</p>
-                            <p>-50円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>ごはん普通</p>
-                            <p>0円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>ごはん大盛り</p>
-                            <p>+50円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>ごはん特盛</p>
-                            <p>+100円</p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                    </div>
-                    <div class="row selectbutton">
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>おろしポン酢</p>
-                            <p>+50円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>自家製タルタル</p>
-                            <p>+80円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>油淋鶏風ネギダレ</p>
-                            <p>+80円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>旨辣麻婆ソース</p>
-                            <p>+100円</p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                    </div>
-                    <div class="row selectbutton">
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>追加ザンギ</p>
-                            <p>+100円</p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                    </div>
-                    <div class="row selectbutton">
-                        <div class="col-5 pay-disp">
-                            <div class="pay-amount">
-                                <h3>合計</h3>
-                                <h1></h1>
-                                <h1>660</h1>
-                                <h3>円</h3>
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <h2 class="modal-title">商品詳細</h2>
+                    <div class="modal-body">
+                        <div class="modal-productname row">
+                            <h2 class="col" th:text="${product.name}">元祖ザンギ弁当（３個）</h2>
+                            <hr class="my-1">
+                            <h4 class="col" th:text="${product.description}">ｶﾞﾝｿｻﾞﾝｷﾞﾍﾞﾝﾄｳｻﾝｺｲﾘ</h4>
+                        </div>
+                        <div class="modal-select col-5">
+                            <div class="row selectbutton">
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>ごはん小盛り</p>
+                                    <p>-50円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>ごはん普通</p>
+                                    <p>0円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>ごはん大盛り</p>
+                                    <p>+50円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>ごはん特盛</p>
+                                    <p>+100円</p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                            </div>
+                            <div class="row selectbutton">
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>おろしポン酢</p>
+                                    <p>+50円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>自家製タルタル</p>
+                                    <p>+80円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>油淋鶏風ネギダレ</p>
+                                    <p>+80円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>旨辣麻婆ソース</p>
+                                    <p>+100円</p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                            </div>
+                            <div class="row selectbutton">
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>追加ザンギ</p>
+                                    <p>+100円</p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                            </div>
+                            <div class="row selectbutton">
+                                <div class="col-5 pay-disp">
+                                    <div class="pay-amount">
+                                        <h3>合計</h3>
+                                        <h1></h1>
+                                        <h1>660</h1>
+                                        <h3>円</h3>
+                                    </div>
+                                </div>
+                                <button class="col selecter-Button-modal modal-warning">
+                                    <h3>販売停止</h3>
+                                </button>
+                                <button class="col selecter-Button-modal modal-add">
+                                    <h3>追加する</h3>
+                                </button>
+                                <button type="button" class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
+                                    <h3>閉じる</h3>
+                                </button>
                             </div>
                         </div>
-                        <button class="col selecter-Button-modal modal-warning">
-                            <h3>販売停止</h3>
-                        </button>
-                        <button class="col selecter-Button-modal modal-add">
-                            <h3>追加する</h3>
-                        </button>
-                        <button class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
-                            <h3>閉じる</h3>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -362,101 +366,105 @@
 
         <!-- 小計操作モーダル -->
         <div id="posModal2" class="modal modal-window">
-            <h2 class="modal-title">小計操作</h2>
-            <div class="modal-body">
-                <div class="col pay-disp" style="margin-top: 10px; margin-left: 50px; margin-right: 50px;">
-                    <div class="pay-amount">
-                        <h3>合計</h3>
-                        <h1></h1>
-                        <h1>660</h1>
-                        <h3>円</h3>
-                    </div>
-                </div>
-                <div class="modal-select col-5">
-                    <div class="row selectbutton">
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>割引 学生</p>
-                            <p>-50円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>スタンプカード割引</p>
-                            <p>-100円</p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>スタンプカード唐揚げ1無料</p>
-                            <p>-100円</p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                    </div>
-                    <div class="row selectbutton">
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                    </div>
-                    <div class="row selectbutton">
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>5%</p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal modal-nomal">
-                            <p>10%</p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                        <button class="col selecter-Button-modal">
-                            <p></p>
-                            <p></p>
-                        </button>
-                    </div>
-                    <div class="row select-button">
-                        <button class="col selecter-Button-modal modal-warning">
-                            <h3>小計割引</h3>
-                        </button>
-                        <div class="col selecter-Button-modal-dummy">
-                            <p></p>
-                            <p></p>
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <h2 class="modal-title">小計操作</h2>
+                    <div class="modal-body">
+                        <div class="col pay-disp" style="margin-top: 10px; margin-left: 50px; margin-right: 50px;">
+                            <div class="pay-amount">
+                                <h3>合計</h3>
+                                <h1></h1>
+                                <h1>660</h1>
+                                <h3>円</h3>
+                            </div>
                         </div>
-                        <button class="col selecter-Button-modal modal-submit">
-                            <h3>預/現計</h3>
-                        </button>
-                        <div class="col selecter-Button-modal-dummy">
-                            <p></p>
-                            <p></p>
+                        <div class="modal-select col-5">
+                            <div class="row selectbutton">
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>割引 学生</p>
+                                    <p>-50円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>スタンプカード割引</p>
+                                    <p>-100円</p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>スタンプカード唐揚げ1無料</p>
+                                    <p>-100円</p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                            </div>
+                            <div class="row selectbutton">
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                            </div>
+                            <div class="row selectbutton">
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>5%</p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal modal-nomal">
+                                    <p>10%</p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                                <button class="col selecter-Button-modal">
+                                    <p></p>
+                                    <p></p>
+                                </button>
+                            </div>
+                            <div class="row select-button">
+                                <button class="col selecter-Button-modal modal-warning">
+                                    <h3>小計割引</h3>
+                                </button>
+                                <div class="col selecter-Button-modal-dummy">
+                                    <p></p>
+                                    <p></p>
+                                </div>
+                                <button class="col selecter-Button-modal modal-submit">
+                                    <h3>預/現計</h3>
+                                </button>
+                                <div class="col selecter-Button-modal-dummy">
+                                    <p></p>
+                                    <p></p>
+                                </div>
+                                <button type="button" class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
+                                    <h3>閉じる</h3>
+                                </button>
+                            </div>
                         </div>
-                        <button class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
-                            <h3>閉じる</h3>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -465,62 +473,66 @@
         
         <!-- 登録詳細モーダル -->
         <div id="posModal3" class="modal modal-window">
-            <h2 class="modal-title">登録詳細</h2>
-            <div class="modal-body">
-                <table class="table table-hover align-middle custom-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">商品名</th>
-                            <th scope="col">数量</th>
-                            <th scope="col">単価</th>
-                            <th scope="col">割引額</th>
-                            <th scope="col">合計</th>
-                            <th scope="col"></th> <!-- ボタン用 -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="user, stat : ${response.users}" class="user-row">
-                            <!-- 番号 -->
-                            <td th:text="${stat.count}">1</td>
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <h2 class="modal-title">登録詳細</h2>
+                    <div class="modal-body">
+                        <table class="table table-hover align-middle custom-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">No</th>
+                                    <th scope="col">商品名</th>
+                                    <th scope="col">数量</th>
+                                    <th scope="col">単価</th>
+                                    <th scope="col">割引額</th>
+                                    <th scope="col">合計</th>
+                                    <th scope="col"></th> <!-- ボタン用 -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="user, stat : ${response.users}" class="user-row">
+                                    <!-- 番号 -->
+                                    <td th:text="${stat.count}">1</td>
 
-                            <!-- 商品名 -->
-                            <td th:text="${user.mail}">元祖ザンギ弁当（3個）</td>
+                                    <!-- 商品名 -->
+                                    <td th:text="${user.mail}">元祖ザンギ弁当（3個）</td>
 
-                            <!-- 数量 -->
-                            <td th:text="${user.memberRank}">1</td>
+                                    <!-- 数量 -->
+                                    <td th:text="${user.memberRank}">1</td>
 
-                            <!-- 単価 -->
-                            <td th:text="${user.cancelCount}">660</td>
-                            
-                            <!-- 割引額 -->
-                            <td th:text="${user.name}">0</td>
-                            
-                            <!-- 合計 -->
-                            <td th:text="${user.alive ? '無効' : '有効'}">660</td>
+                                    <!-- 単価 -->
+                                    <td th:text="${user.cancelCount}">660</td>
+                                    
+                                    <!-- 割引額 -->
+                                    <td th:text="${user.name}">0</td>
+                                    
+                                    <!-- 合計 -->
+                                    <td th:text="${user.alive ? '無効' : '有効'}">660</td>
 
-                            <!-- 操作ボタン -->
-                            <td class="text-end">
-                                <!-- 削除ボタン -->
-                                <button type="button" class="btn-delete" th:data-mail="${user.mail}" onclick="deleteCustomer(this)">削除</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="row selectbutton">
-                    <div class="col-5 pay-disp">
-                        <div class="pay-amount">
-                            <h3>合計</h3>
-                            <h1></h1>
-                            <h1>660</h1>
-                            <h3>円</h3>
+                                    <!-- 操作ボタン -->
+                                    <td class="text-end">
+                                        <!-- 削除ボタン -->
+                                        <button type="button" class="btn-delete" th:data-mail="${user.mail}" onclick="deleteCustomer(this)">削除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="row selectbutton">
+                            <div class="col-5 pay-disp">
+                                <div class="pay-amount">
+                                    <h3>合計</h3>
+                                    <h1></h1>
+                                    <h1>660</h1>
+                                    <h3>円</h3>
+                                </div>
+                            </div>
+                            <div class="col-2"></div>
+                            <div class="col-3"></div>
+                            <button type="button" class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
+                                <h3>閉じる</h3>
+                            </button>
                         </div>
                     </div>
-                    <div class="col-2"></div>
-                    <div class="col-3"></div>
-                    <button type="button" class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
-                        <h3>閉じる</h3>
-                    </button>
                 </div>
             </div>
         </div>
