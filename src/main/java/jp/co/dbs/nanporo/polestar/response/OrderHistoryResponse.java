@@ -25,6 +25,9 @@ public class OrderHistoryResponse {
     @Data
     public static class OrderDetailItem {
 
+        // 商品ID
+        private String goodsId;
+
         // 商品名
         private String goodsName;
 
@@ -39,6 +42,9 @@ public class OrderHistoryResponse {
 
         // 個数
         private Integer count;
+
+        // 画像パス
+        private String photo;
     }
     
 }

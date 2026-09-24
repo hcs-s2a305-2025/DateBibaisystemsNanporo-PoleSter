@@ -44,32 +44,45 @@
                 <h5 class="item-block-text">注文履歴はありません。</h5>
             </div>
 
-            <!-- 予約データが存在する場合 -->
-            <div class="item-block" th:each="order : ${historyList}">
-                <!-- 注文日 -->
-                <h3 th:text="${order.formattedDate}">2026年9月7日</h3>
-                
-                <!-- 商品名 -->
-                <h4 th:text="${item.goodsname}">元祖ザンギ弁当（5個）</h4>
-                
-                <!-- 金額 -->
-                <h5 th:text="${#numbers.formatInteger(item.goodsprice, 1, 'COMMA') + '円'}">780円</h5>
-                
-                <!-- 商品画像 -->
-                <img class="product-img" src="../static/img/ザンギ弁当.jpg" th:src="@{${item.imageUrl}}" alt="商品画像">
-                
-                <!-- トッピング・ソース一覧 -->
-                <div th:each="sauce : ${item.customList}">
-                    <p class="text-secondary mb-1" th:text="${sauce.name + '(+' + sauce.price + '円)'}">タルタルソース(+50円)</p>
+            <!-- 予約データが存在する場合（注文ごとに繰り返し） -->
+            <div class="item-block mb-4" th:each="order : ${historyList}">
+                <!-- 注文日と注文番号 -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="m-0" th:text="${order.formattedDate}">2026年9月7日</h3>
+                    <span class="badge bg-secondary" th:text="${'番号: ' + order.orderNumber}">M0001</span>
                 </div>
                 
-                <hr class="my-4">
-                
-                <!-- 再注文フォーム -->
-                <form th:action="@{/reorder}" method="POST" class="d-inline">
-                    <input type="hidden" name="itemId" th:value="${item.id}">
-                    <button type="submit" class="btn btn-warning px-4 text-white fw-bold" style="box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);">もう一度注文する</button>
-                </form>
+                <!-- 注文内の商品リスト（商品ごとに繰り返し） -->
+                <div th:each="item : ${order.items}" class="border-top pt-3 mt-2">
+                    <!-- 商品名と数量 -->
+                    <h4 th:text="${item.goodsName + (item.count > 1 ? ' × ' + item.count : '')}">元祖ザンギ弁当（5個）</h4>
+                    
+                    <!-- 金額 -->
+                    <h5 th:text="${#numbers.formatInteger(item.goodsPrice, 1, 'COMMA') + '円'}">780円</h5>
+                    
+                    <!-- 商品画像 -->
+                    <img class="product-img mb-2" src="../static/img/ザンギ弁当.jpg" th:src="@{'/' + ${item.Photo}}" alt="商品画像">
+                    
+                    <!-- トッピング・ソース情報 -->
+                    <div th:if="${item.customName != null}">
+                        <p class="text-secondary mb-1" th:text="${item.customName + '(+' + item.customPrice + '円)'}">タルタルソース(+80円)</p>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- 注文全体の合計金額と再注文ボタン -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold">合計金額: </span>
+                        <span class="fs-5 fw-bold text-danger" th:text="${#numbers.formatInteger(order.sumMoney, 1, 'COMMA') + '円'}">1,300円</span>
+                    </div>
+
+                    <!-- 再注文（カートに同じ注文を復元して再選択） -->
+                    <a th:href="@{/order/reorder(orderId=${order.orderId})}" class="btn btn-warning px-3 text-white fw-bold" style="box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);">
+                        もう一度注文する
+                    </a>
+                </div>
             </div>
         </div>
     </main>

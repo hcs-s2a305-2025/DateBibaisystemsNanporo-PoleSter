@@ -337,6 +337,23 @@ public class OrderController {
         return "redirect:/cart";
     }
 
+    /**
+     * 過去の注文履歴から商品をカートへ複製し、カート画面へ遷移します（再注文機能）。
+     * ※ 既存の注文データは削除・キャンセルされません。
+     */
+    @GetMapping("/order/reorder")
+    public String reorder(@RequestParam("orderId") Integer orderId, HttpSession session) {
+        // 過去の注文から CartData リストを復元（コピー）
+        List<CartData> restoredCart = orderService.restoreCartFromOrder(orderId);
+        
+        if (restoredCart != null && !restoredCart.isEmpty()) {
+            // カートセッションを更新（必要に応じて既存カートへの追加・上書きを選択）
+            session.setAttribute("cart", restoredCart);
+        }
+        
+        return "redirect:/cart"; // カート画面へ遷移
+    }
+
     // --- 加算料金・名称変換ユーティリティ ---
     
     // ザンギの加算料金計算（例: 標準5個、1個追加ごとに+100円）

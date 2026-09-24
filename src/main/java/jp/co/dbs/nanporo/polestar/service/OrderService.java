@@ -166,6 +166,7 @@ public class OrderService {
 
         for (Map<String, Object> row : rows) {
             Integer orderId = (Integer) row.get("order_id");
+            if (orderId == null) continue;
 
             // 注文親データの生成（初回のみ）
             OrderHistoryResponse response = historyMap.computeIfAbsent(orderId, id -> {
@@ -182,15 +183,26 @@ public class OrderService {
                 return res;
             });
 
-            // 明細データの追加（マスタ等から名称・価格を取得する想定）
+            // 明細データの追加
             if (row.get("goods_id") != null) {
                 OrderHistoryResponse.OrderDetailItem item = new OrderHistoryResponse.OrderDetailItem();
-                // ※実際の開発では goods_id / custom_id から商品マスタを参照してセットします
-                item.setGoodsName("元祖ザンギ弁当 (5個)"); 
-                item.setGoodsPrice(780);
-                item.setCustomName("タルタルソース");
-                item.setCustomPrice(50);
-                item.setCount((Integer) row.get("count"));
+                item.setGoodsId((String) row.get("goods_id"));
+                item.setGoodsName((String) row.get("goods_name"));
+                item.setGoodsPrice(toInteger(row.get("price")));
+                
+                // 画像パスの設定（DBになければデフォルト画像）
+                String photo = (String) row.get("photo");
+                item.setPhoto(photo != null && !photo.isEmpty() ? photo : "img/ザンギ弁当.jpg");
+                
+                item.setCount(toInteger(row.get("count")));
+                
+                // トッピング・ソース情報のセット
+                Integer customId = toInteger(row.get("custom_id"));
+                if (customId != null && customId > 0) {
+                    String sourceCode = String.valueOf(customId);
+                    item.setCustomName(getSourceName(sourceCode));
+                    item.setCustomPrice(getSourcePrice(sourceCode));
+                }
                 
                 response.getItems().add(item);
             }

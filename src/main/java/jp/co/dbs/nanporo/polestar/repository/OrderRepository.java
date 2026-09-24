@@ -166,14 +166,16 @@ public class OrderRepository {
         return jdbc.queryForList(SELECT_ACTIVE_ORDERS_WITH_DETAILS, params);
     }
 
-    // ユーザーの予約履歴一覧（降順）を取得するSQL
+    // ユーザーの予約履歴一覧（降順）を取得するSQL（商品マスタ goods_m を結合）
     private static final String SELECT_ORDER_HISTORY_BY_MAIL = 
             "SELECT o.order_id, o.order_number, o.get_time, o.sum_money, "
-            + "       d.goods_id, d.count, d.custom_id "
+            + "       d.order_count, d.goods_id, d.count, d.plus_zangi_count, d.custom_id, "
+            + "       g.goods_name, g.price, g.photo "
             + "FROM order_t o "
             + "LEFT JOIN order_detail_t d ON o.order_id = d.order_id "
+            + "LEFT JOIN goods_m g ON d.goods_id = g.goods_id "
             + "WHERE o.mail = :mail "
-            + "ORDER BY o.get_time DESC";
+            + "ORDER BY o.get_time DESC, d.order_count ASC";
 
     /**
      * メールアドレスから過去の注文履歴一覧を取得します。
