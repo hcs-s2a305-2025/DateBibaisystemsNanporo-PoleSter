@@ -327,9 +327,3 @@ h2,h3{
 .pink-btn{background: linear-gradient(to bottom, #FF8B8B, #FFC4C4 50%, #FF8B8B);}
 .pink-btn:hover{background: linear-gradient(to bottom, #ff9b9b, #ffcfcf 50%, #ff9b9b);}
 .pink-btn:active{background: linear-gradient(to bottom, #b36161, #c99b9b 50%, #b36161);}
-
-
-/* 従業員用ホーム */
-.page-title{
-    
-}
