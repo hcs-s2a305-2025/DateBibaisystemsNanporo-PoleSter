@@ -42,7 +42,7 @@
                 <h2>マイページ</h2>
                 <div class="container my-5" style="max-width: 900px;">
                     <div>
-                        <form action="/update-profile" method="POST" enctype="multipart/form-data">
+                        <form th:action="@{/settings/edit/update}" action="/update-profile" method="POST" enctype="multipart/form-data">
                             <div class="row g-4">
                                 
                                 <!-- プロフィール画像エリア（上部中央寄せ） -->
@@ -65,13 +65,13 @@
                                     <!-- ユーザー名 -->
                                     <div class="mb-3">
                                         <label for="name" class="form-label fw-bold">ユーザー名</label>
-                                        <input type="text" class="form-control" id="name" name="name" value="ユーザ名" placeholder="ユーザ名" required>
+                                        <input type="text" class="form-control" id="name" name="name" th:value="${user.name}" value="ユーザ名" placeholder="ユーザ名" required>
                                     </div>
 
                                     <!-- メールアドレス -->
                                     <div class="mb-3">
                                         <label for="mailAddress" class="form-label fw-bold">メールアドレス</label>
-                                        <input type="email" class="form-control" id="mailAddress" name="mailAddress" value="zangui@ben.com" placeholder="user@example.com" required>
+                                        <input type="email" class="form-control" id="mailAddress" name="mailAddress" th:value="${user.mail}" value="zangui@ben.com" placeholder="user@example.com" required>
                                     </div>
 
                                     <!-- パスワード変更エリア -->
@@ -97,7 +97,7 @@
 
                                     <!-- ボタンエリア（設定を保存 / 破棄して戻る） -->
                                     <div class="d-flex justify-content-end gap-2 pt-2">
-                                        <a href="/dashboard" id="discardChanges" class="btn btn-outline-secondary px-4">破棄して戻る</a>
+                                        <a th:href="@{/settings}" id="discardChanges" class="btn btn-outline-secondary px-4">破棄して戻る</a>
                                         <button id="changesConfirmedBtn" type="submit" class="btn btn-warning px-4">設定を保存</button>
                                     </div>
                                 </div>
@@ -129,7 +129,38 @@
             <a href=""><img style="width: 60px; height: 51px;" src="../../static/img/マイページボタン.png" alt="マイページ"></a>
         </div>
     </footer>
-    <script src="../static/js/settings.js"></script>
-</body>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // アラート表示
+            const urlParams = new URLSearchParams(window.location.search);
 
+            // if (urlParams.has('success')) {
+            //     alert('変更を保存しました。');
+            //     history.replaceState(null, '', window.location.pathname);
+            if (urlParams.has('oldPasswordError')) {
+                alert('パスワードが一致しません。もう一度入力してください。 ');
+                history.replaceState(null, '', window.location.pathname);
+            } else if (urlParams.has('newPasswordError')) {
+                alert('パスワードが一致しません。もう一度入力してください。 ');
+                history.replaceState(null, '', window.location.pathname);
+            } else if (urlParams.has('error')) {
+                alert('変更できませんでした。もう一度お試しください。');
+                history.replaceState(null, '', window.location.pathname);
+            }
+
+            const toggle = document.getElementById('toggleSchedule');
+            if (toggle) {
+                const controls = document.querySelectorAll('.schedule-control');
+                const updateState = () => {
+                    const isEnabled = toggle.checked;
+                    controls.forEach(control => {
+                        control.disabled = !isEnabled;
+                    });
+                };
+                updateState();
+                toggle.addEventListener('change', updateState);
+            }
+        });
+    </script>
+</body>
 </html>

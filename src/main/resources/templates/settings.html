@@ -43,84 +43,90 @@
                     <!-- 上部 -->
                     <div  class="upper-item">
                         <h2>マイページ</h2>
-                        <button class="img-button" ><img class="userEditBtn" src="../static/img/ユーザ情報編集ボタン.png" alt="ユーザ情報編集"></button>
+                        <a href="/settings/edit" th:href="@{/settings/edit}" class="img-button">
+                            <img class="userEditBtn" src="../static/img/ユーザ情報編集ボタン.png" th:src="@{/img/ユーザ情報編集ボタン.png}" alt="ユーザ情報編集">
+                        </a>
                     </div>
                     <!-- ユーザ情報を表示 -->
                     <div  class="lowwer-item">
                         <img src="../static/img/sibainu1.jpg" alt="プロフィール画像">
-                        <h5 class="username">ユーザネーム</h5>
-                        <p>zangui@ben.com</p>
+                        <h5 class="username" th:text="${user.name}">ユーザネーム</h5>
+                        <p th:text="${user.mail}">zangui@ben.com</p>
                     </div>
                 </div>
                 <!-- ここから、システム自動停止制御 -->
-                <div>
+                <div th:if="${user.role == '店長'}">
                     <div>
-                        <form class="p-3">
+                        <!-- フォーム送信先（例: /settings/schedule）を設定 -->
+                        <form class="p-3" th:action="@{/settings/schedule}" method="post">
+                            
                             <!-- トグルスイッチ -->
                             <div class="form-check form-switch form-check-reverse d-inline-block mb-3">
-                                <input class="form-check-input" type="checkbox" role="switch" id="toggleSchedule" checked>
+                                <!-- name="enabled" を追加し、value="true" を送信可能にする -->
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggleSchedule" name="enabled" value="true" checked>
                                 <label class="form-check-label me-2 fw-bold" for="toggleSchedule">システム自動停止</label>
                             </div>
 
                             <!-- 設定エリア -->
                             <div class="ps-3" id="scheduleInputs">
-                            <!-- 停止時刻設定 -->
-                            <div class="mb-3">
-                                <label class="form-label d-block text-secondary mb-1">システム自動停止時刻：</label>
-                                <div class="lh-lg fs-5 d-flex align-items-center flex-wrap">
-                                    <span>毎週</span>
-                                    <select class="form-select form-select-sm w-auto mx-2 align-middle schedule-control" name="stop_day">
-                                        <option value="月">月</option>
-                                        <option value="火">火</option>
-                                        <option value="水">水</option>
-                                        <option value="木">木</option>
-                                        <option value="金">金</option>
-                                        <option value="土">土</option>
-                                        <option value="日">日</option>
-                                    </select>
-                                    <span>曜日</span>
+                                <!-- 停止時刻設定 -->
+                                <div class="mb-3">
+                                    <label class="form-label d-block text-secondary mb-1">システム自動停止時刻：</label>
+                                    <div class="lh-lg fs-5 d-flex align-items-center flex-wrap">
+                                        <span>毎週</span>
+                                        <select class="form-select form-select-sm w-auto mx-2 align-middle schedule-control" name="stop_day">
+                                            <option value="月">月</option>
+                                            <option value="火">火</option>
+                                            <option value="水">水</option>
+                                            <option value="木">木</option>
+                                            <option value="金">金</option>
+                                            <option value="土">土</option>
+                                            <option value="日">日</option>
+                                        </select>
+                                        <span>曜日</span>
 
-                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
-                                            name="stop_hour" min="0" max="23" placeholder="00" style="width: 70px !important;">
-                                    <span>時</span>
+                                        <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                                name="stop_hour" min="0" max="23" placeholder="00" style="width: 70px !important;">
+                                        <span>時</span>
 
-                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
-                                            name="stop_minute" min="0" max="59" placeholder="00" style="width: 70px !important;">
-                                    <span>分</span>
+                                        <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                                name="stop_minute" min="0" max="59" placeholder="00" style="width: 70px !important;">
+                                        <span>分</span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- 開始時刻設定 -->
-                            <div class="mb-3">
-                                <label class="form-label d-block text-secondary mb-1">システム自動開始時刻：</label>
-                                <div class="lh-lg fs-5 d-flex align-items-center flex-wrap">
-                                    <span>毎週</span>
-                                    <select class="form-select form-select-sm w-auto mx-2 align-middle schedule-control" name="start_day">
-                                        <option value="月">月</option>
-                                        <option value="火">火</option>
-                                        <option value="水">水</option>
-                                        <option value="木">木</option>
-                                        <option value="金">金</option>
-                                        <option value="土">土</option>
-                                        <option value="日">日</option>
-                                    </select>
-                                    <span>曜日</span>
+                                <!-- 開始時刻設定 -->
+                                <div class="mb-3">
+                                    <label class="form-label d-block text-secondary mb-1">システム自動開始時刻：</label>
+                                    <div class="lh-lg fs-5 d-flex align-items-center flex-wrap">
+                                        <span>毎週</span>
+                                        <select class="form-select form-select-sm w-auto mx-2 align-middle schedule-control" name="start_day">
+                                            <option value="月">月</option>
+                                            <option value="火">火</option>
+                                            <option value="水">水</option>
+                                            <option value="木">木</option>
+                                            <option value="金">金</option>
+                                            <option value="土">土</option>
+                                            <option value="日">日</option>
+                                        </select>
+                                        <span>曜日</span>
 
-                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
-                                            name="start_hour" min="0" max="23" placeholder="00" style="width: 70px !important;">
-                                    <span>時</span>
+                                        <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                                name="start_hour" min="0" max="23" placeholder="00" style="width: 70px !important;">
+                                        <span>時</span>
 
-                                    <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
-                                            name="start_minute" min="0" max="59" placeholder="00" style="width: 70px !important;">
-                                    <span>分</span>
+                                        <input type="number" class="form-control form-control-sm w-auto mx-2 text-center align-middle schedule-control" 
+                                                name="start_minute" min="0" max="59" placeholder="00" style="width: 70px !important;">
+                                        <span>分</span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- 保存ボタン -->
-                            <button type="submit" class="btn btn-primary mt-2 schedule-control">設定を保存</button>
+                                <!-- 保存ボタン -->
+                                <button type="submit" class="btn btn-primary mt-2 schedule-control">設定を保存</button>
                             </div>
                         </form>
-                        </div>
+                    </div>
+                </div>
                 </div>
             </div>
         </div>
@@ -146,7 +152,7 @@
             <a href=""><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" alt="マイページ"></a>
         </div>
     </footer>
-    <script src="../static/js/settings.js"></script>
+    <script th:src="@{/js/settings.js}" src="../static/js/settings.js"></script>
 </body>
 
 </html>
