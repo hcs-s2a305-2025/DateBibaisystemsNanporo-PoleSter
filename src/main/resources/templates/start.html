@@ -29,6 +29,13 @@
         </div>
         <h2 class="saira">DBS</h2>
     </main>
+
+    <!-- 1.5秒後にログイン画面へ自動遷移 -->
+    <script>
+        setTimeout(() => {
+            window.location.href = /*[[@{/login}]]*/ '/login';
+        }, 1500);
+    </script>
 </body>
 
 </html>

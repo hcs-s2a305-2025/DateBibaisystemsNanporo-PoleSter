@@ -23,6 +23,18 @@
 </head>
 
 <body>
+    <!-- 全画面ロード（スプラッシュ）表示エリア -->
+    <div id="splash-screen">
+        <div></div>
+        <div class="splash-center">
+            <p>Powerd by</p>
+            <h1 class="orbitron">Pole<span style="color: #ffd736;">star</span></h1>
+        </div>
+        <div class="splash-footer">
+            <h2 class="saira">DBS</h2>
+        </div>
+    </div>
+
     <main>
         <div class="login-do">
             <img src="../static/img/karaage.png" th:src="@{/img/karaage.png}" alt="ORDER ZANGI" style="width: 70px;">
@@ -64,6 +76,17 @@
         </form>
         <h1 class="orbitron">Pole<span style="color: #ffd736;">star</span></h1>
     </main>
+
+    <!-- スプラッシュ画面消去処理 script -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const splash = document.getElementById('splash-screen');
+            // 1.5秒（1500ms）後にフェードアウトを開始
+            setTimeout(() => {
+                splash.classList.add('fade-out');
+            }, 1500);
+        });
+    </script>
 </body>
 
 </html>
