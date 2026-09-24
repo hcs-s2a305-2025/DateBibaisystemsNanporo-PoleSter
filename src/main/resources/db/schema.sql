@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS set_goods_m(
 /* カスタムマスタの定義 */
 CREATE TABLE IF NOT EXISTS custom_m(
     custom_id INT PRIMARY KEY,
-    gooods_name VARCHAR(50) NOT NULL,
+    goods_name VARCHAR(50) NOT NULL,
     price INT NOT NULL,
     calorie INT,
     allergy VARCHAR(50)

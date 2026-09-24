@@ -335,7 +335,14 @@ INSERT INTO set_goods_m(set_goods_id, goods_name, price, calorie, allergy, sold_
 4. カスタムマスタ (custom_m)
 -------------------------------------------------- */
 -------------------------------------------------- */
-INSERT INTO custom_m(custom_id, gooods_name, price, calorie, allergy) VALUES
+INSERT INTO custom_m(custom_id, goods_name, price, calorie, allergy) VALUES
+(
+    0,
+    'なし',
+    0,
+    0,
+    'なし'
+),
 (
     10,
     '小盛り（150g）',
@@ -581,3 +588,9 @@ VALUES
     30,
     930
 );
+/* --------------------------------------------------
+11. 自動採番シーケンスの同期
+-------------------------------------------------- */
+SELECT setval(pg_get_serial_sequence('notice_t', 'notice_id'), COALESCE((SELECT MAX(notice_id) FROM notice_t), 1));
+SELECT setval(pg_get_serial_sequence('order_t', 'order_id'), COALESCE((SELECT MAX(order_id) FROM order_t), 1));
+SELECT setval(pg_get_serial_sequence('transaction_t', 'transaction_id'), COALESCE((SELECT MAX(transaction_id) FROM transaction_t), 1));

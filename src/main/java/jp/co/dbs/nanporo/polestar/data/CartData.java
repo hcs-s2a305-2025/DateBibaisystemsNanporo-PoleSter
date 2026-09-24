@@ -14,9 +14,14 @@ public class CartData {
     // トッピングなどの情報
     private Integer zangiCount; // ザンギの個数
     private Integer zangiPrice; // ザンギの加算料金
-    private String riceAmount; // ご飯の量
+
+    private String riceCode;    // （例: "20", "30"）
+    private String riceAmount; // ご飯の量（例: "普通 (250g)"）
     private Integer ricePrice; // ご飯の加算料金
-    private String sourceType; // ソース名
+
+    private String sourceCode;  // （例: "0", "50", "51"）
+    private String sourceType; // ソース名（例: "おろしポン酢ソース"）
     private Integer sourcePrice; // ソースの加算料金
+    
     private Integer totalPrice; // 1個当たりの小計（基本価格 + オプション料金）
 }

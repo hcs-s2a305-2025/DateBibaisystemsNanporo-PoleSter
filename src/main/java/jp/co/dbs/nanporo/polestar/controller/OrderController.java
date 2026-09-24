@@ -19,8 +19,10 @@ import jakarta.servlet.http.HttpSession;
 import jp.co.dbs.nanporo.polestar.data.CartData;
 import jp.co.dbs.nanporo.polestar.data.GoodsData;
 import jp.co.dbs.nanporo.polestar.data.OrderData;
+import jp.co.dbs.nanporo.polestar.request.OrderDetailRequest;
 import jp.co.dbs.nanporo.polestar.request.OrderRegisterRequest;
 import jp.co.dbs.nanporo.polestar.response.OrderHistoryResponse;
+import jp.co.dbs.nanporo.polestar.response.OrderRegisterResponse;
 import jp.co.dbs.nanporo.polestar.service.OrderService;
 import jp.co.dbs.nanporo.polestar.service.StoreService;
 
@@ -53,11 +55,40 @@ public class OrderController {
      * 商品追加画面を表示します。
      */
     @GetMapping("/menu/add")
-    public String showAddPage(@RequestParam("goodsId") String goodsId, Model model) {
+    public String showAddPage(
+        @RequestParam("goodsId") String goodsId,
+        @RequestParam(value = "editCartItemId", required = false) String editCartItemId,
+        HttpSession session,
+        Model model) {
         // DBから該当商品の詳細情報を取得
         GoodsData goods = storeService.getGoodsDetail(goodsId);
+
+        // 初期値（新規追加時）
+        String selectedRice = "20";
+        String selectedSource = "0";
+
+        // 変更処理（編集時）の場合は、カート内から以前の選択値を復元
+        if (editCartItemId != null && !editCartItemId.trim().isEmpty()) {
+            @SuppressWarnings("unchecked")
+            List<CartData> cart = (List<CartData>) session.getAttribute("cart");
+            if (cart != null) {
+                CartData target = cart.stream()
+                        .filter(c -> editCartItemId.equals(c.getCartItemId()))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (target != null) {
+                    if (target.getRiceCode() != null) selectedRice = target.getRiceCode();
+                    if (target.getSourceCode() != null) selectedSource = target.getSourceCode();
+                }
+            }
+        }
+
         // 画面に渡す
         model.addAttribute("goods", goods);
+        model.addAttribute("editCartItemId", editCartItemId);
+        model.addAttribute("selectedRice", selectedRice);
+        model.addAttribute("selectedSource", selectedSource);
         return "menu/add"; // templates/menu/add.html を呼び出す
     }
 
@@ -138,9 +169,15 @@ public class OrderController {
         if (cart == null) {
             cart = new ArrayList<>();
         }
+
+        CartData item = new CartData();
+
         // 変更（再入れ直し）の場合は古いカート要素を削除
-        if (editCartItemId != null && !editCartItemId.isEmpty()) {
-            cart.removeIf(item -> item.getCartItemId().equals(editCartItemId));
+        if (editCartItemId != null && !editCartItemId.trim().isEmpty()) {
+            cart.removeIf(c -> editCartItemId.equals(c.getCartItemId()));
+            item.setCartItemId(editCartItemId);
+        } else {
+            item.setCartItemId(UUID.randomUUID().toString());
         }
 
         // 各加算料金の計算
@@ -148,27 +185,24 @@ public class OrderController {
         int rPrice = getRicePrice(riceAmount);
         int sPrice = getSourcePrice(sourceType);
 
-        CartData item = new CartData();
-        item.setCartItemId(UUID.randomUUID().toString());
         item.setGoodsId(goods.getGoodsId());
         item.setGoodsName(goods.getGoodsName());
         item.setPrice(goods.getPrice());
         item.setPhoto(goods.getPhoto());
-        
-        // 今日の日付をセット
         item.setOrderDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy年M月d日")));
         
-        // ザンギ個数と加算料金
         item.setZangiCount(zangiCount);
         item.setZangiPrice(zPrice);
         
-        // ご飯・ソース情報
+        // コード値と表示名称の両方を保存
+        item.setRiceCode(riceAmount);
         item.setRiceAmount(getRiceName(riceAmount));
         item.setRicePrice(rPrice);
+
+        item.setSourceCode(sourceType);
         item.setSourceType(getSourceName(sourceType));
         item.setSourcePrice(sPrice);
         
-        // 合計金額の計算 (基本料金 + ザンギ加算 + ご飯加算 + ソース加算)
         item.setTotalPrice(goods.getPrice() + zPrice + rPrice + sPrice);
 
         cart.add(item);
@@ -190,7 +224,7 @@ public class OrderController {
 
         if (target == null) return "redirect:/cart";
 
-        return "redirect:/store/add?goodsId=" + target.getGoodsId() + "&editCartItemId=" + target.getCartItemId();
+        return "redirect:/menu/add?goodsId=" + target.getGoodsId() + "&editCartItemId=" + target.getCartItemId();
     }
 
     // カートから特定の要素を削除
@@ -218,7 +252,8 @@ public class OrderController {
             @RequestParam("pickupDate") String pickupDate,
             @RequestParam("pickupTime") String pickupTime,
             @RequestParam(value = "memo", required = false) String memo,
-            HttpSession session) {
+            HttpSession session,
+            Principal principal) {
 
         @SuppressWarnings("unchecked")
         List<CartData> cart = (List<CartData>) session.getAttribute("cart");
@@ -226,7 +261,44 @@ public class OrderController {
             return "redirect:/cart";
         }
 
-        // TODO: storeService.createOrder(cart, pickupDate, pickupTime, memo); 等でDB登録
+        // ログインユーザーのmail取得
+        String userMail = principal.getName();
+
+        // 3. 受け取り日時と登録日時のフォーマット整形 (OrderService.java の LocalDateTime.parse に対応)
+        // pickupTime が "12:00" の場合は ":00" を補填して "12:00:00" にします
+        String formattedPickupTime = pickupTime.length() == 5 ? pickupTime + ":00" : pickupTime;
+        String getTimeStr = pickupDate + "T" + formattedPickupTime; // 例: "2026-09-07T12:00:00"
+        
+        String registerTimeStr = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+        // 4. カートアイテムを OrderDetailRequest のリストへ変換
+        List<OrderDetailRequest> detailList = new ArrayList<>();
+        for (CartData item : cart) {
+            OrderDetailRequest detail = new OrderDetailRequest();
+            detail.setGoodsId(item.getGoodsId());
+            detail.setSetGoodsId(null); // セット商品IDがある場合は設定
+            detail.setCount(1); // 1明細あたりの個数
+            detail.setPlusZangiCount(item.getZangiCount());
+            
+            // ソースコード等をカスタムIDとして設定
+            detail.setCustomId(Integer.parseInt(item.getSourceCode())); 
+            
+            detailList.add(detail);
+        }
+
+        // 5. 注文登録リクエストオブジェクトの生成
+        OrderRegisterRequest request = new OrderRegisterRequest();
+        request.setGetTime(getTimeStr);
+        request.setMail(userMail);
+        request.setRegisterTime(registerTimeStr);
+        request.setSumMoney(cart.stream().mapToInt(CartData::getTotalPrice).sum());
+        request.setMemo(memo);
+        request.setStatus("受付");
+        request.setOrderType("RESERVATION"); // モバイル予約注文
+        request.setOrderDetails(detailList);
+
+        // 6. サービス層を実行してDBへ登録
+        OrderRegisterResponse response = orderService.insertOrder(request);
         
         // 注文完了後、セッションのカートを削除
         session.removeAttribute("cart");
@@ -247,34 +319,48 @@ public class OrderController {
 
     private String getRiceName(String key) {
         return switch (key) {
-            case "high" -> "大盛り";
-            case "max" -> "特盛";
-            case "min" -> "小盛";
-            default -> "普通";
+            case "10" -> "小盛り (150g)";
+            case "30" -> "大盛り (350g)";
+            case "40" -> "特盛 (450g)";
+            default -> "普通 (250g)";
         };
     }
 
     private int getRicePrice(String key) {
         return switch (key) {
-            case "high" -> 50;
-            case "max" -> 100;
+            case "10" -> -30;
+            case "30" -> 50;
+            case "40" -> 100;
             default -> 0;
         };
     }
 
     private String getSourceName(String key) {
         return switch (key) {
-            case "ponzu" -> "おろしポン酢ソース";
-            case "tartar" -> "自家製タルタルソース";
-            case "negi" -> "油淋鶏風ネギダレ";
+            case "50" -> "おろしポン酢ソース";
+            case "51" -> "おろしポン酢ソースだく";
+            case "52" -> "おろしポン酢ソースだくだく";
+            case "60" -> "自家製タルタルソース";
+            case "61" -> "自家製タルタルソースだく";
+            case "62" -> "自家製タルタルソースだくだく";
+            case "70" -> "油淋鶏風ネギダレ";
+            case "71" -> "油淋鶏風ネギダレだく";
+            case "72" -> "油淋鶏風ネギダレだくだく";
+            case "80" -> "皆辣麻婆ソース";
+            case "81" -> "皆辣麻婆ソースだく";
+            case "82" -> "皆辣麻婆ソースだくだく";
             default -> "なし";
         };
     }
 
     private int getSourcePrice(String key) {
         return switch (key) {
-            case "ponzu", "negi" -> 80;
-            case "tartar" -> 100;
+            case "50", "60", "70" -> 80;
+            case "51", "61", "71" -> 120;
+            case "52", "62", "72" -> 150;
+            case "80" -> 100;
+            case "81" -> 140;
+            case "82" -> 180;
             default -> 0;
         };
     }

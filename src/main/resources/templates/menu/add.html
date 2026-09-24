@@ -43,6 +43,8 @@
             <form th:action="@{/cart/add}" method="POST" class="additem-block">
                 <!-- 商品IDの保持 -->
                 <input type="hidden" name="goodsId" th:value="${goods.goodsId}">
+                <input type="hidden" id="basePrice" th:value="${goods.price}">
+                <input type="hidden" name="editCartItemId" th:value="${editCartItemId}">
 
                 <img class="add-product-img" th:src="@{${goods.photo}}" src="../../static/img/ザンギ弁当.jpg" alt="">
                 <div class="add-select">
@@ -51,25 +53,36 @@
                     <br><br>
                     <div class="add-selector d-flex align-items-center mb-3">
                         <h2 class="fs-5 me-3 mb-0 col-auto">ご飯の量：</h2>
-                        <select class="form-select form-select-sm col" name="rice-amount">
-                            <option value="max">特盛</option>
-                            <option value="high">大盛り</option>
-                            <option value="standard">普通</option>
-                            <option value="min">小盛</option>
+                        <select id="riceSelect" class="form-select form-select-sm col" name="riceAmount">
+                            <option value="20" data-price="0" th:selected="${selectedRice == '20'}" selected>普通 (250g)</option>
+                            <option value="10" data-price="-30" th:selected="${selectedRice == '10'}">小盛り (150g) (-30円)</option>
+                            <option value="30" data-price="50" th:selected="${selectedRice == '30'}">大盛り (350g) (+50円)</option>
+                            <option value="40" data-price="100" th:selected="${selectedRice == '40'}">特盛 (450g) (+100円)</option>
                         </select>
                     </div>
                     <div class="add-selector d-flex align-items-center mb-3">
                         <h2 class="fs-5 me-3 mb-0 col-auto">　ソース：</h2>
-                        <select class="form-select form-select-sm col" name="source-type">
-                            <option value="max">おろしポン酢ソース</option>
-                            <option value="high">自家製タルタルソース</option>
-                            <option value="standard">油淋鶏風ネギダレ</option>
-                            <option value="min">旨辣麻婆ソース</option>
+                        <select id="sourceSelect" class="form-select form-select-sm col" name="sourceType">
+                            <option value="0" data-price="0" th:selected="${selectedSource == '0'}">なし</option>
+                            <option value="50" data-price="80" th:selected="${selectedSource == '50'}">おろしポン酢ソース (+80円)</option>
+                            <option value="51" data-price="120" th:selected="${selectedSource == '51'}">おろしポン酢ソースだく (+120円)</option>
+                            <option value="52" data-price="150" th:selected="${selectedSource == '52'}">おろしポン酢ソースだくだく (+150円)</option>
+                            <option value="60" data-price="80" th:selected="${selectedSource == '60'}">自家製タルタルソース (+80円)</option>
+                            <option value="61" data-price="120" th:selected="${selectedSource == '61'}">自家製タルタルソースだく (+120円)</option>
+                            <option value="62" data-price="150" th:selected="${selectedSource == '62'}">自家製タルタルソースだくだく (+150円)</option>
+                            <option value="70" data-price="80" th:selected="${selectedSource == '70'}">油淋鶏風ネギダレ (+80円)</option>
+                            <option value="71" data-price="120" th:selected="${selectedSource == '71'}">油淋鶏風ネギダレだく (+120円)</option>
+                            <option value="72" data-price="150" th:selected="${selectedSource == '72'}">油淋鶏風ネギダレだくだく (+150円)</option>
+                            <option value="80" data-price="100" th:selected="${selectedSource == '80'}">皆辣麻婆ソース (+100円)</option>
+                            <option value="81" data-price="140" th:selected="${selectedSource == '81'}">皆辣麻婆ソースだく (+140円)</option>
+                            <option value="82" data-price="180" th:selected="${selectedSource == '82'}">皆辣麻婆ソースだくだく (+180円)</option>
                         </select>
                     </div>
 
-                    <h1 class="mt-5" style="display: flex; justify-content: center;"
-                    th:text="${'合計：￥' + #numbers.formatInteger(goods.price, 1, 'COMMA') + '円'}">合計：￥960円</h1>
+                    <h1 class="mt-5" style="display: flex; justify-content: center;">
+                        合計：￥<span id="totalPriceDisplay" th:text="${#numbers.formatInteger(goods.price, 1, 'COMMA')}">960</span>円
+                    </h1>
+                    <!-- th:text="${'合計：￥' + #numbers.formatInteger(goods.price, 1, 'COMMA') + '円'}">合計：￥960円</h1> -->
                     <div class="gap-2 pt-2" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <button id="changesConfirmedBtn" type="submit" class="btn btn-warning mt-4" style="width: 50%;">カートに入れる</button>
                         <a href="/menu" th:href="@{/menu}" id="discardChanges" class="btn btn-outline-secondary mt-3" style="width: 30%;">破棄して戻る</a>
@@ -99,6 +112,35 @@
             <a href=""><img style="width: 60px; height: 51px;" src="../../static/img/マイページボタン.png" alt="マイページ"></a>
         </div>
     </footer>
+
+    <!-- リアルタイム計算JavaScript 【修正ポイント4】 -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const basePriceInput = document.getElementById('basePrice');
+        const riceSelect = document.getElementById('riceSelect');
+        const sourceSelect = document.getElementById('sourceSelect');
+        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+
+        if (!basePriceInput || !totalPriceDisplay) return;
+
+        const basePrice = parseInt(basePriceInput.value) || 0;
+
+        function updatePrice() {
+            const ricePrice = parseInt(riceSelect.options[riceSelect.selectedIndex].dataset.price || 0);
+            const sourcePrice = parseInt(sourceSelect.options[sourceSelect.selectedIndex].dataset.price || 0);
+            
+            const total = basePrice + ricePrice + sourcePrice;
+            totalPriceDisplay.textContent = total.toLocaleString();
+        }
+
+        if (riceSelect) riceSelect.addEventListener('change', updatePrice);
+        if (sourceSelect) sourceSelect.addEventListener('change', updatePrice);
+
+        // 初期表示時計算
+        updatePrice();
+    });
+    </script>
+    
 </body>
 
 </html>
