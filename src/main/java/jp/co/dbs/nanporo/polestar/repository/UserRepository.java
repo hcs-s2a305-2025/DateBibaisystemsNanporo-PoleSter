@@ -119,14 +119,14 @@ public class UserRepository {
     }
 
     // 新規登録
-    public void registerStaff(String mail, String name, String role) {
+    public void registerStaff(String mail, String name, String password, String role) {
         String sql = "INSERT INTO user_m (mail, name, password, role, member_rank, gender, birthday, cancel_count, alive, point, point_card_complete) "
         + "VALUES (:mail, :name, :password, :role, :member_rank, :gender, :birthday, :cancel_count, true, 0, 0 )";
         
         Map<String, Object> params = new HashMap<>();
         params.put("mail", mail);
         params.put("name", name);
-        params.put("password", "password"); // 初期パスワード
+        params.put("password", password); // 初期パスワード
         params.put("role", role);
         params.put("member_rank", "NONE");
         params.put("gender", "未");
@@ -230,6 +230,42 @@ public class UserRepository {
         params.put("mail", mail);
         params.put("registerTime", registerTime);
         params.put("content", content);
+
+        jdbc.update(sql, params);
+    }
+
+    // ユーザ情報変更（パスワードなし）
+    public  void updateNoPassword(String mail, String nowMail, String name) {
+        String sql ="""
+                UPDATE user_m
+                SET mail = :mail,
+                    name = :name
+                WHERE mail = :nowMail
+                """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+        params.put("nowMail", nowMail);
+        params.put("name", name);
+
+        jdbc.update(sql, params);
+    }
+
+    // ユーザ情報変更（パスワードあり）
+    public  void updateYesPassword(String mail, String nowMail, String name, String password) {
+        String sql ="""
+                UPDATE user_m
+                SET mail = :mail,
+                    name = :name,
+                    password = :password
+                WHERE mail = :nowMail
+                """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+        params.put("nowMail", nowMail);
+        params.put("name", name);
+        params.put("password", password);
 
         jdbc.update(sql, params);
     }

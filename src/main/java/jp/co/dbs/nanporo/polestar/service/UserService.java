@@ -1,8 +1,10 @@
 package jp.co.dbs.nanporo.polestar.service;
 
 import java.sql.Date;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +12,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -24,6 +27,9 @@ public class UserService {
 
     @Autowired 
     private UserRepository repository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * 指定されたメールアドレスからユーザを検索するメソッド
@@ -154,7 +160,8 @@ public class UserService {
 
     // 新規登録処理
     public void registerStaff(String mail, String name, String role) {
-        repository.registerStaff(mail, name, role);
+        String password = passwordEncoder.encode("password"); // 初期パスワード:password
+        repository.registerStaff(mail, name, password, role);
     }
 
     // 停止処理
@@ -214,5 +221,63 @@ public class UserService {
             repository.insertNoticeWithId(nextId, email, now, content);
             nextId++; // ID+1
         }
+    }
+
+    // システム自動停止
+    @Transactional
+    public void closeDays(String dayName, int weeks) {
+        DayOfWeek targetDay = parseDayOfWeek(dayName);
+
+        if (targetDay == null){
+            return;
+        }
+
+        LocalDate current = LocalDate.now().with(TemporalAdjusters.nextOrSame(targetDay));
+
+        for (int i = 0; i < weeks; i++) {
+            repository.insertClose(current, "定休日");
+            current = current.plusWeeks(1);// 1週間後へ
+        }
+    }
+
+    // DayOfWeekに変換
+    private DayOfWeek parseDayOfWeek(String dayName) {
+        switch (dayName) {
+            case "月": return DayOfWeek.MONDAY;
+            case "火": return DayOfWeek.TUESDAY;
+            case "水": return DayOfWeek.WEDNESDAY;
+            case "木": return DayOfWeek.THURSDAY;
+            case "金": return DayOfWeek.FRIDAY;
+            case "土": return DayOfWeek.SATURDAY;
+            case "日": return DayOfWeek.SUNDAY;
+            default: return null;
+        }
+    }
+
+    // パスワード比較
+    public boolean passwordCheck(String mail, String password) {
+
+        boolean result = false;
+
+        Map<String, Object> user = repository.findByMail(mail);
+        String nowPassword = (String) user.get("password");
+
+        if(passwordEncoder.matches(password, nowPassword)) {
+            result = true;
+        }
+
+        return  result;
+    }
+
+    // ユーザ情報変更（パスワードなし）
+    public void updateNoPassword(String mail, String nowMail, String name) {
+        repository.updateNoPassword(mail, nowMail, name);
+    } 
+
+    // ユーザ情報変更（パスワードあり）
+    public void updateYesPassword(String mail, String nowMail, String name, String password) {
+
+        password = passwordEncoder.encode(password);
+        repository.updateYesPassword(mail, nowMail, name, password);
     }
 }
