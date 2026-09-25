@@ -119,16 +119,16 @@ public class UserRepository {
     }
 
     // 新規登録
-    public void registerStaff(String mail, String name, String password, String role) {
+    public void register(String mail, String name, String password, String role, String rank) {
         String sql = "INSERT INTO user_m (mail, name, password, role, member_rank, gender, birthday, cancel_count, alive, point, point_card_complete) "
         + "VALUES (:mail, :name, :password, :role, :member_rank, :gender, :birthday, :cancel_count, true, 0, 0 )";
         
         Map<String, Object> params = new HashMap<>();
         params.put("mail", mail);
         params.put("name", name);
-        params.put("password", password); // 初期パスワード
+        params.put("password", password);
         params.put("role", role);
-        params.put("member_rank", "NONE");
+        params.put("member_rank", rank);
         params.put("gender", "未");
         params.put("birthday", java.sql.Date.valueOf("2000-01-01"));
         params.put("cancel_count", 0);

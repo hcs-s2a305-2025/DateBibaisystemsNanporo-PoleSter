@@ -158,10 +158,10 @@ public class UserService {
     repository.deleteUser(mail);
     }
 
-    // 新規登録処理
+    // 従業員新規登録処理
     public void registerStaff(String mail, String name, String role) {
         String password = passwordEncoder.encode("password"); // 初期パスワード:password
-        repository.registerStaff(mail, name, password, role);
+        repository.register(mail, name, password, role, "NONE");
     }
 
     // 停止処理
@@ -279,5 +279,11 @@ public class UserService {
 
         password = passwordEncoder.encode(password);
         repository.updateYesPassword(mail, nowMail, name, password);
+    }
+
+    // 顧客新規登録処理
+    public void registerCustomer(String mail, String password) {
+        password = passwordEncoder.encode(password);
+        repository.register(mail, mail, password, "顧客", "一般会員");
     }
 }

@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,14 +84,18 @@ public class SettingController {
     ) {
         try {
             String nowMail = principal.getName();
-            if(oldPassword != null) { // パスワード変更なし
+            if(oldPassword.isEmpty() && newPassword.isEmpty() && newPasswordConf.isEmpty()) { // パスワード変更なし
 
-                service.updateNoPassword(name, nowMail, mailAddress);
+                service.updateNoPassword(mailAddress, nowMail, name);
 
             } else { // パスワード変更あり
 
+                if(oldPassword.isEmpty() || newPassword.isEmpty() || newPasswordConf.isEmpty()) {
+                    redirectAttributes.addAttribute("passwordNullError", true);
+                }
+
                 // 現在のパスワードの確認
-                boolean result = service.passwordCheck(mailAddress, oldPassword);
+                boolean result = service.passwordCheck(nowMail, oldPassword);
                 if(!result) {
                     redirectAttributes.addAttribute("oldPasswordError", true);
                     return "redirect:/settings/edit";
@@ -100,10 +107,21 @@ public class SettingController {
                     return "redirect:/settings/edit";
                 }
 
-                service.updateYesPassword(name, nowMail, mailAddress, newPassword);
+                service.updateYesPassword(mailAddress, nowMail, name, newPassword);
             }
 
-            return "redirect:settings";
+            // メルアド変更の場合
+            if(!nowMail.equals(mailAddress)) {
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                    mailAddress, // 新しいメルアド
+                    auth.getCredentials(),
+                    auth.getAuthorities()
+                );
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
+            }
+
+            return "redirect:/settings";
         } catch (Exception e) {
             redirectAttributes.addAttribute("error", true);
             return "redirect:/settings/edit";
