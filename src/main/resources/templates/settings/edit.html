@@ -146,7 +146,11 @@
             } else if (urlParams.has('error')) {
                 alert('変更できませんでした。もう一度お試しください。');
                 history.replaceState(null, '', window.location.pathname);
+            } else if (urlParams.has('passwordNullError')) {
+                alert('パスワードを入力してください。');
+                history.replaceState(null, '', window.location.pathname);
             }
+
 
             const toggle = document.getElementById('toggleSchedule');
             if (toggle) {
