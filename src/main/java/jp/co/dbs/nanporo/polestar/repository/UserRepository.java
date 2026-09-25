@@ -121,7 +121,7 @@ public class UserRepository {
     // 新規登録
     public void register(String mail, String name, String password, String role, String rank) {
         String sql = "INSERT INTO user_m (mail, name, password, role, member_rank, gender, birthday, cancel_count, alive, point, point_card_complete) "
-        + "VALUES (:mail, :name, :password, :role, :member_rank, :gender, :birthday, :cancel_count, true, 0, 0 )";
+        + "VALUES (:mail, :name, :password, :role, :member_rank, :gender, :birthday, :cancel_count, false, 0, 0 )";
         
         Map<String, Object> params = new HashMap<>();
         params.put("mail", mail);

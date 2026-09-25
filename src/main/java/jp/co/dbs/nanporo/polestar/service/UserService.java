@@ -284,6 +284,6 @@ public class UserService {
     // 顧客新規登録処理
     public void registerCustomer(String mail, String password) {
         password = passwordEncoder.encode(password);
-        repository.register(mail, mail, password, "顧客", "一般会員");
+        repository.register(mail, mail, password, "顧客", "一般");
     }
 }

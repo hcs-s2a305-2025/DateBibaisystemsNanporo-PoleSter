@@ -56,6 +56,44 @@
         </form>
         <h1 class="orbitron">Pole<span style="color: #ffd736;">star</span></h1>
     </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        // URLパラメータの取得
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // アラート表示制御
+        if (urlParams.has('mailNullError')) {
+            alert('メールアドレスを入力してください。');
+            history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.has('passwordNullError')) {
+            alert('パスワードを入力してください。');
+            history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.has('passwordError')) {
+            alert('パスワードが一致しません。もう一度入力してください。 ');
+            history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.has('sameMailError')) {
+            alert('すでに登録済みのアカウントです。');
+            history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.has('error')) {
+            alert('ユーザの登録に失敗しました。もう一度お試しください。 ');
+            history.replaceState(null, '', window.location.pathname);
+        }
+
+        // スケジュール切り替え処理（既存処理）
+        const toggle = document.getElementById('toggleSchedule');
+        if (toggle) {
+            const controls = document.querySelectorAll('.schedule-control');
+            const updateState = () => {
+                const isEnabled = toggle.checked;
+                controls.forEach(control => {
+                    control.disabled = !isEnabled;
+                });
+            };
+            updateState();
+            toggle.addEventListener('change', updateState);
+        }
+    });
+    </script>
 </body>
 
 </html>
