@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+.zenmarugothic{
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-weight: bold;
+}
+
+.stampcard-img{
+    width:600px;
+    height:auto;
+    display:block;
+    margin:0 auto;
+}
+
+.member-card{
+    width: 585px;
+    height: 350px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: block;
+    margin: 0 auto;
+    margin-top: 5px;
+    padding: 20px;
+}
+
+.member-general{color: #fff; background: linear-gradient(to bottom, #52C5FF, #8BD8FF 50%, #52C5FF);}
+.member-bronze{color: #fff; background: linear-gradient(to bottom, #B87333, #D2691E 50%, #B87333);}
+.member-silver{color: #fff; background: linear-gradient(to bottom, #C0C0C0, #D3D3D3 50%, #C0C0C0);}
+.member-gold{color: #fff; background: linear-gradient(to bottom, #FFD700, #FFA500 50%, #FFD700);}
+
+.member-card-content{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.member-card-content h1 {
+    font-size: 42px;
+    margin: 40px 0;
+}
+
+.member-card-content h3 {
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+.member-card-content h5 {
+    font-size: 15px;
+    margin: 6px 0;
+}
+
+
+@media (max-width: 800px) {
+    .stampcard-img {
+        width: 100%;
+        height: auto;
+    }
+    
+    .member-card {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 585 / 350; /* 元のアスペクト比を維持 */
+        
+        /* ▼ 追加：padding（内側の余白）が原因で画面外にはみ出すのを防ぐ */
+        box-sizing: border-box; 
+        
+        /* ▼ 変更：内側の余白も画面幅に合わせて縮小させる */
+        padding: 4vw; 
+    }
+
+    /* ▼ 文字サイズとマージンを vw (画面幅の割合) で指定する */
+    .member-card-content h1 {
+        font-size: 7vw;      /* 画面幅の6%の大きさ */
+        margin: 8vw 0;       /* 余白も画面幅に合わせて縮小 */
+    }
+
+    .member-card-content h3 {
+        font-size: 3.5vw;
+        margin-top: 2vw;
+    }
+    
+    /* h5も追加してレスポンシブ化します */
+    .member-card-content h5 {
+        font-size: 2.5vw;
+        margin: 1vw 0;
+    }
+}
