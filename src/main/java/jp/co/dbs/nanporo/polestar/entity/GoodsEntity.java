@@ -1,5 +1,8 @@
 package jp.co.dbs.nanporo.polestar.entity;
 
+import lombok.Data;
+
+@Data
 public class GoodsEntity {
     
     // 商品ID
