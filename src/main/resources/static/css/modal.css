@@ -6,6 +6,10 @@
     box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
     border-radius: 20px;
     padding: 7px;
+
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 .modal-title{
@@ -154,14 +158,16 @@
 
 /* Bootstrapのモーダル構造のデフォルト装飾を無効化 */
 .modal-window .modal-dialog {
-    max-width: none !important;  /* Bootstrapデフォルトの幅制限（500px等）を解除 */
-    margin: 0 !important;        /* 中央寄せ用の余白を解除 */
-    height: 100%;                /* 既存のレイアウトに高さを合わせる */
+    max-width: none !important;
+    margin: 0 !important;
+    height: 100%;
 }
 
 .modal-window .modal-content {
-    background-color: transparent !important; /* 背景の白塗りを透明に */
-    border: none !important;                  /* 枠線を消す */
-    border-radius: 0 !important;              /* 角丸を消す */
-    box-shadow: none !important;              /* 影を消す */
+    background-color: transparent !important; 
+    border: none !important;  
+    border-radius: 0 !important; 
+    box-shadow: none !important; 
+
+    width: auto !important;
 }
