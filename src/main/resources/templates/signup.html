@@ -55,44 +55,99 @@
             </div>
         </form>
         <h1 class="orbitron">Pole<span style="color: #ffd736;">star</span></h1>
+        <!-- 性別・誕生日入力モーダル -->
+        <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">プロフィール登録</h5>
+                    </div>
+                    <!-- 送信先を /signup/profile に指定 -->
+                    <form th:action="@{/signup/profile}" method="post">
+                        <div class="modal-body">
+                            <!-- メールアドレス（hidden） -->
+                            <input type="hidden" id="modalMail" name="mail">
+
+                            <!-- 性別 -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">性別</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gender" id="genderMale" value="男" required>
+                                        <label class="form-check-label" for="genderMale">男性</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="女" required>
+                                        <label class="form-check-label" for="genderFemale">女性</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 生年月日 -->
+                            <div class="mb-3">
+                                <label for="birthday" class="form-label fw-bold">生年月日</label>
+                                <input type="date" class="form-control" id="birthday" name="birthday" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">登録してログインへ</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </main>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-        // URLパラメータの取得
-        const urlParams = new URLSearchParams(window.location.search);
+            // URLパラメータの取得
+            const urlParams = new URLSearchParams(window.location.search);
 
-        // アラート表示制御
-        if (urlParams.has('mailNullError')) {
-            alert('メールアドレスを入力してください。');
-            history.replaceState(null, '', window.location.pathname);
-        } else if (urlParams.has('passwordNullError')) {
-            alert('パスワードを入力してください。');
-            history.replaceState(null, '', window.location.pathname);
-        } else if (urlParams.has('passwordError')) {
-            alert('パスワードが一致しません。もう一度入力してください。 ');
-            history.replaceState(null, '', window.location.pathname);
-        } else if (urlParams.has('sameMailError')) {
-            alert('すでに登録済みのアカウントです。');
-            history.replaceState(null, '', window.location.pathname);
-        } else if (urlParams.has('error')) {
-            alert('ユーザの登録に失敗しました。もう一度お試しください。 ');
-            history.replaceState(null, '', window.location.pathname);
-        }
+            // 成功時の処理（モーダル起動）
+            if (urlParams.has('success')) {
+                const mail = urlParams.get('mail');
+                if (mail) {
+                    document.getElementById('modalMail').value = mail;
+                }
+                
+                // Bootstrapモーダルを手動で初期化・表示
+                const profileModalElement = document.getElementById('profileModal');
+                const profileModal = new bootstrap.Modal(profileModalElement);
+                profileModal.show();
 
-        // スケジュール切り替え処理（既存処理）
-        const toggle = document.getElementById('toggleSchedule');
-        if (toggle) {
-            const controls = document.querySelectorAll('.schedule-control');
-            const updateState = () => {
-                const isEnabled = toggle.checked;
-                controls.forEach(control => {
-                    control.disabled = !isEnabled;
-                });
-            };
-            updateState();
-            toggle.addEventListener('change', updateState);
-        }
-    });
+                // URLパラメータを削除して綺麗にする
+                history.replaceState(null, '', window.location.pathname);
+                
+            } else if (urlParams.has('mailNullError')) {
+                alert('メールアドレスを入力してください。');
+                history.replaceState(null, '', window.location.pathname);
+            } else if (urlParams.has('passwordNullError')) {
+                alert('パスワードを入力してください。');
+                history.replaceState(null, '', window.location.pathname);
+            } else if (urlParams.has('passwordError')) {
+                alert('パスワードが一致しません。もう一度入力してください。');
+                history.replaceState(null, '', window.location.pathname);
+            } else if (urlParams.has('sameMailError')) {
+                alert('すでに登録済みのアカウントです。');
+                history.replaceState(null, '', window.location.pathname);
+            } else if (urlParams.has('error')) {
+                alert('ユーザの登録に失敗しました。もう一度お試しください。');
+                history.replaceState(null, '', window.location.pathname);
+            }
+
+            // スケジュール切り替え処理
+            const toggle = document.getElementById('toggleSchedule');
+            if (toggle) {
+                const controls = document.querySelectorAll('.schedule-control');
+                const updateState = () => {
+                    const isEnabled = toggle.checked;
+                    controls.forEach(control => {
+                        control.disabled = !isEnabled;
+                    });
+                };
+                updateState();
+                toggle.addEventListener('change', updateState);
+            }
+        });
     </script>
 </body>
 

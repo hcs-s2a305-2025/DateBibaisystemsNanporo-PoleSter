@@ -52,6 +52,7 @@ public class UserService {
         }
     }
 
+
     /**
      * テーブル（List<Map>）を UserEntity のリストに変換するヘルパー関数
      * LoginUserDetails で使用されるフィールド名に合わせてマッピングします。
@@ -75,7 +76,13 @@ public class UserService {
         return list;
     }
 
-    // 従業員の一覧取得
+
+    /**
+     * 従業員一覧を取得するメソッド
+     * @param pageable ページ
+     *        sort     ソート
+     * @return UserGetResponse 従業員一覧リスト
+     */
     public  UserGetResponse getStaffList(Pageable pageable, String sort) {
         // リポジトリに処理を依頼
         List<Map<String, Object>> resultSet = repository.getStaffList(pageable, sort);
@@ -93,7 +100,13 @@ public class UserService {
         return response;
     }
 
-    // 顧客の一覧取得
+
+    /**
+     * 顧客一覧を取得するメソッド
+     * @param pageable ページ
+     *        sort     ソート
+     * @return UserGetResponse 顧客一覧リスト
+     */
     public  UserGetResponse getCustomerList(Pageable pageable, String sort) {
         // リポジトリに処理を依頼
         List<Map<String, Object>> resultSet = repository.getCustomerList(pageable, sort);
@@ -111,6 +124,12 @@ public class UserService {
         return response;
     }
 
+    
+    /**
+     * UserEntityへ値を設定するメソッド
+     * @param resultSet リザルト
+     * @return users 一覧をセットしたリスト
+     */
     private List<UserEntity> toResponse(List<Map<String, Object>> resultSet) {
         // 配列の初期化
         List<UserEntity> users = new ArrayList<UserEntity>();
@@ -135,7 +154,12 @@ public class UserService {
         return users;
     }
 
-    // 編集データ取得（１件）
+
+    /**
+     * メールアドレスから特定の1件を取得するメソッド
+     * @param mail メールアドレス
+     * @return user 
+     */
     public UserEntity findByMail(String mail) {
         Map<String, Object> row = repository.findByMail(mail);
         
@@ -148,33 +172,62 @@ public class UserService {
         return user;
     }
 
-    // 更新処理
+
+    /**
+     * 従業員の情報をアップデートするメソッド
+     * @param mail メールアドレス
+     *        name 名前
+     *        role 権限
+     *        alive 状態
+     */
     public void updateStaff(String mail, String name, String role, boolean alive) {
         repository.updateStaff(mail, name, role, alive);
     }
 
-    // 削除処理
+
+    /**
+     * ユーザを削除するメソッド
+     * @param mail メールアドレス
+     */
     public void deleteUser(String mail) {
     repository.deleteUser(mail);
     }
 
-    // 従業員新規登録処理
+
+    /**
+     * 従業員を新規登録するメソッド
+     * @param mail メールアドレス
+     *        name 名前
+     *        role 権限
+     */
     public void registerStaff(String mail, String name, String role) {
         String password = passwordEncoder.encode("password"); // 初期パスワード:password
-        repository.register(mail, name, password, role, "NONE");
+        repository.register(mail, name, password, role, "一般");
     }
 
-    // 停止処理
+
+    /**
+     * ユーザを利用停止にするメソッド
+     * @param mail メールアドレス
+     */
     public void stopUser(String mail) {
         repository.stopUser(mail);
     }
 
-    // 解除処理
+
+    /**
+     * ユーザを停止解除するメソッド
+     * @param mail メールアドレス
+     */
     public void resumeUser(String mail) {
         repository.resumeUser(mail);
     }
 
-    // 予約数
+
+    /**
+     * 今日の予約件数を取得するメソッド
+     * @return cnt 予約件数
+     */
     public int countOrder() {
         // 今日の日付
         LocalDate today = LocalDate.now();
@@ -183,14 +236,21 @@ public class UserService {
         return cnt;
     }
 
-    // 休業日追加
+
+    /**
+     * 休業日を追加するメソッド
+     */
     public void insertClose() {
         // 今日の日付
         LocalDate today = LocalDate.now();
         repository.insertClose(today, "臨時休業");
     }
 
-    // 売上フラッシュ
+
+    /**
+     * 売上フラッシュの情報を取得するメソッド
+     * @return repository.getHourlySalesFlash(timeRange, start, end);
+     */
     public SalesFlashDto getHourlySalesFlash() {
         // 現在の時間を取得
         LocalDateTime now = LocalDateTime.now();
@@ -203,7 +263,11 @@ public class UserService {
         return repository.getHourlySalesFlash(timeRange, start, end);
     }
 
-    // 一斉送信
+
+    /**
+     * 通知を登録するメソッド
+     * @param content 通知内容
+     */
     @Transactional
     public void sendBroadcastNotice(String content) {
         List<String> customerEmails = repository.findCustomerEmails();
@@ -223,7 +287,12 @@ public class UserService {
         }
     }
 
-    // システム自動停止
+
+    /**
+     * システム自動停止を行うメソッド
+     * @param dayName 曜日名
+     *        weeks 何週間分
+     */
     @Transactional
     public void closeDays(String dayName, int weeks) {
         DayOfWeek targetDay = parseDayOfWeek(dayName);
@@ -240,6 +309,12 @@ public class UserService {
         }
     }
 
+
+    /**
+     * 曜日名をシステムで使える形に変換するメソッド
+     * @param dayName 曜日名
+     * @return DayOfWeek.~
+     */
     // DayOfWeekに変換
     private DayOfWeek parseDayOfWeek(String dayName) {
         switch (dayName) {
@@ -254,7 +329,13 @@ public class UserService {
         }
     }
 
-    // パスワード比較
+
+    /**
+     * パスワードを比較するメソッド
+     * @param mail メールアドレス
+     *        password 受け取ったパスワード
+     * @return result true/false
+     */
     public boolean passwordCheck(String mail, String password) {
 
         boolean result = false;
@@ -269,21 +350,50 @@ public class UserService {
         return  result;
     }
 
-    // ユーザ情報変更（パスワードなし）
+
+    /**
+     * ユーザ情報変更（パスワードなし）を行うメソッド
+     * @param mail 変更するメールアドレス
+     *        nowMail 現在のメールアドレス
+     *        name 名前
+     */
     public void updateNoPassword(String mail, String nowMail, String name) {
         repository.updateNoPassword(mail, nowMail, name);
     } 
 
-    // ユーザ情報変更（パスワードあり）
+
+    /**
+     * ユーザ情報変更（パスワードあり）を行うメソッド
+     * @param mail 変更するメールアドレス
+     *        nowMail 現在のメールアドレス
+     *        name 名前
+     *        password パスワード
+     */
     public void updateYesPassword(String mail, String nowMail, String name, String password) {
 
         password = passwordEncoder.encode(password);
         repository.updateYesPassword(mail, nowMail, name, password);
     }
 
-    // 顧客新規登録処理
+
+    /**
+     * 新規顧客登録を行うメソッド
+     * @param mail メールアドレス
+     *        password パスワード
+     */
     public void registerCustomer(String mail, String password) {
         password = passwordEncoder.encode(password);
         repository.register(mail, mail, password, "顧客", "一般");
+    }
+
+
+    /**
+     * 性別・誕生日の更新を行うメソッド
+     * @param mail メールアドレス
+     *        gender 性別
+     *        birthday 誕生日
+     */
+    public void updateProfile(String mail, String gender, String birthday) {
+        repository.updateProfile(mail, gender, birthday);
     }
 }

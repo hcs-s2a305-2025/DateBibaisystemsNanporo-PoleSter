@@ -130,7 +130,7 @@ public class UserRepository {
         params.put("role", role);
         params.put("member_rank", rank);
         params.put("gender", "未");
-        params.put("birthday", java.sql.Date.valueOf("2000-01-01"));
+        params.put("birthday", java.sql.Date.valueOf("1000-01-01"));
         params.put("cancel_count", 0);
 
         jdbc.update(sql, params);
@@ -266,6 +266,23 @@ public class UserRepository {
         params.put("nowMail", nowMail);
         params.put("name", name);
         params.put("password", password);
+
+        jdbc.update(sql, params);
+    }
+
+    // 性別、誕生日更新
+    public void updateProfile(String mail, String gender, String birthday) {
+        String sql = """
+                UPDATE user_m
+                SET gender = :gender,
+                    birthday = :birthday
+                WHERE mail = :mail
+                """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+        params.put("gender", gender);
+        params.put("birthday", java.sql.Date.valueOf(birthday));
 
         jdbc.update(sql, params);
     }

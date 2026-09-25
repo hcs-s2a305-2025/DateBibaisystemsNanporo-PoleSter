@@ -28,8 +28,6 @@ public class SignupController {
         @RequestParam ("passwordConfirm") String passwordConfirm,
         RedirectAttributes redirectAttributes){
 
-        try {
-
             if(mail.isBlank()) {// メルアド未入力
                 redirectAttributes.addAttribute("mailNullError", true);
                 return "redirect:/signup";
@@ -43,8 +41,12 @@ public class SignupController {
                 return "redirect:/signup";
             }
 
+        try {
             service.registerCustomer(mail, password);
-            return "redirect:/login";
+
+            redirectAttributes.addAttribute("success", true);
+            redirectAttributes.addAttribute("mail", mail);
+            return "redirect:/signup";
         
         } catch (DataIntegrityViolationException e) {
             // 登録済み
@@ -55,5 +57,17 @@ public class SignupController {
             redirectAttributes.addAttribute("error", true);
             return "redirect:/signup";
         }
+    }
+
+    @PostMapping ("/signup/profile")
+    public String updateProfile(
+        @RequestParam ("mail") String mail,
+        @RequestParam ("gender") String gender,
+        @RequestParam ("birthday") String birthday,
+        RedirectAttributes redirectAttributes) {
+        
+        service.updateProfile(mail, gender, birthday);
+
+        return "redirect:/login";
     }
 }
