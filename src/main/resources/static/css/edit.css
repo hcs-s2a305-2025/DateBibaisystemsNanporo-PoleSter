@@ -1,0 +1,15 @@
+.option-card {
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .option-card:hover {
+            background-color: #f8f9fa;
+            border-color: #0d6efd !important;
+        }
+        .allergen-scroll-box {
+            max-height: 150px; /* スクロール領域の高さ */
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+        }
