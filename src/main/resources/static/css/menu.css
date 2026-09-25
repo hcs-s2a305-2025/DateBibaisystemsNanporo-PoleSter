@@ -85,3 +85,42 @@
         font-size: 14px;
     }
 }
+
+/* 新規商品追加ボタン */
+.btn-add-product {
+    background-color: #e61f52;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.btn-add-product:hover {
+    background-color: #c91442;
+}
+
+/* メニューカード内のレイアウト調整 */
+.menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    padding: 15px;
+    margin-bottom: 12px;
+    background-color: #fffde8; /* 薄黄色背景 */
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.1s ease;
+}
+
+.menu-item:hover {
+    transform: translateY(-2px);
+}
+
+/* 削除ボタンの押しやすさ調整 */
+.action-block .btn {
+    z-index: 2;
+    background-color: #ffffff;
+}

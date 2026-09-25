@@ -46,49 +46,64 @@
     <!-- メインコンテンツ部 -->
     <main class="main-content">
         <div class="main-PC">
-            <h2>メニュー一覧</h2>
+            <!-- タイトル & 新規商品追加ボタン -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>メニュー編集</h2>
+                <a th:href="@{/w/editmenu/edit}" class="btn btn-danger btn-add-product px-4 py-2">
+                    新規商品追加
+                </a>
+            </div>
             
             <!-- 予約データが存在しない場合 -->
-            <div class="item-block" th:if="${#lists.isEmpty(~List)}">
+            <div class="item-block" th:if="${#lists.isEmpty(menuList)}">
                 <h5 class="item-block-text">メニューが存在しません。</h5>
             </div>
 
             <!-- 予約データが存在する場合 -->
-            <div class="item-block menu-item" th:each="item : ${~List}">
+            <div class="item-block menu-item"
+                th:each="item : ${menuList}"
+                th:onclick="|location.href='@{/w/editmenu/edit(goodsId=${item.goodsId})}'|">
+
                 <div class="name-block">
                     <!-- 商品名 -->
-                    <h3 th:text="${item.name}">元祖ザンギ弁当（3個）</h3>
+                    <h3 th:text="${item.goodsName}">元祖ザンギ弁当（3個）</h3>
                     
                     <!-- 金額 -->
                     <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
                 </div>
 
+                <!-- 削除ボタンエリア（カードクリックの遷移と重複させないよう event.stopPropagation() を設定） -->
+                <div class="action-block d-flex align-items-center me-3" onclick="event.stopPropagation();">
+                    <form th:action="@{/editmenu/delete}" method="post" onsubmit="return confirm('本当に削除しますか？');">
+                        <input type="hidden" name="goodsId" th:value="${item.goodsId}" />
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">削除</button>
+                    </form>
+                </div>
+
                 <!-- 商品画像 -->
-                <img src="../../static/img/ザンギ弁当.jpg" th:src="@{${item.imageUrl}}" alt="商品画像">
+                <img src="../../static/img/ザンギ弁当.jpg" th:src="@{${item.photo}}" alt="商品画像">
             </div>
         </div>
     </main>
 
-    <!-- フッダー部 -->
-    <!-- いずれ移行 -->
-	<!-- <div th:replace="~{common/footer}"></div> -->
-    <footer class="footer-content">
-        <div class="footer-btn">
-            <a href=""><img style="width: 36px; height: 53px;" src="../../static/img/ホームボタン.png" alt="ホーム"></a>
+    <!-- ソート用カテゴリ（th:eachで動的取得） -->
+    <div class="foot-menu">
+        <div class="foot-menu-select">
+            <!-- 「すべて」タブ -->
+            <a href="/editmenu" th:href="@{/editmenu}" 
+                class="foot-menu-select-button text-decoration-none"  
+                th:classappend="${selectedCategoryId == null} ? '' : 'text-secondary'"
+            >すべて</a>
+
+            <!-- 各カテゴリタブ（th:eachでループ表示） -->
+            <a href="#" th:href="@{/menu(categoryId=${category.id})}" 
+                class="foot-menu-select-button text-decoration-none" 
+                th:each="category : ${categoryList}" 
+                th:classappend="${selectedCategoryId == category.id} ? '' : 'text-secondary'"
+                th:text="${category.name}">ザンギ弁当</a>
         </div>
-        <div class="footer-btn">
-            <a href=""><img style="width: 48px; height: 53px;"  src="../../static/img/メニューボタン.png" alt="メニュー"></a>
-        </div>
-        <div class="footer-btn" style="position: relative; top: -20px;">
-            <a href=""><img style="width: 77px; height: 96px;" src="../../static/img/予約ボタン.png" alt="予約"></a>
-        </div>
-        <div class="footer-btn">
-            <a href=""><img style="width: 33px; height: 51px;" src="../../static/img/履歴ボタン.png" alt="履歴"></a>
-        </div>
-        <div class="footer-btn">
-            <a href=""><img style="width: 60px; height: 51px;" src="../../static/img/マイページボタン.png" alt="マイページ"></a>
-        </div>
-    </footer>
+    </div>
+
 </body>
 
 </html>

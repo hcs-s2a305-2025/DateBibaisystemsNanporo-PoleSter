@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>casherhistory</title>
+	<title>Polestar | ORDER ZANGI</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -46,13 +46,16 @@
 
     <main class="container my-4 edit-container">
         
-        <form class="product-edit-wrapper bg-white p-4 rounded shadow-sm" th:action="@{/product/update}" method="post">
+        <form class="product-edit-wrapper bg-white p-4 rounded shadow-sm" th:action="@{/product/update}" method="post" enctype="multipart/form-data">
+
+            <!-- 主キーをhiddenで送信（更新処理に必須） -->
+            <input type="hidden" name="goodsId" th:value="${goods?.goodsId}">
 
             <!-- 画像 + 基本情報入力領域 -->
             <div class="row mb-5 product-basic-info">
                 <!-- 商品画像 -->
                 <div class="col-md-5 mb-3 mb-md-0 product-image-area">
-                    <img src="../../../static/img/ザンギ弁当.jpg" alt="元祖ザンギ弁当" class="img-fluid rounded border w-100 object-fit-cover" style="max-height: 300px;">
+                    <img th:src="${goods?.photo != null ? goods.photo : '/img/ザンギ弁当.jpg'}" src="../../../static/img/ザンギ弁当.jpg" alt="商品画像" class="img-fluid rounded border w-100 object-fit-cover" style="max-height: 300px;">
                 </div>
 
                 <div class="col-md-7 product-input-area d-flex flex-column justify-content-center">
@@ -64,22 +67,22 @@
 
                     <!-- 商品名入力 -->
                     <div class="input-group mb-4 align-items-center">
-                        <input type="text" class="form-control fw-bold fs-5" name="productName" value="元祖ザンギ弁当（5個）">
+                        <input type="text" name="goodsName" th:value="${goods?.goodsName}">
                     </div>
 
                     <!-- 価格 & 注文可能ランク -->
                     <div class="d-flex flex-wrap gap-4 align-items-center">
                         <div class="input-group w-auto">
                             <span class="input-group-text">￥</span>
-                            <input type="text" class="form-control fw-bold" name="price" value="780" style="max-width: 100px;">
+                            <input type="text" class="form-control fw-bold" name="price" th:value="${goods?.price}" style="max-width: 100px;">
                         </div>
                         <div class="d-flex align-items-center">
                             <label for="rank" class="form-label mb-0 me-2 text-nowrap fw-bold">注文可能ランク：</label>
                             <select id="rank" name="rank" class="form-select w-auto">
-                                <option value="general">一般</option>
-                                <option value="bronz">ブロンズ</option>
-                                <option value="silver">シルバー</option>
-                                <option value="gold">ゴールド</option>
+                                <option value="一般" th:selected="${goods?.watchRank == '一般'}">一般</option>
+                                <option value="ブロンズ" th:selected="${goods?.watchRank == 'ブロンズ'}">ブロンズ</option>
+                                <option value="シルバー" th:selected="${goods?.watchRank == 'シルバー'}">シルバー</option>
+                                <option value="ゴールド" th:selected="${goods?.watchRank == 'ゴールド'}">ゴールド</option>
                             </select>
                         </div>
                     </div>
@@ -89,18 +92,18 @@
             <!-- ごはんの量 オプション -->
             <div class="option-section mb-4">
                 <div class="fw-bold mb-2">ごはんの量：</div>
-                <div class="d-flex overflow-x-auto gap-2 pb-2 option-scroll-area">
+                <div class="d-flex overflow-x-auto gap-2 pb-2 option-scroll-area" id="riceContainer">
                     
-                    <div class="card flex-shrink-0 text-center option-card" style="width: 100px;"
+                    <div class="card flex-shrink-0 text-center option-card" style="width: 100px; cursor: pointer;"
                         th:each="rice : ${riceOptions}"
                         data-bs-toggle="modal" 
                         data-bs-target="#optionModal"
                         data-type="rice"
-                        th:data-id="${rice.id}" 
-                        th:data-name="${rice.name}" 
+                        th:data-id="${rice.customId}" 
+                        th:data-name="${rice.goodsName}" 
                         th:data-price="${rice.price}">
                         <div class="card-body p-2">
-                            <div class="fw-bold small text-truncate" th:text="${rice.name}">小盛り</div>
+                            <div class="fw-bold small text-truncate" th:text="${rice.goodsName}">小盛り</div>
                             <div class="small" th:text="${'￥ ' + rice.price}">￥ -50</div>
                         </div>
                     </div>
@@ -128,11 +131,11 @@
                         data-bs-toggle="modal" 
                         data-bs-target="#optionModal"
                         data-type="sauce"
-                        th:data-id="${sauce.id}" 
-                        th:data-name="${sauce.name}" 
+                        th:data-id="${sauce.customId}" 
+                        th:data-name="${sauce.goodsName}" 
                         th:data-price="${sauce.price}">
                         <div class="card-body p-2">
-                            <div class="fw-bold small text-truncate" th:text="${sauce.name}">おろしポン酢</div>
+                            <div class="fw-bold small text-truncate" th:text="${sauce.goodsName}">おろしポン酢</div>
                             <div class="text-success small" th:text="${'￥ ' + sauce.price}">￥ 50</div>
                         </div>
                     </div>
@@ -246,181 +249,7 @@
                                     </div>
                                 </div>
 
-                                <!-- ダミーデータ -->
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a1" data-name="小麦">
-                                        <label class="form-check-label small" for="a1">小麦</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a2" data-name="えび">
-                                        <label class="form-check-label small" for="a2">えび</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a3" data-name="かに">
-                                        <label class="form-check-label small" for="a3">かに</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a4" data-name="くるみ">
-                                        <label class="form-check-label small" for="a4">くるみ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a5" data-name="そば">
-                                        <label class="form-check-label small" for="a5">そば</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a6" data-name="卵">
-                                        <label class="form-check-label small" for="a6">卵</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a7" data-name="乳">
-                                        <label class="form-check-label small" for="a7">乳</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a8" data-name="落花生">
-                                        <label class="form-check-label small" for="a8">落花生</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a9" data-name="カシューナッツ">
-                                        <label class="form-check-label small" for="a9">カシューナッツ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a10" data-name="アーモンド">
-                                        <label class="form-check-label small" for="a10">アーモンド</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a11" data-name="アワビ">
-                                        <label class="form-check-label small" for="a11">アワビ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a12" data-name="いか">
-                                        <label class="form-check-label small" for="a12">いか</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a13" data-name="いくら">
-                                        <label class="form-check-label small" for="a13">いくら</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a14" data-name="オレンジ">
-                                        <label class="form-check-label small" for="a14">オレンジ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a15" data-name="キウイフルーツ">
-                                        <label class="form-check-label small" for="a15">キウイフルーツ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a16" data-name="牛肉">
-                                        <label class="form-check-label small" for="a16">牛肉</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a17" data-name="ごま">
-                                        <label class="form-check-label small" for="a17">ごま</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a18" data-name="さけ">
-                                        <label class="form-check-label small" for="a18">さけ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a19" data-name="さば">
-                                        <label class="form-check-label small" for="a19">さば</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a20" data-name="大豆">
-                                        <label class="form-check-label small" for="a20">大豆</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a21" data-name="鶏肉">
-                                        <label class="form-check-label small" for="a21">鶏肉</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a22" data-name="バナナ">
-                                        <label class="form-check-label small" for="a22">バナナ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a23" data-name="ピスタチオ">
-                                        <label class="form-check-label small" for="a23">ピスタチオ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a24" data-name="豚肉">
-                                        <label class="form-check-label small" for="a24">豚肉</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a25" data-name="マカダミアナッツ">
-                                        <label class="form-check-label small" for="a25">マカダミアナッツ</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a26" data-name="もも">
-                                        <label class="form-check-label small" for="a26">もも</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a27" data-name="やまいも">
-                                        <label class="form-check-label small" for="a27">やまいも</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a28" data-name="りんご">
-                                        <label class="form-check-label small" for="a28">りんご</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" id="a29" data-name="ゼラチン">
-                                        <label class="form-check-label small" for="a29">ゼラチン</label>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -441,6 +270,7 @@
                 1. オプション（ごはん・ソース）モーダルの制御
             ================================================== */
             var optionModal = document.getElementById('optionModal');
+            var currentTargetCard = null; // 編集対象のカード要素を保持
             
             optionModal.addEventListener('show.bs.modal', function (event) {
                 var button = event.relatedTarget;
@@ -465,7 +295,7 @@
                 inputPrice.value = price || '';
 
                 // 新規か既存かで削除ボタンの表示を切り替え
-                if (id) {
+                if (id || currentTargetCard) {
                     modalTitle.textContent = typeLabel + ' の編集';
                     btnDelete.style.display = 'block';
                 } else {
@@ -476,7 +306,49 @@
 
             // オプション保存ボタンの処理
             document.getElementById('btnSaveOption').addEventListener('click', function() {
-                alert('保存します');
+                var type = document.getElementById('modalOptionType').value;
+                var name = document.getElementById('modalOptionName').value;
+                var price = document.getElementById('modalOptionPrice').value;
+
+                if (!name) {
+                    alert('オプション名を入力してください。');
+                    return;
+                }
+
+                if (currentTargetCard) {
+                    // 既存カードの更新
+                    currentTargetCard.setAttribute('data-name', name);
+                    currentTargetCard.setAttribute('data-price', price);
+                    currentTargetCard.querySelector('.option-name-text').textContent = name;
+                    currentTargetCard.querySelector('.option-price-text').textContent = '￥ ' + price;
+                } else {
+                    // 新規カードの作成
+                    var containerId = (type === 'rice') ? 'riceContainer' : 'sauceContainer';
+                    var container = document.getElementById(containerId);
+                    var addButton = container.querySelector('button');
+
+                    var newCard = document.createElement('div');
+                    newCard.className = 'card flex-shrink-0 text-center option-card';
+                    newCard.style.cssText = (type === 'rice') ? 'width: 100px; cursor: pointer;' : 'width: 120px; cursor: pointer;';
+                    newCard.setAttribute('data-bs-toggle', 'modal');
+                    newCard.setAttribute('data-bs-target', '#optionModal');
+                    newCard.setAttribute('data-type', type);
+                    newCard.setAttribute('data-id', 'new_' + Date.now());
+                    newCard.setAttribute('data-name', name);
+                    newCard.setAttribute('data-price', price);
+
+                    var priceClass = (type === 'sauce') ? 'text-success small option-price-text' : 'small option-price-text';
+
+                    newCard.innerHTML = `
+                        <div class="card-body p-2">
+                            <div class="fw-bold small text-truncate option-name-text">${name}</div>
+                            <div class="${priceClass}">￥ ${price}</div>
+                        </div>
+                    `;
+
+                    container.insertBefore(newCard, addButton);
+                }
+
                 var bootstrapModal = bootstrap.Modal.getInstance(optionModal);
                 bootstrapModal.hide();
             });
@@ -485,7 +357,9 @@
             document.getElementById('btnDeleteOption').addEventListener('click', function() {
                 var optionName = document.getElementById('modalOptionName').value;
                 if(confirm('「' + optionName + '」を削除しますか？')) {
-                    alert('削除します');
+                    if (currentTargetCard) {
+                        currentTargetCard.remove();
+                    }
                     var bootstrapModal = bootstrap.Modal.getInstance(optionModal);
                     bootstrapModal.hide();
                 }

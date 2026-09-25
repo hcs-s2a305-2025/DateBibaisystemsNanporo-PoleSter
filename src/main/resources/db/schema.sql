@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS goods_m(
     zangi_count INT NOT NULL,
     sold_out BOOLEAN NOT NULL DEFAULT FALSE,
     detail VARCHAR(100),
-    watch_rank VARCHAR(6) NOT NULL DEFAULT '一般'
+    watch_rank VARCHAR(50) NOT NULL DEFAULT '一般'
 );
 
 /* セット商品マスタ */
