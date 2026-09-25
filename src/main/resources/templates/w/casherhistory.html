@@ -21,15 +21,23 @@
 <body>
 	<!-- ヘッダー部 -->
     <header class="header-content">
-        <div class="header-btn-w">
+        <div class="header-btn">
             <h3><a href="">＜戻る</a></h3>
+        </div>
+        <div class="header-item">
+            <p>ログイン：店長</p>
         </div>
         <div class="system-title">
             <a href="/" th:href="@{/}">
                 <h2>ORDER ZANGI</h2>
             </a>
         </div>
-        <div class="header-btn-w">
+        <div class="header-item d-flex justify-content-end">
+            <div></div>
+        </div>
+        <div class="header-btn">
+            <h5 id="date"></h5>
+            <h5 class="clock"></h5>
         </div>
     </header>
 
@@ -68,5 +76,27 @@
             </section>
         </div>
     </main>
+    <script>
+        // 日付・時計のリアルタイム表示
+        function updateClock() {
+            const now = new Date();
+            const dateElem = document.getElementById('date');
+            const clockElem = document.querySelector('.clock');
+            
+            if (dateElem && clockElem) {
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                
+                dateElem.textContent = `${year}/${month}/${day}`;
+                clockElem.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
 </body>
 </html>

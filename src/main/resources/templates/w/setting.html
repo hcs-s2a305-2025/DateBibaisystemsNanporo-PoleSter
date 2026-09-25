@@ -25,10 +25,22 @@
 	<!-- <div th:replace="~{common/header}"></div> -->
     <header class="header-content">
         <div class="header-btn">
-
+            <h3><a href="">＜戻る</a></h3>
+        </div>
+        <div class="header-item">
+            <p>ログイン：店長</p>
         </div>
         <div class="system-title">
-            <a href=""><h2>ORDER ZANGI</h2></a>
+            <a href="/" th:href="@{/}">
+                <h2>ORDER ZANGI</h2>
+            </a>
+        </div>
+        <div class="header-item d-flex justify-content-end">
+            <div></div>
+        </div>
+        <div class="header-btn">
+            <h5 id="date"></h5>
+            <h5 class="clock"></h5>
         </div>
     </header>
 

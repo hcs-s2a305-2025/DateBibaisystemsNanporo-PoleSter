@@ -19,11 +19,9 @@
     
 </head>
 <body>
-    <header>
-        <div>
-            <a href="home.html"><h4>＜戻る</h4></a>
-            <div id="current-time"></div>
-        </div>
+    <header class="display-header">
+        <a href="home.html" th:href="@{/home}" class="back-link">＜戻る</a>
+        <div id="current-time" class="current-time">-- : --</div>
     </header>
 
     <main>
@@ -162,6 +160,18 @@
         </div>
 
     </main>
+
+    <!-- 時計更新用スクリプト -->
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('current-time').textContent = `${hours} : ${minutes}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
     
 </body>
 </html>

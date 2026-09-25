@@ -17,157 +17,142 @@
         <link href="../../static/css/account.css" th:href="@{/css/account.css}" rel="stylesheet" />
     </head>
     <body>
-        <!-- ヘッダー -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-success text-white px-3">
-            <div class="container-fluid">
-                <!-- ハンバーガー（モバイルのみ） -->
-                <button class="btn btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas"
-                data-bs-target="#mobileSidebar">
-                    <i class="bi bi-list"></i>
-                </button>
-                <span class="navbar-brand text-white fw-bold">PortalLink.com</span>
+        <header class="header-content">
+            <div class="header-btn">
+                <h3><a href="">＜戻る</a></h3>
+            </div>
+            <div class="header-item">
+                <p>ログイン：店長</p>
+            </div>
+            <div class="system-title">
+                <a href="/" th:href="@{/}">
+                    <h2>ORDER ZANGI</h2>
+                </a>
+            </div>
+            <div class="header-item d-flex justify-content-end">
+                <div></div>
+            </div>
+            <div class="header-btn">
+                <h5 id="date"></h5>
+                <h5 class="clock"></h5>
+            </div>
+        </header>
 
-                <!-- 右側メニュー -->
-                <div class="d-flex align-items-center ms-auto gap-4">
-                    <!-- 通知 -->
-                    <div class="text-white">
-                        <i class="bi bi-envelope"></i> 通知 <span class="badge bg-warning text-dark">2</span>
+        <!-- メインコンテンツ -->
+        <main class="col-12 col-lg-10 mx-auto p-4">
+            <div class="header-container">
+                <!-- 左側のタイトル -->
+                <h1 class="title">利用者管理</h1>
+
+                <!-- 右側の操作要素まとめ -->
+                <div class="action-items">
+                    <a th:href="@{/w/account/customer(page=0, sort=${sort == 'asc' ? 'desc' : 'asc'})}" 
+                    class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                        <span>No</span>
+                        <!-- 現在のソート状態に合わせて矢印アイコンを表示 -->
+                        <i class="bi" th:classappend="${sort == 'desc'} ? 'bi-caret-down-fill' : 'bi-caret-up-fill'"></i>
+                    </a>
+
+                    <div class="search-box">
+                        <span class="search-icon" onclick="executeSearch()" style="cursor: pointer;">
+                            <img th:src="@{/img/検索マーク.png}" alt="検索">
+                        </span>
+                        <input type="text" id="searchInput" placeholder="検索またはURLを入力" onkeyup="filterTable()" />
                     </div>
-
-                    <!-- プロフィールリンク -->
-                    <a href="/profile" class="text-white text-decoration-none d-flex align-items-center gap-1">
-                        <i class="bi bi-person-circle"></i>
-                        <span>プロフィール</span>
-                    </a>
-
-                    <!-- ログアウトリンク -->
-                    <a href="#" class="text-white text-decoration-none d-flex align-items-center gap-1"
-                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>ログアウト</span>
-                    </a>
-
-                    <!-- 非表示のフォーム -->
-                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
                 </div>
             </div>
-        </nav>
 
-            <!-- メインコンテンツ -->
-            <main class="col-12 col-lg-10 mx-auto p-4">
-                <div class="header-container">
-                    <!-- 左側のタイトル -->
-                    <h1 class="title">利用者管理</h1>
+            <table class="table table-hover align-middle custom-table">
+                <thead>
+                    <tr>
+                        <th scope="col">No</th>
+                        <th scope="col">メールアドレス</th>
+                        <th scope="col">会員ランク</th>
+                        <th scope="col">キャンセル回数</th>
+                        <th scope="col">名前</th>
+                        <th scope="col">状態</th>
+                        <th scope="col"></th> <!-- ボタン用 -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- <tr> -->
+                        <!-- <th>1</th> -->
+                        <!-- <th>zangui@ben.com</th> -->
+                        <!-- <th>ゴールド</th> -->
+                        <!-- <th>1</th> -->
+                        <!-- <th scope="col">慚愧弁之助</th> -->
+                        <!-- <th scope="col">有効</th> -->
+                        <!-- 操作ボタン -->
+                        <!-- <th class="text-end"> -->
+                            <!-- 停止ボタン -->
+                            <!-- <button type="button">停止</button> -->
+                            <!-- 削除ボタン -->
+                            <!-- <button type="button">削除</button> -->
+                        <!-- </th> -->
+                    <!-- </tr> -->
+                    <tr th:each="user, stat : ${response.users}" class="user-row">
+                        <!-- 番号 -->
+                        <td th:text="${stat.count}">1</td>
 
-                    <!-- 右側の操作要素まとめ -->
-                    <div class="action-items">
-                        <a th:href="@{/w/account/customer(page=0, sort=${sort == 'asc' ? 'desc' : 'asc'})}" 
-                        class="text-dark text-decoration-none d-flex align-items-center gap-1">
-                            <span>No</span>
-                            <!-- 現在のソート状態に合わせて矢印アイコンを表示 -->
-                            <i class="bi" th:classappend="${sort == 'desc'} ? 'bi-caret-down-fill' : 'bi-caret-up-fill'"></i>
-                        </a>
+                        <!-- メルアド -->
+                        <td th:text="${user.mail}">zangui@ben.com</td>
 
-                        <div class="search-box">
-                            <span class="search-icon" onclick="executeSearch()" style="cursor: pointer;">
-                                <img th:src="@{/img/検索マーク.png}" alt="検索">
-                            </span>
-                            <input type="text" id="searchInput" placeholder="検索またはURLを入力" onkeyup="filterTable()" />
-                        </div>
-                    </div>
-                </div>
+                        <!-- 会員ランク -->
+                        <td th:text="${user.memberRank}">ゴールド</td>
 
-                <table class="table table-hover align-middle custom-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">No</th>
-                            <th scope="col">メールアドレス</th>
-                            <th scope="col">会員ランク</th>
-                            <th scope="col">キャンセル回数</th>
-                            <th scope="col">名前</th>
-                            <th scope="col">状態</th>
-                            <th scope="col"></th> <!-- ボタン用 -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- <tr> -->
-                            <!-- <th>1</th> -->
-                            <!-- <th>zangui@ben.com</th> -->
-                            <!-- <th>ゴールド</th> -->
-                            <!-- <th>1</th> -->
-                            <!-- <th scope="col">慚愧弁之助</th> -->
-                            <!-- <th scope="col">有効</th> -->
-                            <!-- 操作ボタン -->
-                            <!-- <th class="text-end"> -->
-                                <!-- 停止ボタン -->
-                                <!-- <button type="button">停止</button> -->
-                                <!-- 削除ボタン -->
-                                <!-- <button type="button">削除</button> -->
-                            <!-- </th> -->
-                        <!-- </tr> -->
-                        <tr th:each="user, stat : ${response.users}" class="user-row">
-                            <!-- 番号 -->
-                            <td th:text="${stat.count}">1</td>
+                        <!-- キャンセル回数 -->
+                        <td th:text="${user.cancelCount}">1</td>
+                        
+                        <!-- 名前 -->
+                        <td th:text="${user.name}">慚愧弁之助</td>
+                        
+                        <!-- 状態 -->
+                        <td th:text="${user.alive ? '無効' : '有効'}">有効</td>
 
-                            <!-- メルアド -->
-                            <td th:text="${user.mail}">zangui@ben.com</td>
+                        <!-- 操作ボタン -->
+                        <td class="text-end">
+                            <!-- 停止ボタン -->
+                            <button type="button" 
+                                class="btn-stop" 
+                                th:if="${!user.alive}" 
+                                th:data-mail="${user.mail}" 
+                                onclick="stopCustomer(this)">停止</button>
 
-                            <!-- 会員ランク -->
-                            <td th:text="${user.memberRank}">ゴールド</td>
+                            <!-- 解除ボタン -->
+                            <button type="button" 
+                                class="btn-resume" 
+                                th:if="${user.alive}" 
+                                th:data-mail="${user.mail}" 
+                                onclick="resumeCustomer(this)">解除</button>
 
-                            <!-- キャンセル回数 -->
-                            <td th:text="${user.cancelCount}">1</td>
-                            
-                            <!-- 名前 -->
-                            <td th:text="${user.name}">慚愧弁之助</td>
-                            
-                            <!-- 状態 -->
-                            <td th:text="${user.alive ? '無効' : '有効'}">有効</td>
+                            <!-- 削除ボタン -->
+                            <button type="button" class="btn-delete" th:data-mail="${user.mail}" onclick="deleteCustomer(this)">削除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- ページネーションエリア -->
+            <div class="d-flex justify-content-center align-items-center gap-2 mt-4" th:if="${response.totalPages > 0}">
+                
+                <!-- 前へ (<) ボタン -->
+                <a th:href="@{/w/account/customer(page=${currentPage - 1})}" 
+                class="pagination-arrow" 
+                th:classappend="${currentPage == 0} ? 'disabled'">&lt;</a>
 
-                            <!-- 操作ボタン -->
-                            <td class="text-end">
-                                <!-- 停止ボタン -->
-                                <button type="button" 
-                                    class="btn-stop" 
-                                    th:if="${!user.alive}" 
-                                    th:data-mail="${user.mail}" 
-                                    onclick="stopCustomer(this)">停止</button>
+                <!-- ページ番号ボタン（1, 2, 3...） -->
+                <th:block th:each="i : ${#numbers.sequence(0, response.totalPages - 1)}">
+                    <a th:href="@{/w/account/customer(page=${i})}" 
+                    class="pagination-num" 
+                    th:classappend="${i == currentPage} ? 'btn-secondary active' : 'btn-outline-secondary'"
+                    th:text="${i + 1}">1</a>
+                </th:block>
 
-                                <!-- 解除ボタン -->
-                                <button type="button" 
-                                    class="btn-resume" 
-                                    th:if="${user.alive}" 
-                                    th:data-mail="${user.mail}" 
-                                    onclick="resumeCustomer(this)">解除</button>
-
-                                <!-- 削除ボタン -->
-                                <button type="button" class="btn-delete" th:data-mail="${user.mail}" onclick="deleteCustomer(this)">削除</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <!-- ページネーションエリア -->
-                <div class="d-flex justify-content-center align-items-center gap-2 mt-4" th:if="${response.totalPages > 0}">
-                    
-                    <!-- 前へ (<) ボタン -->
-                    <a th:href="@{/w/account/customer(page=${currentPage - 1})}" 
-                    class="pagination-arrow" 
-                    th:classappend="${currentPage == 0} ? 'disabled'">&lt;</a>
-
-                    <!-- ページ番号ボタン（1, 2, 3...） -->
-                    <th:block th:each="i : ${#numbers.sequence(0, response.totalPages - 1)}">
-                        <a th:href="@{/w/account/customer(page=${i})}" 
-                        class="pagination-num" 
-                        th:classappend="${i == currentPage} ? 'btn-secondary active' : 'btn-outline-secondary'"
-                        th:text="${i + 1}">1</a>
-                    </th:block>
-
-                    <!-- 次へ (>) ボタン -->
-                    <a th:href="@{/w/account/customer(page=${currentPage + 1})}" 
-                    class="pagination-arrow" 
-                    th:classappend="${currentPage + 1 == response.totalPages} ? 'disabled'">&gt;</a>
-                </div>
-            </main>
+                <!-- 次へ (>) ボタン -->
+                <a th:href="@{/w/account/customer(page=${currentPage + 1})}" 
+                class="pagination-arrow" 
+                th:classappend="${currentPage + 1 == response.totalPages} ? 'disabled'">&gt;</a>
+            </div>
+        </main>
         <script>
         let editModal;
 
