@@ -7,7 +7,8 @@
 	<title>Polestar | ORDER ZANGI</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
+<!-- 日本語対応の QRコードライブラリ (qrious) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <!-- font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,14 +41,65 @@
     <main class="main-content">
         <div class="main-PC">
             <!-- スタンプカード -->
-            <img class="stampcard-img" src="../static/img/スタンプカード0.png" th:src="@{/img/スタンプカード0.png}" alt="スタンプカード">
+            <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                <div class="flip-card-inner">
+                    <!-- スタンプカード表 -->
+                    <div class="flip-card-front">
+                        <div th:switch="${user.point}">
+                            <img th:case="0" class="stampcard-img" src="../static/img/スタンプカード0.png" th:src="@{/img/スタンプカード0.png}" alt="スタンプカード"> 
+                            <img th:case="1" class="stampcard-img" src="../static/img/スタンプカード1.png" th:src="@{/img/スタンプカード1.png}" alt="スタンプカード">
+                            <img th:case="2" class="stampcard-img" src="../static/img/スタンプカード2.png" th:src="@{/img/スタンプカード2.png}" alt="スタンプカード"> 
+                            <img th:case="3" class="stampcard-img" src="../static/img/スタンプカード3.png" th:src="@{/img/スタンプカード3.png}" alt="スタンプカード"> 
+                            <img th:case="4" class="stampcard-img" src="../static/img/スタンプカード4.png" th:src="@{/img/スタンプカード4.png}" alt="スタンプカード"> 
+                            <img th:case="5" class="stampcard-img" src="../static/img/スタンプカード5.png" th:src="@{/img/スタンプカード5.png}" alt="スタンプカード"> 
+                            <img th:case="6" class="stampcard-img" src="../static/img/スタンプカード6.png" th:src="@{/img/スタンプカード6.png}" alt="スタンプカード"> 
+                            <img th:case="7" class="stampcard-img" src="../static/img/スタンプカード7.png" th:src="@{/img/スタンプカード7.png}" alt="スタンプカード"> 
+                            <img th:case="8" class="stampcard-img" src="../static/img/スタンプカード8.png" th:src="@{/img/スタンプカード8.png}" alt="スタンプカード"> 
+                            <img th:case="9" class="stampcard-img" src="../static/img/スタンプカード9.png" th:src="@{/img/スタンプカード9.png}" alt="スタンプカード"> 
+                            <img th:case="10" class="stampcard-img" src="../static/img/スタンプカード10.png" th:src="@{/img/スタンプカード10.png}" alt="スタンプカード"> 
+                            <img th:case="11" class="stampcard-img" src="../static/img/スタンプカード11.png" th:src="@{/img/スタンプカード11.png}" alt="スタンプカード"> 
+                            <img th:case="12" class="stampcard-img" src="../static/img/スタンプカード12.png" th:src="@{/img/スタンプカード12.png}" alt="スタンプカード"> 
+                            <img th:case="13" class="stampcard-img" src="../static/img/スタンプカード13.png" th:src="@{/img/スタンプカード13.png}" alt="スタンプカード"> 
+                            <img th:case="14" class="stampcard-img" src="../static/img/スタンプカード14.png" th:src="@{/img/スタンプカード14.png}" alt="スタンプカード"> 
+                            <img th:case="15" class="stampcard-img" src="../static/img/スタンプカード15.png" th:src="@{/img/スタンプカード15.png}" alt="スタンプカード">
+                            <img th:case="16" class="stampcard-img" src="../static/img/スタンプカード16.png" th:src="@{/img/スタンプカード16.png}" alt="スタンプカード">
+                            <img th:case="17" class="stampcard-img" src="../static/img/スタンプカード17.png" th:src="@{/img/スタンプカード17.png}" alt="スタンプカード">
+                            <img th:case="18" class="stampcard-img" src="../static/img/スタンプカード18.png" th:src="@{/img/スタンプカード18.png}" alt="スタンプカード">
+                            <img th:case="19" class="stampcard-img" src="../static/img/スタンプカード19.png" th:src="@{/img/スタンプカード19.png}" alt="スタンプカード">
+                            <img th:case="20" class="stampcard-img" src="../static/img/スタンプカード20.png" th:src="@{/img/スタンプカード20.png}" alt="スタンプカード">
+                        </div>
+                    </div>
+                    <!-- スタンプカード裏 -->
+                    <div class="flip-card-back">
+                        <img class="stampcard-img" src="../static/img/スタンプカード裏.png" th:src="@{/img/スタンプカード裏.png}" alt="スタンプカード">
+                        <canvas id="qrcode"
+                            th:data-mail="${user.mail}"
+                            th:data-name="${user.name}"
+                            th:data-rank="${user.memberRank}"
+                            th:data-point="${user.point}"></canvas>
+                    </div>
+                </div>
+            </div>
             <!-- 会員カード -->
-            <div class="member-card member-bronze">
+            <div th:class="|member-card ${
+            user.memberRank == '一般' ? 'member-general' : 
+            user.memberRank == 'ブロンズ' ? 'member-bronze' : 
+            user.memberRank == 'シルバー' ? 'member-silver' : 
+            user.memberRank == 'ゴールド' ? 'member-gold' : 'member-general'}|">
                 <div class="member-card-content zenmarugothic">
                     <h5>あなたの会員ランクは</h5>
-                    <h1>一般会員</h1>
-                    <h5>会員特典:<span th:text="${memberBenefits}">なし</span></h5>
-                    <h5>次のランクまで：あと<span th:text="${nextRankProgress}">1</span>枚</h5>
+                    <h1 th:text="${user.memberRank} + 会員">一般会員</h1>
+                    <h5>会員特典:
+                        <span th:switch="${user.memberRank}">
+                            <span th:case='一般'>なし</span>
+                            <span th:case='ブロンズ'>特別メニュー１</span>
+                            <span th:case='シルバー'>特別メニュー２</span>
+                            <span th:case='ゴールド'>特別メニュー３</span>
+                        </span>
+                    </h5>
+                    <h5 th:if="${user.memberRank != 'ゴールド'}">
+                        次のランクまで：あと<span th:text="${nextRankProgress}">1</span>枚
+                    </h5>
                     <h3>元祖ザンギ本舗 電子会員カード</h3>
                 </div>
             </div>
@@ -75,6 +127,29 @@
             <a href="settings"><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" th:src="@{/img/マイページボタン.png}" alt="マイページ"></a>
         </div>
     </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const qrElement = document.getElementById("qrcode");
+            if (!qrElement) return;
+
+            // データ取得（日本語もそのまま保持）
+            const userInfo = {
+                mail: qrElement.dataset.mail || '',
+                name: qrElement.dataset.name || '',
+                memberRank: qrElement.dataset.rank || '',
+                point: Number(qrElement.dataset.point || 0)
+            };
+
+            // QRコード生成（日本語もそのままエンコードされます）
+            new QRious({
+                element: qrElement,
+                value: JSON.stringify(userInfo),
+                size: 200,
+                level: 'M'
+            });
+        });
+    </script>
 </body>
 
 </html>

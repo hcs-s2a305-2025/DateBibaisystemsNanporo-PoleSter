@@ -167,7 +167,10 @@ public class UserService {
         user.setMail((String) row.get("mail"));
         user.setName((String) row.get("name"));
         user.setRole((String) row.get("role"));
+        user.setMemberRank((String) row.get("member_rank"));
         user.setAlive((Boolean) row.get("alive"));
+        user.setPoint((int) row.get("point"));
+        user.setPointCardComplete((int) row.get("point_card_complete"));
 
         return user;
     }
