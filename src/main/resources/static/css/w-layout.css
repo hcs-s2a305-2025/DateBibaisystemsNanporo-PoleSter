@@ -155,6 +155,7 @@ h2,h3{
     width: 500px;
     height: 800px;
     border-radius: 10px;
+    padding: 20px;
 }
 
 /* 通常 */
@@ -205,7 +206,7 @@ h2,h3{
 /* 狭い */
 .selecter-Button-narrow{
     width: 130px;
-    height: 60px;
+    height: 75px;
     background-color: #fff;
     box-shadow: inset -3px -4px 1px rgba(0, 0, 0, 0.3);
     display: flex;
@@ -220,7 +221,7 @@ h2,h3{
 /* 正方形 */
 .selecter-Button-square{
     width: 80px;
-    height: 60px;
+    height: 75px;
     background-color: #fff;
     box-shadow: inset -3px -4px 1px rgba(0, 0, 0, 0.3);
     display: flex;
@@ -327,3 +328,193 @@ h2,h3{
 .pink-btn{background: linear-gradient(to bottom, #FF8B8B, #FFC4C4 50%, #FF8B8B);}
 .pink-btn:hover{background: linear-gradient(to bottom, #ff9b9b, #ffcfcf 50%, #ff9b9b);}
 .pink-btn:active{background: linear-gradient(to bottom, #b36161, #c99b9b 50%, #b36161);}
+
+
+        /* =========================================================
+            POS機能拡張用スタイル
+           ========================================================= */
+        .selecter-Button-item,
+        .selecter-Button-modal,
+        .selecter-Button,
+        .selecter-Button-narrow,
+        .selecter-Button-square {
+            position: relative;
+        }
+
+        .quantity-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            min-width: 24px;
+            height: 24px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 22px;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 1px 4px rgba(0,0,0,.25);
+            pointer-events: none;
+        }
+
+        .quantity-badge.d-none {
+            display: none !important;
+        }
+
+        .quantity-badge.quantity-badge-small {
+            min-width: 20px;
+            height: 20px;
+            line-height: 18px;
+            font-size: 11px;
+            top: 4px;
+            right: 4px;
+        }
+
+        .product-selected {
+            outline: 3px solid #ffd736;
+            outline-offset: -3px;
+        }
+
+        .topping-selected {
+            box-shadow: inset 0 0 0 3px #ffd736;
+        }
+
+        .discount-selected {
+            outline: 3px solid #ffd736;
+            outline-offset: -3px;
+        }
+
+        #qrReader {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        #qrReader video {
+            width: 100% !important;
+            max-height: 420px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .qr-status {
+            min-height: 24px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .cart-empty {
+            text-align: center;
+            color: #777;
+            padding: 25px 0;
+        }
+
+        .calculator-memory-active {
+            box-shadow: inset 0 0 0 3px #ffd736;
+        }
+
+        @media print {
+            .header-content,
+            .selector-area,
+            .clac-button,
+            .modal {
+                display: none !important;
+            }
+        }
+
+                /* POS機能拡張用: 外部CSSを壊さずに追加する最小限のUI */
+        .calculator-input-preview {
+            margin-top: 6px;
+            font-size: 0.9rem;
+            opacity: 0.85;
+            text-align: center;
+        }
+
+        .calculator-input-preview strong {
+            font-family: 'Saira', 'Noto Sans JP', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .mobile-order-label {
+            margin-top: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .qr-member-display {
+            margin-left: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .topping-adjust-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .topping-adjust-btn,
+        .cart-adjust-btn {
+            min-width: 34px;
+            min-height: 30px;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            background: #fff;
+            color: #333;
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .topping-adjust-btn:hover,
+        .cart-adjust-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .topping-adjust-count {
+            min-width: 28px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .cart-quantity-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cart-quantity-value {
+            min-width: 24px;
+            display: inline-block;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .limit-reached {
+            outline: 2px solid rgba(220, 53, 69, 0.35);
+            outline-offset: -2px;
+        }
+
+        .exclusive-selected {
+            box-shadow: inset 0 0 0 3px rgba(0, 71, 163, 0.25);
+        }
+
+        .return-status {
+            margin: 4px 0;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .qr-id-value {
+            font-family: 'Saira', monospace;
+            word-break: break-all;
+        }
