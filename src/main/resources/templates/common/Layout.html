@@ -1,0 +1,30 @@
+
+<header class="header-content" th:fragment="common-header">
+    <div class="header-btn"></div>
+    <div class="system-title">
+        <a href="/" th:href="@{/}"><h2>ORDER ZANGI</h2></a>
+    </div>
+    <div class="header-stampcard header-btn">
+        <a href="/stampcard" th:href="@{/stampcard}">
+            <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
+        </a>
+    </div>
+</header>
+
+<footer class="footer-content" th:fragment="common-footer">
+    <div class="footer-btn">
+        <a href="home"><img style="width: 36px; height: 53px;" src="../static/img/ホームボタン.png" th:src="@{/img/ホームボタン.png}" alt="ホーム"></a>
+    </div>
+    <div class="footer-btn">
+        <a href="menu"><img style="width: 48px; height: 53px;"  src="../static/img/メニューボタン.png" th:src="@{/img/メニューボタン.png}" alt="メニュー"></a>
+    </div>
+    <div class="footer-btn" style="position: relative; top: -20px;">
+        <a href="cart"><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" th:src="@{/img/予約ボタン.png}" alt="予約"></a>
+    </div>
+    <div class="footer-btn">
+        <a href="history"><img style="width: 33px; height: 51px;" src="../static/img/履歴ボタン.png" th:src="@{/img/履歴ボタン.png}" alt="履歴"></a>
+    </div>
+    <div class="footer-btn">
+        <a href="settings"><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" th:src="@{/img/マイページボタン.png}" alt="マイページ"></a>
+    </div>
+</footer>
