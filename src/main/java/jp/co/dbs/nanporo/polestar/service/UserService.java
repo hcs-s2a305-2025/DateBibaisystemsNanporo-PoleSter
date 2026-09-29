@@ -1,23 +1,32 @@
 package jp.co.dbs.nanporo.polestar.service;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import java.sql.Date;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import jakarta.transaction.Transactional;
 import jp.co.dbs.nanporo.polestar.data.UserData;
 import jp.co.dbs.nanporo.polestar.entity.UserEntity;
+import jp.co.dbs.nanporo.polestar.repository.StoreRepository;
 import jp.co.dbs.nanporo.polestar.repository.UserRepository;
 import jp.co.dbs.nanporo.polestar.repository.UserRepository.SalesFlashDto;
 import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
@@ -25,9 +34,15 @@ import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
 @Service 
 public class UserService {
 
+    /** ユーザリポジトリ */
     @Autowired 
     private UserRepository repository;
 
+    /** 店舗リポジトリ */
+    @Autowired 
+    private  StoreRepository storeRepository;
+
+    /** パスワードエンコーダー */
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -78,10 +93,11 @@ public class UserService {
 
 
     /**
-     * 従業員一覧を取得するメソッド
-     * @param pageable ページ
-     *        sort     ソート
-     * @return UserGetResponse 従業員一覧リスト
+     * 従業員一覧をページネーション情報付きで取得します。
+     *
+     * @param pageable ページネーション情報
+     * @param sort ソート指定文字列（例: "asc", "desc"）
+     * @return 従業員一覧およびページ数が含まれた {@link UserGetResponse}
      */
     public  UserGetResponse getStaffList(Pageable pageable, String sort) {
         // リポジトリに処理を依頼
@@ -102,10 +118,11 @@ public class UserService {
 
 
     /**
-     * 顧客一覧を取得するメソッド
-     * @param pageable ページ
-     *        sort     ソート
-     * @return UserGetResponse 顧客一覧リスト
+     * 顧客一覧をページネーション情報付きで取得します。
+     *
+     * @param pageable ページネーション情報
+     * @param sort ソート指定文字列（例: "asc", "desc"）
+     * @return 顧客一覧およびページ数が含まれた {@link UserGetResponse}
      */
     public  UserGetResponse getCustomerList(Pageable pageable, String sort) {
         // リポジトリに処理を依頼
@@ -126,9 +143,10 @@ public class UserService {
 
     
     /**
-     * UserEntityへ値を設定するメソッド
-     * @param resultSet リザルト
-     * @return users 一覧をセットしたリスト
+     * リザルトセット（マップリスト）から {@link UserEntity} のリストへ変換・マッピングします。
+     *
+     * @param resultSet DB取得結果のマップリスト
+     * @return マッピング後の {@link UserEntity} リスト
      */
     private List<UserEntity> toResponse(List<Map<String, Object>> resultSet) {
         // 配列の初期化
@@ -156,9 +174,10 @@ public class UserService {
 
 
     /**
-     * メールアドレスから特定の1件を取得するメソッド
+     * 指定されたメールアドレスに一致するユーザ詳細情報を1件取得します。
+     *
      * @param mail メールアドレス
-     * @return user 
+     * @return 取得した {@link UserEntity}
      */
     public UserEntity findByMail(String mail) {
         Map<String, Object> row = repository.findByMail(mail);
@@ -171,17 +190,20 @@ public class UserService {
         user.setAlive((Boolean) row.get("alive"));
         user.setPoint((int) row.get("point"));
         user.setPointCardComplete((int) row.get("point_card_complete"));
+        user.setGender((String) row.get("gender"));
+        user.setBirthday((Date)row.get("birthday"));
 
         return user;
     }
 
 
     /**
-     * 従業員の情報をアップデートするメソッド
+     * 従業員の基本情報を更新します。
+     *
      * @param mail メールアドレス
-     *        name 名前
-     *        role 権限
-     *        alive 状態
+     * @param name 名前
+     * @param role 権限（役割）
+     * @param alive 利用状態フラグ
      */
     public void updateStaff(String mail, String name, String role, boolean alive) {
         repository.updateStaff(mail, name, role, alive);
@@ -189,8 +211,9 @@ public class UserService {
 
 
     /**
-     * ユーザを削除するメソッド
-     * @param mail メールアドレス
+     * 指定されたメールアドレスのユーザを物理削除します。
+     *
+     * @param mail 削除対象のメールアドレス
      */
     public void deleteUser(String mail) {
     repository.deleteUser(mail);
@@ -198,10 +221,11 @@ public class UserService {
 
 
     /**
-     * 従業員を新規登録するメソッド
+     * 従業員を新規登録します。初期パスワードは「password」で暗号化して登録され、初期ランクは「一般」となります。
+     *
      * @param mail メールアドレス
-     *        name 名前
-     *        role 権限
+     * @param name 氏名
+     * @param role 権限（役割）
      */
     public void registerStaff(String mail, String name, String role) {
         String password = passwordEncoder.encode("password"); // 初期パスワード:password
@@ -210,7 +234,8 @@ public class UserService {
 
 
     /**
-     * ユーザを利用停止にするメソッド
+     * 指定したユーザを利用停止状態に設定します。
+     *
      * @param mail メールアドレス
      */
     public void stopUser(String mail) {
@@ -219,7 +244,8 @@ public class UserService {
 
 
     /**
-     * ユーザを停止解除するメソッド
+     * 指定したユーザの利用停止状態を解除します。
+     *
      * @param mail メールアドレス
      */
     public void resumeUser(String mail) {
@@ -228,8 +254,9 @@ public class UserService {
 
 
     /**
-     * 今日の予約件数を取得するメソッド
-     * @return cnt 予約件数
+     * 当日（本日）の予約・注文件数を取得します。
+     *
+     * @return 本日の予約件数
      */
     public int countOrder() {
         // 今日の日付
@@ -241,7 +268,7 @@ public class UserService {
 
 
     /**
-     * 休業日を追加するメソッド
+     * 当日（本日）付で「臨時休業」を登録します。
      */
     public void insertClose() {
         // 今日の日付
@@ -251,8 +278,9 @@ public class UserService {
 
 
     /**
-     * 売上フラッシュの情報を取得するメソッド
-     * @return repository.getHourlySalesFlash(timeRange, start, end);
+     * 現在時刻の属する1時間（例: 10:00〜11:00）の売上フラッシュ情報（売上合計・客数）を取得します。
+     *
+     * @return 売上フラッシュ集計結果 {@link SalesFlashDto}
      */
     public SalesFlashDto getHourlySalesFlash() {
         // 現在の時間を取得
@@ -268,7 +296,8 @@ public class UserService {
 
 
     /**
-     * 通知を登録するメソッド
+     * すべての顧客ユーザに向けて一括通知（お知らせ）を登録します。
+     *
      * @param content 通知内容
      */
     @Transactional
@@ -292,9 +321,10 @@ public class UserService {
 
 
     /**
-     * システム自動停止を行うメソッド
-     * @param dayName 曜日名
-     *        weeks 何週間分
+     * 指定した曜日と指定した週数分だけ「定休日」を一括登録します。
+     *
+     * @param dayName 曜日名（例: "月", "火"）
+     * @param weeks 登録する週数
      */
     @Transactional
     public void closeDays(String dayName, int weeks) {
@@ -314,9 +344,10 @@ public class UserService {
 
 
     /**
-     * 曜日名をシステムで使える形に変換するメソッド
+     * 日本語の曜日文字（"月", "火" など）を {@link DayOfWeek} 列挙型に変換します。
+     *
      * @param dayName 曜日名
-     * @return DayOfWeek.~
+     * @return 変換後の {@link DayOfWeek}（対象外の文字の場合は {@code null}）
      */
     // DayOfWeekに変換
     private DayOfWeek parseDayOfWeek(String dayName) {
@@ -334,10 +365,11 @@ public class UserService {
 
 
     /**
-     * パスワードを比較するメソッド
-     * @param mail メールアドレス
-     *        password 受け取ったパスワード
-     * @return result true/false
+     * 入力された平文パスワードと、DBに保存されている暗号化パスワードを照合します。
+     *
+     * @param mail 対象ユーザのメールアドレス
+     * @param password 照合を行う平文パスワード
+     * @return 一致している場合は {@code true}、一致しない場合は {@code false}
      */
     public boolean passwordCheck(String mail, String password) {
 
@@ -355,10 +387,11 @@ public class UserService {
 
 
     /**
-     * ユーザ情報変更（パスワードなし）を行うメソッド
-     * @param mail 変更するメールアドレス
-     *        nowMail 現在のメールアドレス
-     *        name 名前
+     * パスワード変更を伴わない形でユーザの基本情報（メールアドレス・名前）を更新します。
+     *
+     * @param mail 新しいメールアドレス
+     * @param nowMail 現在（変更前）のメールアドレス
+     * @param name 新しい名前
      */
     public void updateNoPassword(String mail, String nowMail, String name) {
         repository.updateNoPassword(mail, nowMail, name);
@@ -366,11 +399,12 @@ public class UserService {
 
 
     /**
-     * ユーザ情報変更（パスワードあり）を行うメソッド
-     * @param mail 変更するメールアドレス
-     *        nowMail 現在のメールアドレス
-     *        name 名前
-     *        password パスワード
+     * パスワード変更を含めてユーザ情報（メールアドレス・名前・パスワード）を更新します。
+     *
+     * @param mail 新しいメールアドレス
+     * @param nowMail 現在（変更前）のメールアドレス
+     * @param name 新しい名前
+     * @param password 新しいパスワード（ハッシュ化されて保存されます）
      */
     public void updateYesPassword(String mail, String nowMail, String name, String password) {
 
@@ -380,9 +414,10 @@ public class UserService {
 
 
     /**
-     * 新規顧客登録を行うメソッド
+     * 顧客アカウントを新規登録します。パスワードはハッシュ化され、名前とメールアドレスには同一の値が初期設定されます。
+     *
      * @param mail メールアドレス
-     *        password パスワード
+     * @param password パスワード
      */
     public void registerCustomer(String mail, String password) {
         password = passwordEncoder.encode(password);
@@ -391,12 +426,102 @@ public class UserService {
 
 
     /**
-     * 性別・誕生日の更新を行うメソッド
+     * ユーザのプロフィール情報（性別・生年月日）を更新します。
+     *
      * @param mail メールアドレス
-     *        gender 性別
-     *        birthday 誕生日
+     * @param gender 性別
+     * @param birthday 生年月日（"YYYY-MM-DD" フォーマットの文字列）
      */
     public void updateProfile(String mail, String gender, String birthday) {
         repository.updateProfile(mail, gender, birthday);
+    }
+
+
+    /**
+     * ローカルLLM (Ollama) を呼び出し、ユーザのプロフィールや利用可能なメニュー情報に基づいたAI接客提案文を生成します。
+     *
+     * @param user 提案対象のユーザ情報
+     * @param userPrompt ユーザからの入力・リクエストテキスト
+     * @return AIによって生成された回答メッセージ（エラー時はエラーメッセージ文字列）
+     */
+    public String getAi(UserEntity user, String userPrompt) {
+
+        LocalDate birthday = user.getBirthday().toLocalDate();
+        int age = Period.between(birthday, LocalDate.now()).getYears();
+        String gender = user.getGender();
+        List<Map<String, Object>> goodsList = storeRepository.getAllGoods();
+
+        StringBuilder menuText = new StringBuilder();
+        for (Map<String, Object> goods : goodsList) {
+            // 売り切れの商品は除外
+            Boolean soldOut =  (Boolean) goods.get("sold_out");
+            if (soldOut) {
+                continue;
+            }
+            // 裏メニューは除外
+            String rank = (String) goods.get("watch_rank");
+            if (!"一般".equals(rank)) {
+                continue;
+            }
+            String name = (String) goods.get("goods_name");
+            Integer price = (Integer) goods.get("price");
+            Integer calorie = (Integer) goods.get("calorie");
+            String allergy = (String) goods.get("allergy");
+            String detail = (String) goods.get("detail");
+
+            // リストをテキストにする
+            menuText.append(String.format("- %s (価格:%d円、アレルギー:%s、カロリー:%dkcal、説明:%s) \n",
+                name, price, allergy, calorie, detail));
+        }
+        // プロンプト
+        String systemPrompt = String.format("""
+                あなたは「ORDER ZANGI」の優秀な接客AIアシスタントです。
+                下記の【ユーザー情報】【提供可能なメニュー一覧】を基にメニューを提案してください。
+
+                【ユーザー情報】
+                ・年齢: %d歳
+                ・性別: %s
+
+                【提供可能なメニュー一覧】
+                %s
+
+                【ユーザーからの質問・希望】
+                「%s」
+
+                【厳格なルール】
+                1. 提案する商品は、必ず上記の【提供可能なメニュー一覧】に記載されている「商品名」から選んでください。
+                2. 一覧に存在しないメニューは絶対に提案・捏造しないでください。
+                3. 候補がない場合は「該当するメニューはございません」と伝えて、リスト内の商品をおすすめしてください。
+                4. 100～150文字程度で分かりやすく回答してください。
+                """, age, gender, menuText.toString(), userPrompt);
+
+        //Ollamaへの送信リクエスト作成 
+        String url = "http://localhost:11434/api/generate";
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gemma2");
+        requestBody.put("prompt", systemPrompt);
+        requestBody.put("stream", false);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        RestTemplate restTemplate = new RestTemplate();
+
+        // API呼び出し レスポンス取得
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+            Map<String, Object> responseBody = response.getBody();
+
+            if (responseBody != null && responseBody.containsKey("response")) {
+                return (String) responseBody.get("response");
+            }
+
+            return "上手く提案を作成できませんでした。";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "エラーが発生しました。再度お試しください。";
+        }
     }
 }

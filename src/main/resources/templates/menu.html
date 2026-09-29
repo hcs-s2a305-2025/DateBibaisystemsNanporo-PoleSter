@@ -22,26 +22,14 @@
 
 <body>
 	<!-- ヘッダー部 -->
-    <!-- いずれ移行 -->
-	<!-- <div th:replace="~{common/header}"></div> -->
-    <header class="header-content">
-        <div class="header-btn"></div>
-        <div class="system-title">
-            <a href="/" th:href="@{/}"><h2>ORDER ZANGI</h2></a>
-        </div>
-        <div class="header-stampcard header-btn">
-            <a href="/stampcard" th:href="@{/stampcard}">
-                <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
-            </a>
-        </div>
-    </header>
+	<div th:replace="~{common/Layout :: common-header}"></div>
 
     <!-- メインコンテンツ部 -->
     <main class="main-content">
         <div class="main-PC">
             <div class="upper-item">
                 <h2 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">メニュー一覧</h2>
-                <button class="img-button">
+                <button class="img-button" type="button" data-bs-toggle="modal" data-bs-target="#aiModal">
                     <img class="userEditBtn" src="../static/img/AI提案ボタン.png" th:src="@{/img/AI提案ボタン.png}" alt="AI提案">
                 </button>
             </div>
@@ -88,26 +76,96 @@
         </div>
     </div>
 
+    <!-- AIモーダル -->
+    <!-- AI提案モーダル -->
+    <div class="modal fade" id="aiModal" tabindex="-1" aria-labelledby="aiModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- モーダルヘッダー -->
+                <div class="modal-header bg-ai-green">
+                    <h5 class="modal-title font-weight-bold" id="aiModalLabel">
+                        AIメニュー相談
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- モーダル本体 -->
+                <div class="modal-body">
+                    <!-- AIレスポンス表示エリア（チャット風） -->
+                    <div id="aiResponseArea" class="p-3 mb-3 bg-light rounded" style="min-height: 120px; max-height: 250px; overflow-y: auto;">
+                        <p th:if="${aiAnswer == null}" class="text-muted small mb-0">
+                            ご相談内容をご入力ください！
+                        </p>
+
+                        <div th:if="${aiAnswer != null}">
+                            <!-- ユーザーの質問 -->
+                            <div class="text-end mb-2">
+                                <span class="d-inline-block bg-primary text-white p-2 rounded-3 text-start small" th:text="${userPrompt}">
+                                    ユーザーの質問
+                                </span>
+                            </div>
+                            <!-- AIの回答 -->
+                            <div class="text-start mb-2">
+                                <span class="d-inline-block bg-white p-2 rounded-3 border text-dark small" th:utext="${#strings.replace(aiAnswer, '&#10;', '&lt;br&gt;')}">
+                                    AIの回答文章
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/menu/ai}" method="post" onsubmit="showLoading()">
+                        
+                        <!-- ローディング表示エリア -->
+                        <div id="aiLoading" class="text-center my-3 d-none">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted fw-bold small">おすすめを考えています...</p>
+                        </div>
+
+                        <!-- 入力フォームエリア -->
+                        <div class="input-group">
+                            <textarea name="userPrompt" class="form-control" rows="2" placeholder="例: ダイエット中でカロリー控えめなメニューはある？" required></textarea>
+                            
+                            <!-- 送信ボタンに id="sendAiBtn" を設定 -->
+                            <button id="sendAiBtn" class="btn btn-ai-green fw-bold" type="submit">
+                                <span id="btnText">送信 <i class="bi bi-send-fill ms-1"></i></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- フッダー部 -->
-    <!-- いずれ移行 -->
-	<!-- <div th:replace="~{common/footer}"></div> -->
-    <footer class="footer-content">
-        <div class="footer-btn">
-            <a href=""><img style="width: 36px; height: 53px;" src="../static/img/ホームボタン.png" alt="ホーム"></a>
-        </div>
-        <div class="footer-btn">
-            <a href=""><img style="width: 48px; height: 53px;"  src="../static/img/メニューボタン.png" alt="メニュー"></a>
-        </div>
-        <div class="footer-btn" style="position: relative; top: -20px;">
-            <a href=""><img style="width: 77px; height: 96px;" src="../static/img/予約ボタン.png" alt="予約"></a>
-        </div>
-        <div class="footer-btn">
-            <a href=""><img style="width: 33px; height: 51px;" src="../static/img/履歴ボタン.png" alt="履歴"></a>
-        </div>
-        <div class="footer-btn">
-            <a href=""><img style="width: 60px; height: 51px;" src="../static/img/マイページボタン.png" alt="マイページ"></a>
-        </div>
-    </footer>
+	<div th:replace="~{common/Layout :: common-footer}"></div>
+
+    <!-- AI JS -->
+        <script>
+        function showLoading() {
+            // 作成中表示を表示
+            var loadingEl = document.getElementById('aiLoading');
+            if (loadingEl) {
+                loadingEl.classList.remove('d-none');
+            }
+
+            //  二重送信を防ぐためボタンを無効化 テキストを変更
+            var btn = document.getElementById('sendAiBtn');
+            if (btn) {
+                btn.disabled = true;
+                document.getElementById('btnText').innerText = '作成中';
+            }
+        }
+    </script>
+
+    <!-- 画面更新後にモーダルを開く -->
+    <script th:if="${aiAnswer != null}">
+        document.addEventListener('DOMContentLoaded', function() {
+            var aiModal = new bootstrap.Modal(document.getElementById('aiModal'));
+            aiModal.show();
+        });
+    </script>
 </body>
 
 </html>

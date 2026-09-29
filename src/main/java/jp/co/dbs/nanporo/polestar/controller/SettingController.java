@@ -3,9 +3,6 @@ package jp.co.dbs.nanporo.polestar.controller;
 import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,18 +14,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jp.co.dbs.nanporo.polestar.entity.UserEntity;
-import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
 import jp.co.dbs.nanporo.polestar.service.UserService;
-import org.springframework.web.bind.annotation.RequestBody;
 
-
+/**
+ * ログインユーザ自身のプロフィール設定・変更および定休日スケジュール設定に関するリクエストを処理するコントローラークラス。
+ */
 @Controller 
 public class SettingController {
     
+    /** ユーザ関連のビジネスロジックを提供するサービス */
     @Autowired 
     private  UserService service;
 
-    // プロフィール画面表示
+    /**
+     * プロフィール設定画面を表示します。
+     *
+     * @param principal ログイン中のユーザ情報
+     * @param model 画面描画用のモデルオブジェクト
+     * @return プロフィール画面のテンプレートパス ("settings")
+     */
     @GetMapping ("/settings")
     public  String getSetting(
         Principal principal, Model model) {
@@ -40,7 +44,14 @@ public class SettingController {
         return "settings";
     }
 
-    // システム自動停止
+    /**
+     * 定休日の自動スケジュール設定（52週分の一括登録）を更新します。
+     *
+     * @param enabled 定休日の有効/無効フラグ（デフォルト: false）
+     * @param stopDay 対象の曜日文字列（例: "月", "火" など）
+     * @param redirectAttributes リダイレクト先へデータを引き継ぐための属性オブジェクト
+     * @return 設定画面へのリダイレクトパス ("redirect:/settings")
+     */
     @PostMapping("/settings/schedule")
     public String updateSchedule(
             @RequestParam(name = "enabled", defaultValue = "false") boolean enabled,
@@ -59,7 +70,13 @@ public class SettingController {
         return "redirect:/settings";
     }
 
-    // ユーザ情報編集画面表示
+    /**
+     * ユーザ情報編集画面を表示します。
+     *
+     * @param principal ログイン中のユーザ情報
+     * @param model 画面描画用のモデルオブジェクト
+     * @return ユーザ情報編集画面のテンプレートパス ("settings/edit")
+     */
     @GetMapping ("/settings/edit")
     public  String getSettingEdit(
         Principal principal, Model model) {
@@ -71,7 +88,20 @@ public class SettingController {
         return "settings/edit";
     }
 
-    // ユーザ情報編集
+    /**
+     * ログインユーザの基本情報（名前、メールアドレス、パスワード）を更新します。
+     * パスワード入力の有無を判定し、適切な更新処理を呼び出します。
+     * また、メールアドレスが変更された場合は Spring Security の認証情報（SecurityContext）を再設定します。
+     *
+     * @param name 新しい名前
+     * @param mailAddress 新しいメールアドレス
+     * @param oldPassword 現在のパスワード（任意）
+     * @param newPassword 新しいパスワード（任意）
+     * @param newPasswordConf 新しいパスワード（確認用・任意）
+     * @param redirectAttributes リダイレクト先へデータを引き継ぐための属性オブジェクト
+     * @param principal ログイン中のユーザ情報
+     * @return 処理成功時はプロフィール画面へのリダイレクトパス、失敗時は編集画面へのリダイレクトパス
+     */
     @PostMapping("/settings/edit/update")
     public String updateProfile(
         @RequestParam(name = "name") String name,
