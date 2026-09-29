@@ -1,5 +1,7 @@
 package jp.co.dbs.nanporo.polestar.data;
 
+import org.hibernate.sql.ast.tree.predicate.BooleanExpressionPredicate;
+
 import lombok.Data;
 
 @Data 
@@ -19,4 +21,13 @@ public class CustomData {
 
     // アレルギー
     private String allergy;
+
+    private Boolean soldOut;
+
+    public Boolean getSoldOut() {
+        return soldOut;
+    }
+    public void setSoldOut(Boolean soldOut) {
+        this.soldOut = soldOut;
+    }
 }

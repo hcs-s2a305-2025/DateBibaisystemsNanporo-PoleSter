@@ -33,16 +33,7 @@ public class StoreService{
         List<GoodsData> goodsList = new ArrayList<>();
 
         for (Map<String, Object> row : rows) {
-            GoodsData goods = new GoodsData();
-            goods.setGoodsId((String) row.get("goods_id")); // または Integer
-            goods.setGoodsName((String) row.get("goods_name"));
-            
-            Object priceObj = row.get("price");
-            goods.setPrice(priceObj != null ? ((Number) priceObj).intValue() : 0);
-            
-            goods.setPhoto((String) row.get("photo"));
-            
-            goodsList.add(goods);
+            goodsList.add(mapRowToGoodsData(row));
         }
 
         return goodsList;
@@ -52,21 +43,14 @@ public class StoreService{
      * 商品詳細画面表示用の単一商品データを取得する
      */
     public GoodsData getGoodsDetail(String goodsId) {
+        if (goodsId == null || goodsId.trim().isEmpty()){
+            return null;
+        }
         Map<String, Object> row = storeRepository.getGoodsById(goodsId);
         if (row == null) {
             return null;
         }
-
-        GoodsData goods = new GoodsData();
-        goods.setGoodsId((String) row.get("goods_id"));
-        goods.setGoodsName((String) row.get("goods_name"));
-        
-        Object priceObj = row.get("price");
-        goods.setPrice(priceObj != null ? ((Number) priceObj).intValue() : 0);
-        
-        goods.setPhoto((String) row.get("photo"));
-
-        return goods;
+        return mapRowToGoodsData(row);
     }
 
     // ごはんオプション一覧
@@ -106,63 +90,123 @@ public class StoreService{
         return list;
     }
 
-    // 商品情報の更新
+    // 商品情報の保存（新規登録および更新）
     @Transactional
-    public void updateGoods(GoodsEditRequest request) {
+    public void saveGoods(GoodsEditRequest request) {
         String photoPath = null;
-        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
-            photoPath = "/img/" + request.getImageFile().getOriginalFilename();
+        if (request.getPhoto() != null && !request.getPhoto().isEmpty()) {
+            photoPath = "/img/" + request.getPhoto().getOriginalFilename();
         }
 
-        // 送信されたアレルゲンリストをカンマ区切り文字列に変換
-        String allergyCsv = "なし";
-        if (request.getAllergenNames() != null && !request.getAllergenNames().isEmpty()) {
-            allergyCsv = request.getAllergenNames().stream().collect(Collectors.joining(","));
+        // request.getAllergy() は String型として受け取りそのまま設定
+        String allergyCsv = request.getAllergy();
+        if (allergyCsv == null || "なし".equals(allergyCsv)) {
+            allergyCsv = "";
         }
 
-        storeRepository.updateGoods(request, photoPath, allergyCsv);
+        // goodsId が空の場合は「新規登録」、存在する場合は「更新」
+        if (request.getGoodsId() == null || request.getGoodsId().trim().isEmpty()) {
+            // カテゴリプレフィックス（例: "B", "S", "U"）を取得（未指定時は"B"）
+            String prefix = request.getCategoryId();
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = "B";
+            }
+            // 次のID（例: "B007"）を自動採番
+            String newGoodsId = storeRepository.generateGoodsId(prefix);
+            storeRepository.insertGoods(newGoodsId, request, photoPath, allergyCsv);
+        } else {
+            storeRepository.updateGoods(request, photoPath, allergyCsv);
+        }
     }
 
+    /**
+     * 商品の販売ステータス（sold_out）を変更します。
+     */
+    @Transactional
+    public void updateSoldOut(String goodsId, boolean soldOut) {
+        storeRepository.updateSoldOut(goodsId, soldOut);
+    }
+
+    /**
+     * DBの取得結果マップを GoodsData に変換します。
+     */
     private GoodsData mapRowToGoodsData(Map<String, Object> row) {
         GoodsData goods = new GoodsData();
-        goods.setGoodsId((String) row.get("goods_id"));
-        goods.setGoodsName((String) row.get("goods_name"));
-        goods.setPhoto((String) row.get("photo"));
+        goods.setGoodsId(getString(row, "goods_id"));
+        goods.setGoodsName(getString(row, "goods_name"));
+        goods.setPhoto(getString(row, "photo"));
+        goods.setPrice(getInt(row, "price"));
+        goods.setCalorie(getInt(row, "calorie"));
+        goods.setAllergy(getString(row, "allergy"));
+        goods.setZangiCount(getInt(row, "zangi_count"));
         
-        Object priceObj = row.get("price");
-        goods.setPrice(priceObj != null ? ((Number) priceObj).intValue() : 0);
+        // sold_out の Boolean 判定
+        Object soldObj = getValue(row, "sold_out");
+        if (soldObj instanceof Boolean) {
+            goods.setSoldOut((Boolean) soldObj);
+        } else if (soldObj != null) {
+            goods.setSoldOut("true".equalsIgnoreCase(soldObj.toString()) || "1".equals(soldObj.toString()));
+        } else {
+            goods.setSoldOut(false);
+        }
         
-        Object calObj = row.get("calorie");
-        goods.setCalorie(calObj != null ? ((Number) calObj).intValue() : 0);
-        
-        goods.setAllergy((String) row.get("allergy"));
-        
-        Object zangiObj = row.get("zangi_count");
-        goods.setZangiCount(zangiObj != null ? ((Number) zangiObj).intValue() : 0);
-        
-        goods.setSoldOut((Boolean) row.get("sold_out"));
-        goods.setDetail((String) row.get("detail"));
-        goods.setWatchRank((String) row.get("watch_rank"));
+        goods.setDetail(getString(row, "detail"));
+        goods.setWatchRank(getString(row, "watch_rank"));
+        goods.setCategoryId(getString(row, "category_id"));
         return goods;
     }
-
+    
+    /**
+     * DBの取得結果マップリストを CustomData のリストに変換します。
+     */
     private List<CustomData> mapToCustomDataList(List<Map<String, Object>> rows) {
         List<CustomData> list = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             CustomData custom = new CustomData();
-            custom.setCustomId(((Number) row.get("custom_id")).intValue());
-            custom.setGoodsName((String) row.get("goods_name"));
-            
-            Object priceObj = row.get("price");
-            custom.setPrice(priceObj != null ? ((Number) priceObj).intValue() : 0);
-            
-            Object calObj = row.get("calorie");
-            custom.setCalorie(calObj != null ? ((Number) calObj).intValue() : 0);
-            
-            custom.setAllergy((String) row.get("allergy"));
+            custom.setCustomId(getInt(row, "custom_id"));
+            custom.setGoodsName(getString(row, "goods_name"));
+            custom.setPrice(getInt(row, "price"));
+            custom.setCalorie(getInt(row, "calorie"));
+            custom.setAllergy(getString(row, "allergy"));
+            // sold_out の値を CustomData にマッピングする
+            Object soldObj = getValue(row, "sold_out");
+            if (soldObj instanceof Boolean) {
+                custom.setSoldOut((Boolean) soldObj);
+            } else if (soldObj != null) {
+                custom.setSoldOut("true".equalsIgnoreCase(soldObj.toString()) || "1".equals(soldObj.toString()));
+            } else {
+                custom.setSoldOut(false);
+            }
             list.add(custom);
         }
         return list;
+    }
+
+    // --- マッピング用のヘルパーメソッド ---
+    private Object getValue(Map<String, Object> row, String key) {
+        if (row.containsKey(key)) return row.get(key);
+        if (row.containsKey(key.toUpperCase())) return row.get(key.toUpperCase());
+        if (row.containsKey(key.toLowerCase())) return row.get(key.toLowerCase());
+        return null;
+    }
+
+    private String getString(Map<String, Object> row, String key) {
+        Object val = getValue(row, key);
+        return val != null ? val.toString() : null;
+    }
+
+    private Integer getInt(Map<String, Object> row, String key) {
+        Object val = getValue(row, key);
+        if (val instanceof Number) {
+            return ((Number) val).intValue();
+        } else if (val != null) {
+            try {
+                return Integer.parseInt(val.toString());
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        return 0;
     }
     
 }

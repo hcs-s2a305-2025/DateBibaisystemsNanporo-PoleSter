@@ -18,6 +18,14 @@
 	<link href="../../../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
     <link href="../../../static/css/w-layout.css" th:href="@{/css/w-layout.css}" rel="stylesheet" />
     <link href="../../../static/css/edit.css" th:href="@{/css/edit.css}" rel="stylesheet" />
+    <style>
+        #optionModal {
+            z-index: 1100 !important;
+        }
+        #optionAllergenModal {
+            z-index: 1120 !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -50,32 +58,38 @@
 
             <!-- 主キーをhiddenで送信（更新処理に必須） -->
             <input type="hidden" name="goodsId" th:value="${goods?.goodsId}">
-
+            
             <!-- 画像 + 基本情報入力領域 -->
             <div class="row mb-5 product-basic-info">
-                <!-- 商品画像 -->
+                <!-- 商品画像（プレビュー表示） -->
                 <div class="col-md-5 mb-3 mb-md-0 product-image-area">
                     <img th:src="${goods?.photo != null ? goods.photo : '/img/ザンギ弁当.jpg'}" src="../../../static/img/ザンギ弁当.jpg" alt="商品画像" class="img-fluid rounded border w-100 object-fit-cover" style="max-height: 300px;">
                 </div>
 
                 <div class="col-md-7 product-input-area d-flex flex-column justify-content-center">
                     <!-- 画像アップロード -->
-                    <div class="input-group mb-4">
-                        <input class="form-control" type="file" id="referenceBtn" name="referenceBtn" accept="image/*">
-                        <div class="form-text">JPG, PNG（最大5MB）</div>
+                    <div>
+                        <label class="form-label fw-bold mb-1">商品画像ファイル</label>
+                        <!-- 【修正】name属性を "referenceBtn" から "photo" に変更します -->
+                        <input class="form-control" type="file" id="referenceBtn" name="photo" accept="image/*">
+                        <div class="form-text mt-1">
+                            現在のファイル: <span class="fw-bold text-dark" th:text="${goods?.photo}">/img/ザンギ弁当.jpg</span>
+                        </div>
                     </div>
 
                     <!-- 商品名入力 -->
-                    <div class="input-group mb-4 align-items-center">
-                        <input type="text" name="goodsName" th:value="${goods?.goodsName}">
+                    <div>
+                        <label class="form-label fw-bold mb-1">商品名</label>
+                        <input type="text" class="form-control" name="goodsName" th:value="${goods?.goodsName}" placeholder="商品名を入力">
                     </div>
 
-                    <!-- 価格 & 注文可能ランク -->
+                    <!-- 価格 & 注文可能ランク & 売り切れ状態 -->
                     <div class="d-flex flex-wrap gap-4 align-items-center">
                         <div class="input-group w-auto">
                             <span class="input-group-text">￥</span>
                             <input type="text" class="form-control fw-bold" name="price" th:value="${goods?.price}" style="max-width: 100px;">
                         </div>
+
                         <div class="d-flex align-items-center">
                             <label for="rank" class="form-label mb-0 me-2 text-nowrap fw-bold">注文可能ランク：</label>
                             <select id="rank" name="rank" class="form-select w-auto">
@@ -85,8 +99,38 @@
                                 <option value="ゴールド" th:selected="${goods?.watchRank == 'ゴールド'}">ゴールド</option>
                             </select>
                         </div>
+
+                        <!-- 売り切れ状態切り替え -->
+                        <div class="form-check form-switch ms-auto">
+                            <input class="form-check-input" type="checkbox" id="soldOut" name="soldOut" th:checked="${goods?.soldOut}">
+                            <label class="form-check-label fw-bold text-danger" for="soldOut">売り切れ</label>
+                        </div>
+                    </div>
+
+                    <!-- カロリー & ザンギの個数 -->
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label fw-bold mb-1">カロリー</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="calorie" th:value="${goods?.calorie}" placeholder="例: 650">
+                                <span class="input-group-text">kcal</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold mb-1">ザンギの個数</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="zangiCount" th:value="${goods?.zangiCount}" placeholder="例: 4">
+                                <span class="input-group-text">個</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- 商品詳細説明 -->
+            <div class="mb-4">
+                <label for="description" class="form-label fw-bold">商品詳細</label>
+                <textarea class="form-control" id="detail" name="detail" rows="3" th:text="${goods?.detail}" placeholder="商品の詳細説明を入力してください"></textarea>
             </div>
 
             <!-- ごはんの量 オプション -->
@@ -101,7 +145,10 @@
                         data-type="rice"
                         th:data-id="${rice.customId}" 
                         th:data-name="${rice.goodsName}" 
-                        th:data-price="${rice.price}">
+                        th:data-price="${rice.price}"
+                        th:data-calorie="${rice.calorie != null ? rice.calorie : ''}"
+                        th:data-allergy="${rice.allergy != null ? rice.allergy : ''}"
+                        th:data-soldout="${rice?.soldOut == true}">
                         <div class="card-body p-2">
                             <div class="fw-bold small text-truncate" th:text="${rice.goodsName}">小盛り</div>
                             <div class="small" th:text="${'￥ ' + rice.price}">￥ -50</div>
@@ -115,7 +162,10 @@
                             data-type="rice"
                             data-id="" 
                             data-name="" 
-                            data-price="">
+                            data-price=""
+                            data-calorie=""
+                            data-allergy=""
+                            data-soldout="false">
                         <i class="bi bi-plus-lg fs-4"></i>
                     </button>
                 </div>
@@ -133,7 +183,10 @@
                         data-type="sauce"
                         th:data-id="${sauce.customId}" 
                         th:data-name="${sauce.goodsName}" 
-                        th:data-price="${sauce.price}">
+                        th:data-price="${sauce.price}"
+                        th:data-calorie="${sauce.calorie != null ? sauce.calorie : ''}"
+                        th:data-allergy="${sauce.allergy != null ? sauce.allergy : ''}"
+                        th:data-soldout="${sauce?.soldOut == true}">
                         <div class="card-body p-2">
                             <div class="fw-bold small text-truncate" th:text="${sauce.goodsName}">おろしポン酢</div>
                             <div class="text-success small" th:text="${'￥ ' + sauce.price}">￥ 50</div>
@@ -147,7 +200,10 @@
                             data-type="sauce"
                             data-id="" 
                             data-name="" 
-                            data-price="">
+                            data-price=""
+                            data-calorie=""
+                            data-allergy=""
+                            data-soldout="false">
                         <i class="bi bi-plus-lg fs-4"></i>
                     </button>
                 </div>
@@ -160,19 +216,21 @@
                 <!-- 商品分類 セレクト -->
                 <div class="col-md-6 mb-3 mb-md-0">
                     <label class="fw-bold mb-2">商品分類：</label>
-                    <select class="form-select" name="categoryId">
+                    <select class="form-select" name="categoryId" id="categoryIdSelect">
                         <option value="">分類を選択</option>
-                        <option th:each="category : ${categories}" 
-                                th:value="${category.id}" 
-                                th:text="${category.name}">ザンギ弁当</option>
+                        <option value="B" th:selected="${goods?.categoryId == 'B'}">弁当 (B)</option>
+                        <option value="S" th:selected="${goods?.categoryId == 'S'}">サイドメニュー (S)</option>
+                        <option value="U" th:selected="${goods?.categoryId == 'U'}">ドリンク・その他 (U)</option>
                     </select>
                 </div>
 
                 <!-- アレルゲン-->
                 <div class="col-md-6">
                     <label class="fw-bold mb-2">アレルゲン：</label>
+                    <!-- DB送信用 hidden input (文字列) -->
+                    <input type="hidden" id="allergyInput" name="allergy" th:value="${goods?.allergy}">
                     <div>
-                        <button type="button" class="btn btn-outline-secondary mb-2" data-bs-toggle="modal" data-bs-target="#allergenModal">
+                        <button type="button" class="btn btn-outline-secondary mb-2" id="btnGoodsAllergen" data-bs-toggle="modal" data-bs-target="#goodsAllergenModal">
                             <i class="bi bi-list-check me-1"></i>アレルゲンを選択
                         </button>
                         <!-- 選択結果の表示領域 -->
@@ -188,6 +246,7 @@
                 <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">変更を保存</button>
                 <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="history.back()">変更を破棄して戻る</button>
             </div>
+        </form>
 
 
             <!-- ===== モーダル ===== -->
@@ -196,202 +255,320 @@
             <div class="modal fade" id="optionModal" tabindex="-1" aria-labelledby="optionModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="optionModalLabel">オプションの設定</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- 裏で保持するデータ -->
-                            <input type="hidden" id="modalOptionType" name="optionType">
-                            <input type="hidden" id="modalOptionId" name="optionId">
+                        <form th:action="@{/custom/save}" method="post" id="customOptionForm">
+                            <!-- 編集中の商品IDを送信 -->
+                            <input type="hidden" name="goodsId" th:value="${goods?.goodsId}">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="optionModalLabel">オプションの設定</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- 裏で保持するデータ -->
+                                <input type="hidden" id="modalOptionType" name="categoryType">
+                                <input type="hidden" id="modalOptionId" name="customId">
 
-                            <div class="mb-3">
-                                <label for="modalOptionName" class="form-label fw-bold">オプション名</label>
-                                <input type="text" class="form-control" id="modalOptionName" placeholder="例: 大盛り">
-                            </div>
-                            <div class="mb-3">
-                                <label for="modalOptionPrice" class="form-label fw-bold">価格変動（円）</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">￥</span>
-                                    <input type="number" class="form-control" id="modalOptionPrice" placeholder="0">
+                                <!-- 販売停止（売り切れ）スイッチ -->
+                                <div class="form-check form-switch mb-3 p-2 bg-light rounded border">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="modalOptionSoldOut" name="soldOut" value="true">
+                                    <label class="form-check-label fw-bold text-danger" for="modalOptionSoldOut">販売停止（売り切れ）にする</label>
                                 </div>
-                                <div class="form-text text-muted">※安くなる場合は -50 のようにマイナスをつけてください。</div>
+                                <div class="mb-3">
+                                    <label for="modalOptionName" class="form-label fw-bold">オプション名</label>
+                                    <input type="text" class="form-control" id="modalOptionName" name="goodsName" placeholder="例: 大盛り" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modalOptionPrice" class="form-label fw-bold">価格変動（円）</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">￥</span>
+                                        <input type="number" class="form-control" id="modalOptionPrice" name="price" placeholder="0" required>
+                                    </div>
+                                    <div class="form-text text-muted">※安くなる場合は -50 のようにマイナスをつけてください。</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modalOptionCalorie" class="form-label fw-bold">カロリー（kcal）</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="modalOptionCalorie" name="calorie" placeholder="例: 150">
+                                        <span class="input-group-text">kcal</span>
+                                    </div>
+                                </div>
+                                <!-- アレルゲン選択（商品と同様のUIに変更） -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold mb-1">アレルゲン：</label>
+                                    <!-- 送信用 hidden input -->
+                                    <input type="hidden" id="modalOptionAllergy" name="allergy">
+                                    <div>
+                                        <button type="button" class="btn btn-outline-secondary mb-2" id="btnOpenOptionAllergenModal">
+                                            <i class="bi bi-list-check me-1"></i>アレルゲンを選択
+                                        </button>
+                                        <!-- バッジ表示領域 -->
+                                        <div id="optionAllergenDisplayArea" class="border rounded p-2 bg-light text-muted small" style="min-height: 42px;">
+                                            選択されていません
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <!--削除ボタン-->
-                            <button type="button" class="btn btn-danger me-auto" id="btnDeleteOption">
-                                <i class="bi bi-trash3 me-1"></i>削除
-                            </button>
-                            
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                            <button type="button" class="btn btn-primary" id="btnSaveOption">保存</button>
-                        </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                                <button type="submit" class="btn btn-primary" id="btnSaveOption">保存</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. アレルゲン選択用モーダル -->
-            <div class="modal fade" id="allergenModal" tabindex="-1" aria-labelledby="allergenModalLabel" aria-hidden="true">
+            <!-- 2. 商品専用 アレルゲン選択用モーダル -->
+            <div class="modal fade" id="goodsAllergenModal" tabindex="-1" aria-labelledby="goodsAllergenModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="allergenModalLabel">アレルゲンの選択</h5>
+                            <h5 class="modal-title" id="goodsAllergenModalLabel">商品アレルゲンの選択</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
                         </div>
                         <div class="modal-body">
                             <div class="row g-2">
-                                <!-- Thymeleafで29品目をループ出力-->
                                 <div class="col-6 col-sm-4" th:each="allergen : ${allergens}">
                                     <div class="form-check">
-                                        <input class="form-check-input allergen-checkbox" type="checkbox" name="allergenIds" th:value="${allergen.id}" th:id="'allergen_' + ${allergen.id}" th:data-name="${allergen.name}">
-                                        <label class="form-check-label small" th:for="'allergen_' + ${allergen.id}" th:text="${allergen.name}"></label>
+                                        <input class="form-check-input goods-allergen-checkbox" type="checkbox" 
+                                            th:value="${allergen.name}" 
+                                            th:id="'goods_allergen_' + ${allergen.name}" 
+                                            th:checked="${allergen.checked}"
+                                            th:data-name="${allergen.name}">
+                                        <label class="form-check-label small" th:for="'goods_allergen_' + ${allergen.name}" th:text="${allergen.name}"></label>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="btnApplyAllergen">確定する</button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="btnApplyGoodsAllergen">確定する</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-        </form>
+            <!-- 3. トッピング専用 アレルゲン選択用モーダル -->
+            <div class="modal fade" id="optionAllergenModal" tabindex="-1" aria-labelledby="optionAllergenModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="optionAllergenModalLabel">トッピングアレルゲンの選択</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-2">
+                                <div class="col-6 col-sm-4" th:each="allergen : ${allergens}">
+                                    <div class="form-check">
+                                        <input class="form-check-input option-allergen-checkbox" type="checkbox" 
+                                            th:value="${allergen.name}" 
+                                            th:id="'option_allergen_' + ${allergen.name}" 
+                                            th:data-name="${allergen.name}">
+                                        <label class="form-check-label small" th:for="'option_allergen_' + ${allergen.name}" th:text="${allergen.name}"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="btnApplyOptionAllergen">確定する</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </main>
 
     <!-- モーダル制御用JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             
-            /* ==================================================
-                1. オプション（ごはん・ソース）モーダルの制御
-            ================================================== */
             var optionModal = document.getElementById('optionModal');
-            var currentTargetCard = null; // 編集対象のカード要素を保持
+            var goodsAllergenModalEl = document.getElementById('goodsAllergenModal');
+            var optionAllergenModalEl = document.getElementById('optionAllergenModal');
+            // トッピング用アレルゲンモーダルのBootstrapインスタンス化
+            var optionAllergenModalInstance = optionAllergenModalEl ? new bootstrap.Modal(optionAllergenModalEl) : null;
+            var currentTargetCard = null;
             
-            optionModal.addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
-                var type = button.getAttribute('data-type');
-                var id = button.getAttribute('data-id');
-                var name = button.getAttribute('data-name');
-                var price = button.getAttribute('data-price');
+            // アレルゲンバッジ描画関数（「なし」は出力せず空文字扱い）
+            function renderBadges(allergyVal, displayAreaEl) {
+                if (!displayAreaEl) return;
                 
-                var modalTitle = optionModal.querySelector('.modal-title');
-                var inputType = optionModal.querySelector('#modalOptionType');
-                var inputId = optionModal.querySelector('#modalOptionId');
-                var inputName = optionModal.querySelector('#modalOptionName');
-                var inputPrice = optionModal.querySelector('#modalOptionPrice');
-                var btnDelete = optionModal.querySelector('#btnDeleteOption');
-
-                var typeLabel = (type === 'rice') ? 'ごはんの量' : 'ソース';
-
-                // モーダルの入力欄に値をセット
-                inputType.value = type || '';
-                inputId.value = id || '';
-                inputName.value = name || '';
-                inputPrice.value = price || '';
-
-                // 新規か既存かで削除ボタンの表示を切り替え
-                if (id || currentTargetCard) {
-                    modalTitle.textContent = typeLabel + ' の編集';
-                    btnDelete.style.display = 'block';
-                } else {
-                    modalTitle.textContent = typeLabel + ' の新規追加';
-                    btnDelete.style.display = 'none'; //
-                }
-            });
-
-            // オプション保存ボタンの処理
-            document.getElementById('btnSaveOption').addEventListener('click', function() {
-                var type = document.getElementById('modalOptionType').value;
-                var name = document.getElementById('modalOptionName').value;
-                var price = document.getElementById('modalOptionPrice').value;
-
-                if (!name) {
-                    alert('オプション名を入力してください。');
-                    return;
-                }
-
-                if (currentTargetCard) {
-                    // 既存カードの更新
-                    currentTargetCard.setAttribute('data-name', name);
-                    currentTargetCard.setAttribute('data-price', price);
-                    currentTargetCard.querySelector('.option-name-text').textContent = name;
-                    currentTargetCard.querySelector('.option-price-text').textContent = '￥ ' + price;
-                } else {
-                    // 新規カードの作成
-                    var containerId = (type === 'rice') ? 'riceContainer' : 'sauceContainer';
-                    var container = document.getElementById(containerId);
-                    var addButton = container.querySelector('button');
-
-                    var newCard = document.createElement('div');
-                    newCard.className = 'card flex-shrink-0 text-center option-card';
-                    newCard.style.cssText = (type === 'rice') ? 'width: 100px; cursor: pointer;' : 'width: 120px; cursor: pointer;';
-                    newCard.setAttribute('data-bs-toggle', 'modal');
-                    newCard.setAttribute('data-bs-target', '#optionModal');
-                    newCard.setAttribute('data-type', type);
-                    newCard.setAttribute('data-id', 'new_' + Date.now());
-                    newCard.setAttribute('data-name', name);
-                    newCard.setAttribute('data-price', price);
-
-                    var priceClass = (type === 'sauce') ? 'text-success small option-price-text' : 'small option-price-text';
-
-                    newCard.innerHTML = `
-                        <div class="card-body p-2">
-                            <div class="fw-bold small text-truncate option-name-text">${name}</div>
-                            <div class="${priceClass}">￥ ${price}</div>
-                        </div>
-                    `;
-
-                    container.insertBefore(newCard, addButton);
-                }
-
-                var bootstrapModal = bootstrap.Modal.getInstance(optionModal);
-                bootstrapModal.hide();
-            });
-
-            // オプション削除ボタンの処理
-            document.getElementById('btnDeleteOption').addEventListener('click', function() {
-                var optionName = document.getElementById('modalOptionName').value;
-                if(confirm('「' + optionName + '」を削除しますか？')) {
-                    if (currentTargetCard) {
-                        currentTargetCard.remove();
-                    }
-                    var bootstrapModal = bootstrap.Modal.getInstance(optionModal);
-                    bootstrapModal.hide();
-                }
-            });
-
-            /* ==================================================
-                2. アレルゲン選択モーダルの制御
-            ================================================== */
-            document.getElementById('btnApplyAllergen').addEventListener('click', updateAllergenDisplay);
-
-            function updateAllergenDisplay() {
-                // チェックされているチェックボックスを取得
-                var checkboxes = document.querySelectorAll('.allergen-checkbox:checked');
-                var displayArea = document.getElementById('allergenDisplayArea');
-                
-                if (checkboxes.length > 0) {
-                    // チェックされた要素から data-name を抽出し、バッジHTMLを作成
-                    var names = Array.from(checkboxes).map(function(cb) {
-                        return '<span class="badge bg-secondary me-1 mb-1 p-2">' + cb.getAttribute('data-name') + '</span>';
+                if (allergyVal && allergyVal.trim() !== '' && allergyVal !== 'なし') {
+                    var items = allergyVal.split(',').map(function(s) { return s.trim(); });
+                    var badges = items.map(function(item) {
+                        return '<span class="badge bg-secondary me-1 mb-1 p-2">' + item + '</span>';
                     });
-                    // 表示エリアに流し込む
-                    displayArea.innerHTML = names.join('');
-                    displayArea.classList.remove('text-muted');
+                    displayAreaEl.innerHTML = badges.join('');
+                    displayAreaEl.classList.remove('text-muted');
                 } else {
-                    // チェックがない場合
-                    displayArea.innerHTML = '選択されていません';
-                    displayArea.classList.add('text-muted');
+                    displayAreaEl.innerHTML = '選択されていません';
+                    displayAreaEl.classList.add('text-muted');
+                }
+            }
+            // 文字列値（カンマ区切り）からチェックボックスに同期
+            function syncCheckboxes(allergyVal, selectorClass) {
+                var checkboxes = document.querySelectorAll(selectorClass);
+                checkboxes.forEach(function(cb) { cb.checked = false; });
+
+                if (allergyVal && allergyVal.trim() !== '' && allergyVal !== 'なし') {
+                    var items = allergyVal.split(',').map(function(s) { return s.trim(); });
+                    checkboxes.forEach(function(cb) {
+                        var val = cb.getAttribute('data-name') || cb.value;
+                        if (val && items.includes(val.trim())) {
+                            cb.checked = true;
+                        }
+                    });
                 }
             }
 
-            // 初期表示時（編集画面を開いた時）にも、すでにチェックが入っているものを画面に反映させる
-            updateAllergenDisplay();
+            // 1. オプション（ごはん・ソース）モーダルの制御
+            if (optionModal) {
+                optionModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    if (!button) return;
+
+                    currentTargetCard = button.classList.contains('option-card') ? button : null;
+                    var type = button.getAttribute('data-type');
+                    var id = button.getAttribute('data-id');
+                    var name = button.getAttribute('data-name');
+                    var price = button.getAttribute('data-price');
+                    var calorie = button.getAttribute('data-calorie');
+                    var allergy = button.getAttribute('data-allergy');
+                    var soldOut = button.getAttribute('data-soldout') === 'true';
+                    
+                    var modalTitle = optionModal.querySelector('.modal-title');
+                    var inputType = optionModal.querySelector('#modalOptionType');
+                    var inputId = optionModal.querySelector('#modalOptionId');
+                    var inputName = optionModal.querySelector('#modalOptionName');
+                    var inputPrice = optionModal.querySelector('#modalOptionPrice');
+                    var inputCalorie = optionModal.querySelector('#modalOptionCalorie');
+                    var inputAllergy = optionModal.querySelector('#modalOptionAllergy');
+                    var optionDisplayArea = optionModal.querySelector('#optionAllergenDisplayArea');
+                    var btnDelete = optionModal.querySelector('#btnDeleteOption');
+                    var btnSave = optionModal.querySelector('#btnSaveOption');
+                    var inputSoldOut = optionModal.querySelector('#modalOptionSoldOut');
+
+                    var typeLabel = (type === 'rice') ? 'ごはんの量' : 'ソース';
+
+                    inputType.value = type || '';
+                    inputId.value = id || '';
+                    inputName.value = name || '';
+                    inputPrice.value = price || '';
+                    inputCalorie.value = (calorie !== null && calorie !== undefined) ? calorie : '';
+                    inputAllergy.value = (allergy === 'なし') ? '' : (allergy || '');
+
+                    if (inputSoldOut) {
+                        inputSoldOut.checked = soldOut;
+                    }
+
+                    renderBadges(inputAllergy.value, optionDisplayArea);
+
+                    if (id) {
+                        modalTitle.textContent = typeLabel + ' の編集';
+                        btnSave.textContent = '更新する';
+                        if (btnDelete) btnDelete.style.display = 'block';
+                    } else {
+                        modalTitle.textContent = typeLabel + ' の新規追加';
+                        btnSave.textContent = '追加する';
+                        if (btnDelete) btnDelete.style.display = 'none';
+                    }
+                });
+            }
+
+            /* 2. 商品専用 アレルゲンモーダル制御 */
+            var btnGoodsAllergen = document.getElementById('btnGoodsAllergen');
+            if (btnGoodsAllergen) {
+                btnGoodsAllergen.addEventListener('click', function() {
+                    var currentVal = document.getElementById('allergyInput').value;
+                    syncCheckboxes(currentVal, '.goods-allergen-checkbox');
+                });
+            }
+
+            if (goodsAllergenModalEl) {
+                goodsAllergenModalEl.addEventListener('show.bs.modal', function () {
+                    var currentVal = document.getElementById('allergyInput').value;
+                    syncCheckboxes(currentVal, '.goods-allergen-checkbox');
+                });
+            }
+
+            /* 3. トッピング専用 アレルゲンモーダル制御 */
+            var btnOpenOptionAllergenModal = document.getElementById('btnOpenOptionAllergenModal');
+            if (btnOpenOptionAllergenModal) {
+                btnOpenOptionAllergenModal.addEventListener('click', function() {
+                    var currentVal = document.getElementById('modalOptionAllergy').value;
+                    syncCheckboxes(currentVal, '.option-allergen-checkbox');
+                    if (optionAllergenModalInstance) {
+                        optionAllergenModalInstance.show();
+                    }
+                });
+            }
+
+            if (optionAllergenModalEl) {
+                // 表示開始時（チェックボックス同期）
+                optionAllergenModalEl.addEventListener('show.bs.modal', function () {
+                    var currentVal = document.getElementById('modalOptionAllergy').value;
+                    syncCheckboxes(currentVal, '.option-allergen-checkbox');
+                });
+
+                // 表示完了時（背景膜 z-index 調整）
+                optionAllergenModalEl.addEventListener('shown.bs.modal', function () {
+                    var backdrops = document.querySelectorAll('.modal-backdrop');
+                    if (backdrops.length > 1) {
+                        backdrops[backdrops.length - 1].style.zIndex = '1110';
+                    }
+                });
+
+                // 閉じた際に親モーダルの操作性を維持
+                optionAllergenModalEl.addEventListener('hidden.bs.modal', function () {
+                    if (optionModal && optionModal.classList.contains('show')) {
+                        document.body.classList.add('modal-open');
+                    }
+                });
+            }
+
+            var btnApplyOptionAllergen = document.getElementById('btnApplyOptionAllergen');
+            if (btnApplyOptionAllergen) {
+                btnApplyOptionAllergen.addEventListener('click', function() {
+                    var checkboxes = document.querySelectorAll('.option-allergen-checkbox:checked');
+                    var selectedNames = Array.from(checkboxes).map(function(cb) {
+                        return cb.getAttribute('data-name') || cb.value;
+                    });
+                    var resultStr = selectedNames.length > 0 ? selectedNames.join(',') : '';
+                    document.getElementById('modalOptionAllergy').value = resultStr;
+                    renderBadges(resultStr, document.getElementById('optionAllergenDisplayArea'));
+                });
+            }
+
+            // 4. 初期表示・自動補正
+            // 初期表示時の商品アレルゲンバッジ同期
+            var goodsAllergyInput = document.getElementById('allergyInput');
+            if (goodsAllergyInput) {
+                if (goodsAllergyInput.value === 'なし') {
+                    goodsAllergyInput.value = '';
+                }
+                renderBadges(goodsAllergyInput.value, document.getElementById('allergenDisplayArea'));
+            }
+
+            // 商品IDからの自動分類設定
+            function autoSelectCategory() {
+                var goodsIdInput = document.querySelector('input[name="goodsId"]');
+                var categorySelect = document.querySelector('select[name="categoryId"]');
+                if (!goodsIdInput || !categorySelect) return;
+
+                var goodsId = goodsIdInput.value.trim();
+                if (goodsId.length > 0) {
+                    var prefix = goodsId.charAt(0).toUpperCase();
+                    for (var i = 0; i < categorySelect.options.length; i++) {
+                        if (categorySelect.options[i].value === prefix) {
+                            categorySelect.value = prefix;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            autoSelectCategory();
+
+            var goodsIdInput = document.querySelector('input[name="goodsId"]');
+            if (goodsIdInput) {
+                goodsIdInput.addEventListener('input', autoSelectCategory);
+            }
         });
     </script>
 </body>

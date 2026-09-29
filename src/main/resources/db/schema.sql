@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS custom_m(
     goods_name VARCHAR(50) NOT NULL,
     price INT NOT NULL,
     calorie INT,
-    allergy VARCHAR(50)
+    allergy VARCHAR(50),
+    sold_out BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 /* 休業日トランの定義 */
