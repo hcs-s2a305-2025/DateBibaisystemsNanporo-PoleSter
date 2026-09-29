@@ -10,7 +10,7 @@ import jp.co.dbs.nanporo.polestar.response.OuterdisplayResponse;
 import jp.co.dbs.nanporo.polestar.service.OuterdisplayService;
 
 @Controller
-@RequestMapping("/outerdisplay")
+@RequestMapping("/w/outerdisplay")
 public class OuterdisplayController {
 
     @Autowired
@@ -24,6 +24,6 @@ public class OuterdisplayController {
         // Modelに登録してHTMLへ渡す
         model.addAttribute("displayOrders", displayOrders);
         
-        return "outerdisplay"; // templates/outerdisplay.html を表示
+        return "w/outerdisplay"; // templates/outerdisplay.html を表示
     }
 }
