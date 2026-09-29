@@ -449,7 +449,7 @@ public class UserService {
         LocalDate birthday = user.getBirthday().toLocalDate();
         int age = Period.between(birthday, LocalDate.now()).getYears();
         String gender = user.getGender();
-        List<Map<String, Object>> goodsList = storeRepository.getAll();
+        List<Map<String, Object>> goodsList = storeRepository.getAllGoods();
 
         StringBuilder menuText = new StringBuilder();
         for (Map<String, Object> goods : goodsList) {
