@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import jp.co.dbs.nanporo.polestar.repository.UserRepository.SalesFlashDto;
 import jp.co.dbs.nanporo.polestar.service.UserService;
+import jp.co.dbs.nanporo.polestar.service.NotificationService;
 
 /**
  * 店舗管理画面のダッシュボード機能および即時アクション（臨時休業、全顧客向け一括通知）のリクエストを処理するコントローラークラス。
@@ -24,6 +25,9 @@ public class DashboardController {
     /** ユーザおよび店舗集計機能を提供するサービス */
     @Autowired 
     UserService service;
+
+    @Autowired
+    NotificationService notificationService;
 
     /**
      * ダッシュボード画面を表示します。
@@ -84,9 +88,9 @@ public class DashboardController {
      */
     @PostMapping("/w/dashboard/notice/broadcast")
     @ResponseBody
-    public ResponseEntity<String> sendBroadcastNotice(@RequestParam("content") String content) {
+    public ResponseEntity<String> sendBroadcastNotification(@RequestParam("content") String content) {
         try {
-            service.sendBroadcastNotice(content);
+            notificationService.sendBroadcastNotification(content);
             return ResponseEntity.ok("OK");
         } catch (Exception e) {
             e.printStackTrace();

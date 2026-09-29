@@ -9,8 +9,13 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -316,6 +321,24 @@ public class OrderController {
         }
         return "redirect:/";
     }
+
+
+    /**
+     * 注文を「完成」に変更します。
+     * 完成後、注文者への通知処理を実行します。
+     */
+    @PostMapping("/order/complete")
+    public String completeOrder(
+            @RequestParam("orderId") Integer orderId,
+            Principal principal) {
+
+        if (principal != null) {
+            orderService.completeOrder(orderId);
+        }
+
+        return "redirect:/";
+    }
+
 
     /**
      * 既存の注文データを復元してカートへ移動し、元の注文をキャンセルします（注文変更機能）

@@ -196,6 +196,16 @@ public class UserService {
         return user;
     }
 
+    /**
+     * 指定されたメールアドレスの通知一覧を取得します。
+     *
+     * @param mail ログインユーザーのメールアドレス
+     * @return 通知一覧
+     */
+    public List<Map<String, Object>> getNotificationsByMail(String mail) {
+        return repository.findNotificationsByMail(mail);
+    }
+
 
     /**
      * 従業員の基本情報を更新します。

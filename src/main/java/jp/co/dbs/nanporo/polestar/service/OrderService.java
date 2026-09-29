@@ -33,6 +33,9 @@ public class OrderService {
     @Autowired 
     private OrderRepository orderRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     // 文字列や数値型を安全に Integer へ変換するメソッド
     private Integer toInteger(Object value) {
         if (value == null) {
@@ -223,6 +226,44 @@ public class OrderService {
         if (orderId != null) {
             orderRepository.deleteOrder(orderId);
         }
+    }
+
+    /**
+     * 指定された注文を「完成」に変更し、
+     * 注文者へ完成通知を送信します。
+     */
+    @Transactional
+    public void completeOrder(Integer orderId) {
+
+        if (orderId == null) {
+            throw new IllegalArgumentException("注文IDが指定されていません。");
+        }
+
+        // 対象注文を取得
+        Map<String, Object> order = orderRepository.getOrderById(orderId);
+
+        if (order == null) {
+            throw new IllegalArgumentException("指定された注文が存在しません。");
+        }
+
+        // 現在のステータスを確認
+        String currentStatus = (String) order.get("status");
+
+        // 「受付」「調理中」以外は完成処理を行わない
+        if (!"受付".equals(currentStatus) && !"調理中".equals(currentStatus)) {
+            throw new IllegalStateException(
+                    "この注文は完成状態へ変更できません。現在のステータス: " + currentStatus);
+        }
+
+        // ステータスを「完成」に変更
+        int updatedCount = orderRepository.updateStatusToComplete(orderId);
+
+        if (updatedCount != 1) {
+            throw new IllegalStateException("注文ステータスの更新に失敗しました。");
+        }
+
+        // 完成通知を作成・メール送信
+        notificationService.sendOrderCompleteNotification(orderId);
     }
 
     /**

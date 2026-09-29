@@ -337,6 +337,24 @@ public class UserRepository {
         jdbc.update(sql, params);
     }
 
+
+    // 指定されたメールアドレスの通知一覧を取得
+    public List<Map<String, Object>> findNotificationsByMail(String mail) {
+
+        String sql = """
+            SELECT notice_id, mail, register_time, content
+            FROM notice_t
+            WHERE mail = :mail
+            ORDER BY register_time DESC, notice_id DESC
+            """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("mail", mail);
+
+        return jdbc.queryForList(sql, params);
+    }
+
+    
     /**
      * ユーザの基本情報（メールアドレスおよび名前）を更新します（パスワード更新なし）。
      *

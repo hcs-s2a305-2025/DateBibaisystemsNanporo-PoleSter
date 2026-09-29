@@ -127,6 +127,13 @@ public class OrderRepository {
     private static final String SELECT_ORDER_DETAIL = 
             "SELECT * FROM order_t WHERE order_id = :orderId";
 
+
+    // 注文を「完成」に変更するSQL
+    private static final String UPDATE_ORDER_STATUS_TO_COMPLETE =
+            "UPDATE order_t SET status = '完成' "
+            + "WHERE order_id = :orderId "
+            + "AND status IN ('受付', '調理中')";
+
     /**
      * 注文IDを条件に、指定された1件の注文詳細情報を取得します。
      */
@@ -139,6 +146,17 @@ public class OrderRepository {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    /**
+     * 指定された注文を「完成」に変更します。
+     * 「受付」または「調理中」の注文のみ変更可能です。
+     */
+    public int updateStatusToComplete(Integer orderId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("orderId", orderId);
+
+        return jdbc.update(UPDATE_ORDER_STATUS_TO_COMPLETE, params);
     }
 
     // ユーザーの「予約中（受付・調理中・完成）」の注文一覧を取得するSQL
