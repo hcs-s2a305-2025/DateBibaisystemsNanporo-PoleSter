@@ -1,0 +1,266 @@
+/* innerdisplay */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* メインコンテンツエリアの背景色をouterdisplayと統一 (#f4f6f9) */
+body {
+    font-family: sans-serif;
+    background-color: #f4f6f9;
+    min-height: 100vh;
+}
+
+/* ヘッダーエリア（画面上部のクリーム色バー） */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background-color: #fcfbee; /* 上部ヘッダーのみクリーム色 */
+    border-bottom: 1px solid #eae6d0;
+}
+
+.back-btn {
+    font-size: 20px;
+    color: #555;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.current-time {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* メインコンテンツ（カードグリッドエリア） */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* 注文カード基本スタイル */
+.card {
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 15px;
+    min-height: 480px;
+}
+
+/* 背景色 ＆ 枠色の動的変更 */
+/* ① 15分以上経過：赤系 */
+.card.status-danger {
+    background-color: #ffbabb;
+    border: 2px solid #e57373;
+}
+
+/* ② 5分〜15分未満経過：黄系 */
+.card.status-warning {
+    background-color: #fbf889;
+    border: 2px solid #fbc02d;
+}
+
+/* ③ 5分未満（通常）：白系 */
+.card.status-normal {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+}
+
+/* 受付番号 */
+.card-header {
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.order-number {
+    font-size: 28px;
+    margin-left: 10px;
+}
+
+/* 商品リスト */
+.card-body {
+    flex-grow: 1;
+}
+
+.item-group {
+    padding: 6px 0;
+}
+
+/* セット商品などの2個目以降の背景網掛け */
+.item-group.is-set {
+    background-color: rgba(0, 0, 0, 0.15);
+    margin: 4px -15px;
+    padding: 8px 15px;
+}
+
+.item-title {
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}
+
+.custom-list {
+    list-style: none;
+    padding-left: 15px;
+    font-size: 15px;
+    color: #333;
+    margin-top: 2px;
+}
+
+/* ボタン＆フッターエリア */
+.card-footer {
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* 水色の完了ボタン */
+.complete-btn {
+    width: 60%;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #004d40;
+    background: linear-gradient(to bottom, #80deea, #26c6da);
+    border: 1px solid #00acc1;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 12px;
+}
+
+.complete-btn:hover {
+    background: linear-gradient(to bottom, #26c6da, #00acc1);
+}
+
+.time-info {
+    font-size: 14px;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    font-weight: bold;
+}
+
+/* outerdiplay */
+body.display-body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #fcfbfa;
+    color: #333333;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ヘッダー */
+.display-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background-color: #fdfce8;
+    border-bottom: 1px solid #e0ded0;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.back-link {
+    color: #666666;
+    text-decoration: none;
+}
+
+.current-time {
+    color: #333333;
+    font-weight: 700;
+}
+
+/* メインコンテナ */
+.display-container {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* ディスプレイレイアウト */
+.display-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    height: calc(100vh - 140px);
+}
+
+.display-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #222222;
+}
+
+/* カードエリア */
+.card-area {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 8px;
+    height: 100%;
+}
+
+/* 左側グレー枠 */
+.cooking-area {
+    background-color: #dcdcdc;
+}
+
+.calling-area {
+    background-color: transparent;
+}
+
+/* ★ 修正箇所：番号カードの文字サイズ・はみ出し防止調整 */
+.number-card {
+    background-color: #ffffff;
+    border: 2px solid #b0b0b0;
+    border-radius: 4px;
+    min-width: 120px;       /* 最低幅を確保 */
+    height: 90px;
+    padding: 0 12px;        /* 左右に余白を設定 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;        /* 3rem -> 2rem に小さく調整してはみ出しを防止 */
+    font-weight: bold;
+    color: #1a51a4;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    white-space: nowrap;    /* 折り返しを防止 */
+    box-sizing: border-box;
+}
+
+/* 右下店舗名 */
+.shop-footer {
+    text-align: right;
+    padding-top: 8px;
+}
+
+.shop-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #222222;
+}
