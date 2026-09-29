@@ -72,14 +72,30 @@
                     <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
                 </div>
 
-                <!-- 削除ボタンエリア（カードクリックの遷移と重複させないよう event.stopPropagation() を設定） -->
+                <!-- アクションボタンエリア（カードクリックの遷移と重複させないよう event.stopPropagation() を設定） -->
                 <div class="action-block d-flex align-items-center me-3" onclick="event.stopPropagation();">
-                    <form th:action="@{/editmenu/delete}" method="post" onsubmit="return confirm('本当に削除しますか？');">
+                    <form th:action="@{/w/editmenu/toggle-sold-out}" method="post">
                         <input type="hidden" name="goodsId" th:value="${item.goodsId}" />
-                        <button type="submit" class="btn btn-outline-secondary btn-sm">削除</button>
+                        <!-- 次に変更したいステータスを送信 -->
+                        <input type="hidden" name="soldOut" th:value="${!item.soldOut}" />
+
+                        <!-- 販売中の場合：販売停止ボタン -->
+                        <button type="submit" 
+                                class="btn btn-outline-danger btn-sm" 
+                                th:if="${!item.soldOut}"
+                                onclick="return confirm('この商品を販売停止にしますか？');">
+                            販売停止
+                        </button>
+
+                        <!-- 販売停止中の場合：販売再開ボタン -->
+                        <button type="submit" 
+                                class="btn btn-outline-success btn-sm" 
+                                th:if="${item.soldOut}"
+                                onclick="return confirm('この商品の販売を再開しますか？');">
+                            販売再開
+                        </button>
                     </form>
                 </div>
-
                 <!-- 商品画像 -->
                 <img src="../../static/img/ザンギ弁当.jpg" th:src="@{${item.photo}}" alt="商品画像">
             </div>

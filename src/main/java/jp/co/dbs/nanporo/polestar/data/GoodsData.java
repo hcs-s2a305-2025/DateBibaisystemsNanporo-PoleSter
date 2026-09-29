@@ -35,4 +35,22 @@ public class GoodsData {
 
     // 会員ランク
     private String watchRank;
+
+    private String categoryId; // categoryId フィールドを追加
+
+    // ゲッターとセッターを追加
+    public String getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public Boolean getSoldOut() { // または isSoldOut()
+        return soldOut;
+    }
+    public void setSoldOut(Boolean soldOut) {
+        this.soldOut = soldOut;
+    }
 }

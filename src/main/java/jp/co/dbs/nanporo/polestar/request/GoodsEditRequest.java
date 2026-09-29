@@ -18,15 +18,34 @@ public class GoodsEditRequest {
     // 値段
     private Integer price;
 
-    // 閲覧可能会員ランク
-    private String rank;          // watch_rank に対応
-    
-    // 商品カテゴリ
-    private String categoryPrefix; // B, S, U など
-    
     // 商品画像
-    private MultipartFile imageFile;
+    private MultipartFile photo;
+
+    // カロリー数
+    private Integer calorie;
+
+    // アレルギー名リスト
+    private String allergy; // 選択されたアレルゲン名のリスト
+
+    // ザンギ個数
+    private String zangiCount;
+
+    // 売り切れフラグ
+    private Boolean soldOut;
+
+    // 詳細
+    private String detail;
+
+    // 閲覧可能会員ランク
+    private String rank;  // watch_rank に対応
+
+    private String categoryId; // ここに "B", "S", "U" などが入ってきます
     
-    //　アレルギー名リスト
-    private List<String> allergenNames; // 選択されたアレルゲン名のリスト
+    // ゲッター・セッター
+    public String getCategoryId() {
+        return categoryId;
+    }
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
 }
