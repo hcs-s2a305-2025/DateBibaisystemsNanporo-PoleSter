@@ -293,4 +293,14 @@ public class StoreRepository {
         return jdbc.update(DELETE_CUSTOM, Map.of("customId", customId));
     }
 
+    // 全商品のすべての情報をしゅとくするSQL
+    private static final String SELECT_ALL = 
+        "SELECT * FROM goods_m";
+
+    /**
+     * 全商品のすべての情報を取得します。
+     */
+    public List<Map<String, Object>> getAll(){
+        return jdbc.queryForList(SELECT_ALL, Map.of());
+    }
 }
