@@ -14,10 +14,9 @@ public class InnerdisplayRepository {
     @Autowired
     private NamedParameterJdbcTemplate jdbc;
 
-    // 調理対象の注文一覧取得（'受付' または '調理中' かつ 本日分）
     private static final String SELECT_KITCHEN_ORDERS = 
-            "SELECT o.order_id, o.order_number, o.get_time, o.memo, o.status, "
-            + "od.order_count, od.goods_id, g.goods_name, od.count, od.custom_id, c.goods_name AS custom_name "
+            "SELECT o.order_id, o.order_number, o.get_time, o.register_time, o.memo, o.status, "
+            + "od.order_count, od.goods_id, od.set_goods_id, g.goods_name, od.count, od.custom_id, c.goods_name AS custom_name "
             + "FROM order_t o "
             + "LEFT JOIN order_detail_t od ON o.order_id = od.order_id "
             + "LEFT JOIN goods_m g ON od.goods_id = g.goods_id "
@@ -26,22 +25,37 @@ public class InnerdisplayRepository {
             + "AND CAST(o.get_time AS DATE) = CURRENT_DATE "
             + "ORDER BY o.get_time ASC, o.order_id ASC, od.order_count ASC";
 
-    // ステータスを '受取可' に更新
     private static final String UPDATE_STATUS_TO_READY = 
             "UPDATE order_t SET status = '受取可' WHERE order_id = :orderId";
 
-    /**
-     * 本日の調理待ち注文一覧を取得
-     */
+    // 対象注文の mail と order_number を取得
+    private static final String SELECT_ORDER_BY_ID = 
+            "SELECT mail, order_number FROM order_t WHERE order_id = :orderId";
+
+    // notice_t への通知データ挿入
+    private static final String INSERT_NOTICE = 
+            "INSERT INTO notice_t (mail, register_time, content) "
+            + "VALUES (:mail, CURRENT_TIMESTAMP, :content)";
+
     public List<Map<String, Object>> getKitchenOrders() {
         return jdbc.queryForList(SELECT_KITCHEN_ORDERS, Map.of());
     }
 
-    /**
-     * 調理完了時にステータスを '受取可' に更新
-     */
+    public Map<String, Object> getOrderById(Integer orderId) {
+        MapSqlParameterSource params = new MapSqlParameterSource().addValue("orderId", orderId);
+        List<Map<String, Object>> list = jdbc.queryForList(SELECT_ORDER_BY_ID, params);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
     public void updateStatusToReady(Integer orderId) {
         MapSqlParameterSource params = new MapSqlParameterSource().addValue("orderId", orderId);
         jdbc.update(UPDATE_STATUS_TO_READY, params);
+    }
+
+    public void insertNotice(String mail, String content) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("mail", mail)
+                .addValue("content", content);
+        jdbc.update(INSERT_NOTICE, params);
     }
 }

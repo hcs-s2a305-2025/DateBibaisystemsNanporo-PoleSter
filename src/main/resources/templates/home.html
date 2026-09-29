@@ -113,6 +113,13 @@
 
     <!-- フッダー部 -->
 	<div th:replace="~{common/Layout :: common-footer}"></div>
+
+    <script>
+    // 5秒ごとに画面を自動更新して最新のステータス・通知を取得
+    setInterval(function() {
+        location.reload();
+    }, 5000);
+    </script>
 </body>
 
 </html>
