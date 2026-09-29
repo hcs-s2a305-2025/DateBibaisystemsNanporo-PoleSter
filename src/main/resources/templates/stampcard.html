@@ -73,10 +73,7 @@
                     <div class="flip-card-back">
                         <img class="stampcard-img" src="../static/img/スタンプカード裏.png" th:src="@{/img/スタンプカード裏.png}" alt="スタンプカード">
                         <canvas id="qrcode"
-                            th:data-mail="${user.mail}"
-                            th:data-name="${user.name}"
-                            th:data-rank="${user.memberRank}"
-                            th:data-point="${user.point}"></canvas>
+                            th:data-mail="${user.mail}"></canvas>
                     </div>
                 </div>
             </div>
@@ -135,10 +132,7 @@
 
             // データ取得（日本語もそのまま保持）
             const userInfo = {
-                mail: qrElement.dataset.mail || '',
-                name: qrElement.dataset.name || '',
-                memberRank: qrElement.dataset.rank || '',
-                point: Number(qrElement.dataset.point || 0)
+                mail: qrElement.dataset.mail || ''
             };
 
             // QRコード生成（日本語もそのままエンコードされます）

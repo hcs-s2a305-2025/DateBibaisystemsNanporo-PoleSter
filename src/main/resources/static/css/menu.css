@@ -124,3 +124,20 @@
     z-index: 2;
     background-color: #ffffff;
 }
+
+/* AI提案 */
+.bg-ai-green {
+    background-color: #20e08f !important;
+    color: #ffffff !important;
+}
+
+.btn-ai-green {
+    background-color: #20e08f !important;
+    color: #ffffff !important;
+    border: none;
+}
+
+.btn-ai-green:hover {
+    background-color: #1bc47d !important;
+    color: #ffffff !important;
+}
