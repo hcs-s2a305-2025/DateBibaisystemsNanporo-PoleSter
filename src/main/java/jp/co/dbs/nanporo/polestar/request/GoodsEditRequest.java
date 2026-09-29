@@ -19,7 +19,7 @@ public class GoodsEditRequest {
     private Integer price;
 
     // 商品画像
-    private MultipartFile photo;
+    private String photo;
 
     // カロリー数
     private Integer calorie;

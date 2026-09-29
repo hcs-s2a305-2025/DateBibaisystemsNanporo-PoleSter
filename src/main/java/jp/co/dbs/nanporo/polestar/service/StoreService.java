@@ -95,7 +95,7 @@ public class StoreService{
     public void saveGoods(GoodsEditRequest request) {
         String photoPath = null;
         if (request.getPhoto() != null && !request.getPhoto().isEmpty()) {
-            photoPath = "/img/" + request.getPhoto().getOriginalFilename();
+            photoPath = "/img/" + request.getPhoto();
         }
 
         // request.getAllergy() は String型として受け取りそのまま設定

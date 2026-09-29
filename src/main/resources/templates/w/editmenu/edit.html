@@ -71,7 +71,7 @@
                     <div>
                         <label class="form-label fw-bold mb-1">商品画像ファイル</label>
                         <!-- 【修正】name属性を "referenceBtn" から "photo" に変更します -->
-                        <input class="form-control" type="file" id="referenceBtn" name="photo" accept="image/*">
+                        <input class="form-control" type="file" id="referenceBtn" name="photoFile" accept="image/*">
                         <div class="form-text mt-1">
                             現在のファイル: <span class="fw-bold text-dark" th:text="${goods?.photo}">/img/ザンギ弁当.jpg</span>
                         </div>
@@ -569,7 +569,27 @@
             if (goodsIdInput) {
                 goodsIdInput.addEventListener('input', autoSelectCategory);
             }
+
+            /* 画像ファイルのプレビュー表示処理 */
+            var fileInput = document.getElementById('referenceBtn');
+            var previewImg = document.querySelector('.product-image-area img');
+
+            if (fileInput && previewImg) {
+                fileInput.addEventListener('change', function (e) {
+                    var file = e.target.files[0];
+                    if (file) {
+                        // 選択された画像を読み込んで <img> の src にセット
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            previewImg.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
         });
+
+        
     </script>
 </body>
 </html>
