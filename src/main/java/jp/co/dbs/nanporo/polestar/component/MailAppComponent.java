@@ -3,6 +3,7 @@ package jp.co.dbs.nanporo.polestar.component;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import jp.co.dbs.nanporo.polestar.MessageConfig;
@@ -46,6 +47,21 @@ public class MailAppComponent {
                     MessageConfig.MAIL_SEND_FAILED_MESSAGE + e.getMessage(),
                     e
             );
+        }
+    }
+
+    @Async 
+    public void sendMail(String to, String subject, String body){
+        try{
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(body);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            // 別スレッドで動くため、失敗してもメイン処理（調理完了）に影響させずログ出力で留める
+            System.err.println("メール送信エラー（宛先: " + to + "）: " + e.getMessage());
         }
     }
 }
