@@ -42,9 +42,11 @@ public class StoreController {
         return "menu";
     }
 
-    @GetMapping("/w/polesterpos")
+    @GetMapping("/w/polestarpos")
     public String showPos(Model model) {
-        return "w/polesterpos";
+        List<GoodsData> menuList = storeService.getMenuList();
+        model.addAttribute("menuList", menuList);
+        return "w/polestarpos";
     }
 
     @GetMapping("/w/casherhistory")
