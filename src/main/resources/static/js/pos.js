@@ -1686,13 +1686,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // -----------------------------------------------------
     // 数字ボタン（0 / 00 / 1～9）
     // -----------------------------------------------------
-    document.querySelectorAll(
-        '.clac-button .selecter-Button:not(.green-btn):not(.blue-btn):not(.yellow-btn):not(.red-btn):not(.pink-btn)'
-    ).forEach(button => {
+    document.querySelectorAll('[data-calc-num]').forEach(button => {
         button.addEventListener('click', function () {
-            const value = this.textContent.trim();
-            if (/^(0|00|[1-9])$/.test(value)) {
-                inputCalculatorNumber(value);
+            const numValue = this.dataset.calcNum;
+            if (numValue) {
+                inputCalculatorNumber(numValue);
             }
         });
     });

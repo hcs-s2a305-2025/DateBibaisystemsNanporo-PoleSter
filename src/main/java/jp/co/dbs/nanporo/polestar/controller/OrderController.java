@@ -1,6 +1,7 @@
 package jp.co.dbs.nanporo.polestar.controller;
 
 import java.security.Principal;
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -263,6 +264,39 @@ public class OrderController {
         @SuppressWarnings("unchecked")
         List<CartData> cart = (List<CartData>) session.getAttribute("cart");
         if (cart == null || cart.isEmpty()) {
+            return "redirect:/cart";
+        }
+
+        // 受取日時チェック（当日・明日・明後日）（30分以降の予約のみ）
+        try {
+            // pickupTime のフォーマット補正 ("12:00" -> "12:00:00")
+            String formattedPickupTime = pickupTime.length() == 5 ? pickupTime + ":00" : pickupTime;
+            
+            // 選択された受取日時
+            LocalDateTime pickupDateTime = LocalDateTime.parse(pickupDate + "T" + formattedPickupTime);
+            LocalDateTime now = LocalDateTime.now();
+
+            // 1. 日付チェック（今日〜明後日）
+            LocalDate selectedDate = pickupDateTime.toLocalDate();
+            LocalDate today = now.toLocalDate();
+            LocalDate maxDate = today.plusDays(2);
+
+            if (selectedDate.isBefore(today) || selectedDate.isAfter(maxDate)) {
+                return "redirect:/cart";
+            }
+
+            // 2. 時間チェック（閉店時間 15:00 超過チェック）
+            if (pickupDateTime.toLocalTime().isAfter(java.time.LocalTime.of(15, 0))) {
+                return "redirect:/cart";
+            }
+
+            // 3. 直前予約チェック（現在時刻から30分未満の場合は拒否）
+            if (pickupDateTime.isBefore(now.plusMinutes(30))) {
+                return "redirect:/cart";
+            }
+
+        } catch (Exception e) {
+            // フォーマット不正などのエラー時はカート画面に戻す
             return "redirect:/cart";
         }
 

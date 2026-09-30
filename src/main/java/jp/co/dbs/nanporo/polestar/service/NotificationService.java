@@ -117,7 +117,7 @@ public class NotificationService {
                 + "ORDER ZANGI";
 
         // メール送信
-        sendMail(
+        mailComponent.sendMail(
                 mail,
                 "【ORDER ZANGI】お弁当の受取準備が整いました",
                 body

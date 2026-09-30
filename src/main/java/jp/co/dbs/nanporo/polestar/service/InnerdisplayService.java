@@ -17,6 +17,9 @@ public class InnerdisplayService {
     @Autowired
     private InnerdisplayRepository innerdisplayRepository;
 
+    @Autowired 
+    private NotificationService notificationService;
+
     public List<Map<String, Object>> getKitchenOrdersGrouped() {
         List<Map<String, Object>> rawList = innerdisplayRepository.getKitchenOrders();
         Map<Integer, Map<String, Object>> groupedMap = new LinkedHashMap<>();
@@ -72,5 +75,6 @@ public class InnerdisplayService {
                 innerdisplayRepository.insertNotice(mail, noticeContent);
             }
         }
+        notificationService.sendOrderCompleteNotification(orderId);
     }
 }
