@@ -14,12 +14,14 @@ body {
 
 /* ヘッダーエリア（画面上部のクリーム色バー） */
 .header {
+    flex-shrink: 0;
+    background-color: #fffce9;
+    height: 70px;
+    padding: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 24px;
-    background-color: #fcfbee; /* 上部ヘッダーのみクリーム色 */
-    border-bottom: 1px solid #eae6d0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
 
 .back-btn {
