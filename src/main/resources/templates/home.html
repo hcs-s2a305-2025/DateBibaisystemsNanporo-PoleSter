@@ -97,16 +97,17 @@
             <!-- お店からの通知一覧 -->
             <h2>通知</h2>
 
-            <!-- 通知データが存在しない場合 -->
-            <div class="item-block" th:if="${#lists.isEmpty(notificationList)}">
-                <p class="item-block-text">新しい通知はありません。</p>
-            </div>
+            <div id="notification-area">
+                <!-- 通知データが存在しない場合 -->
+                <div class="item-block" th:if="${#lists.isEmpty(notificationList)}">
+                    <p class="item-block-text">新しい通知はありません。</p>
+                </div>
 
-            <!-- 通知データが存在する場合 -->
-            <div class="item-block" th:each="notice : ${notificationList}" th:unless="${#lists.isEmpty(notificationList)}">
-                <h3>通知</h3>
-                <p class="item-block-text" th:text="${notice.content}">通知の内容がここに入ります。</p>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
+                <!-- 通知データが存在する場合 -->
+                <div class="item-block" th:each="notice : ${notificationList}" th:unless="${#lists.isEmpty(notificationList)}">
+                    <p class="item-block-text" th:text="${notice.content}">通知の内容がここに入ります。</p>
+                    <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
+                </div>
             </div>
         </div>
     </main>
@@ -114,11 +115,24 @@
     <!-- フッダー部 -->
 	<div th:replace="~{common/Layout :: common-footer}"></div>
 
-    <script>
-    // 5秒ごとに画面を自動更新して最新のステータス・通知を取得
+    <script th:inline="javascript">
+    // 5秒ごとに通知エリア（#notification-area）だけを非同期で更新
     setInterval(function() {
-        location.reload();
-    }, 5000);
+        fetch(/*[[@{/notifications/fragment}]]*/)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('ネットワークエラー');
+                }
+                return response.text();
+            })
+            .then(html => {
+                const area = document.getElementById('notification-area');
+                if (area) {
+                    area.innerHTML = html;
+                }
+            })
+            .catch(error => console.error('通知の更新エラー:', error));
+        }, 5000);
     </script>
 </body>
 

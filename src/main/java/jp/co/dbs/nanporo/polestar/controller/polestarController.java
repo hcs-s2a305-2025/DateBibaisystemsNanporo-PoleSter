@@ -8,10 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import jp.co.dbs.nanporo.polestar.data.OrderData;
 import jp.co.dbs.nanporo.polestar.response.ActiveOrderResponse;
+import jp.co.dbs.nanporo.polestar.service.NotificationService;
 import jp.co.dbs.nanporo.polestar.service.OrderService;
 import jp.co.dbs.nanporo.polestar.service.UserService;
 
@@ -23,6 +22,9 @@ public class polestarController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired 
+    private NotificationService notificationService;
 
     @GetMapping("/")
     public String home(Model model, Principal principal) {
@@ -38,6 +40,22 @@ public class polestarController {
         }
 
         return "home";
+    }
+
+    /**
+     * 【追加】通知部分（フラグメント）のみを更新して返す非同期処理エンドポイント
+     */
+    @GetMapping("/notifications/fragment")
+    public String getNotificationFragment(Model model, Principal principal) {
+        if (principal != null) {
+            String mail = principal.getName();
+            // 通知一覧を取得してModelに登録
+            List<Map<String, Object>> notificationList =
+                    userService.getNotificationsByMail(mail);
+            model.addAttribute("notificationList", notificationList);
+        }
+        // 「HTMLテンプレート名 :: #更新したい要素のID名」を返す
+        return "home :: #notification-area";
     }
 
     @GetMapping("/home")
