@@ -3,14 +3,17 @@ package jp.co.dbs.nanporo.polestar.repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import jp.co.dbs.nanporo.polestar.entity.GoodsEntity;
 import jp.co.dbs.nanporo.polestar.request.GoodsEditRequest;
 
 @Repository 
@@ -302,5 +305,17 @@ public class StoreRepository {
      */
     public List<Map<String, Object>> getAll(){
         return jdbc.queryForList(SELECT_ALL, Map.of());
+    }
+
+    /**
+     * 商品IDをキーに GoodsEntity を1件取得する（Optional形式）
+     */
+    public Optional<GoodsEntity> getGoodsEntityById(String goodsId) {
+        List<GoodsEntity> list = jdbc.query(
+            SELECT_GOODS_BY_ID, 
+            Map.of("goodsId", goodsId), 
+            new BeanPropertyRowMapper<>(GoodsEntity.class)
+        );
+        return list.stream().findFirst();
     }
 }
