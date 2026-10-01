@@ -15,7 +15,7 @@ import jp.co.dbs.nanporo.polestar.service.OrderService;
 import jp.co.dbs.nanporo.polestar.service.UserService;
 
 @Controller
-public class polestarController {
+public class PolestarController {
 
     @Autowired 
     private OrderService orderService;
