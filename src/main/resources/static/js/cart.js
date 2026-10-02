@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (pickupDateSelect && pickupTimeSelect) {
         // 設定値
         const START_HOUR = 11;    // 受取開始時間 (11:00)
-        const END_HOUR = 15;      // 受取終了時間 (15:00)
+        const END_HOUR = 18;      // 受取終了時間 (15:00)
         const INTERVAL_MIN = 10;  // 10分刻み
         const LEAD_TIME_MIN = 30; // 30分前予約制限
         const CLOSED_DAY = 0;     // 定休日: 0 = 日曜日

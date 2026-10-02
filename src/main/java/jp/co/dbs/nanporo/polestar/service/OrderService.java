@@ -1,8 +1,6 @@
 package jp.co.dbs.nanporo.polestar.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import jp.co.dbs.nanporo.polestar.data.CartData;
 import jp.co.dbs.nanporo.polestar.data.OrderData;
 import jp.co.dbs.nanporo.polestar.data.OrderDetailData;
-import jp.co.dbs.nanporo.polestar.entity.OrderDetailEntity;
-import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
 import jp.co.dbs.nanporo.polestar.repository.OrderRepository;
 import jp.co.dbs.nanporo.polestar.request.OrderDetailRequest;
 import jp.co.dbs.nanporo.polestar.request.OrderRegisterRequest;
@@ -71,7 +67,6 @@ public class OrderService {
         data.setOrderType(request.getOrderType());
 
         // 2. 注文親データ（order_t）を登録
-        // ※ 採番処理（order_id / order_number の生成）は orderRepository.insertOrder 内で実行
         int orderId = orderRepository.insertOrder(data);
         if (orderId <= 0) {
             throw new RuntimeException("注文情報の登録に失敗しました。");
@@ -82,12 +77,30 @@ public class OrderService {
         if (detailList != null && !detailList.isEmpty()) {
             int orderCount = 1; // 明細内の連番 (1, 2, 3...)
             for (OrderDetailRequest detailRequest : detailList) {
-                // 親の orderId と明細連番をセット
                 OrderDetailData detail = new OrderDetailData();
                 detail.setOrderId(orderId);
                 detail.setOrderCount(Integer.valueOf(orderCount++));
-                detail.setGoodsId(detailRequest.getGoodsId());
+                
+                String goodsId = detailRequest.getGoodsId();
+                detail.setGoodsId(goodsId);
+
+                // --- ここから修正：サイドメニューとお弁当のライスコード分岐 ---
+                // --- 修正：ご飯の量（setGoodsId）の設定 ---
+                // --- 修正：OrderService の明細設定部分 ---
+                boolean isSideMenu = goodsId != null && goodsId.toUpperCase().startsWith("S");
+
+                // setGoodsId はマスタにない場合エラーになるため、今回はそのままか null
                 detail.setSetGoodsId(detailRequest.getSetGoodsId());
+
+                // customId (ご飯の量やソース) をそのまま設定
+                if (isSideMenu) {
+                    detail.setCustomId(0); // サイドメニューはカスタムなし(0)
+                } else {
+                    // 届いた customId が null の場合は 20(普通) にする
+                    Integer cId = detailRequest.getCustomId();
+                    detail.setCustomId((cId == null || cId == 0) ? 20 : cId);
+                }
+
                 detail.setCount(detailRequest.getCount());
                 detail.setPlusZangiCount(detailRequest.getPlusZangiCount());
                 detail.setCustomId(detailRequest.getCustomId());
@@ -109,55 +122,93 @@ public class OrderService {
     /**
      * ログインユーザーの予約中の注文（受付・調理中・完成）を取得します。
      */
-    public List<ActiveOrderResponse> getActiveOrders(String mail) {
-        List<Map<String, Object>> rows = orderRepository.getActiveOrdersByMail(mail);
-        Map<Integer, ActiveOrderResponse> map = new LinkedHashMap<>();
+    /**
+ * ログインユーザーの予約中の注文（受付・調理中・完成）を取得します。
+ */
+public List<ActiveOrderResponse> getActiveOrders(String mail) {
+    List<Map<String, Object>> rows = orderRepository.getActiveOrdersByMail(mail);
+    Map<Integer, ActiveOrderResponse> map = new LinkedHashMap<>();
 
-        for (Map<String, Object> row : rows) {
-            // Integer orderId = (Integer) row.get("order_id");
-            Integer orderId = toInteger(row.get("order_id"));
+    for (Map<String, Object> row : rows) {
+        Integer orderId = toInteger(row.get("order_id"));
 
-            // 親データの生成（初回のみ）
-            ActiveOrderResponse response = map.computeIfAbsent(orderId, id -> {
-                ActiveOrderResponse res = new ActiveOrderResponse();
-                
-                OrderData order = new OrderData();
-                order.setOrderId(id);
-                order.setOrderNumber((String) row.get("order_number"));
-                order.setGetTime((java.sql.Timestamp) row.get("get_time"));
-                order.setMail((String) row.get("mail"));
-                // order.setSumMoney((Integer) row.get("sum_money"));
-                Integer sumMoney = toInteger(row.get("sum_money"));
-                order.setSumMoney(sumMoney != null ? sumMoney : 0);
-                order.setMemo((String) row.get("memo"));
-                order.setStatus((String) row.get("status"));
-                
-                res.setOrder(order);
-                res.setDetails(new ArrayList<>());
-                return res;
-            });
+        // 親データの生成（初回のみ）
+        ActiveOrderResponse response = map.computeIfAbsent(orderId, id -> {
+            ActiveOrderResponse res = new ActiveOrderResponse();
+            
+            OrderData order = new OrderData();
+            order.setOrderId(id);
+            order.setOrderNumber((String) row.get("order_number"));
+            order.setGetTime((java.sql.Timestamp) row.get("get_time"));
+            order.setMail((String) row.get("mail"));
+            Integer sumMoney = toInteger(row.get("sum_money"));
+            order.setSumMoney(sumMoney != null ? sumMoney : 0);
+            order.setMemo((String) row.get("memo"));
+            order.setStatus((String) row.get("status"));
+            
+            res.setOrder(order);
+            res.setDetails(new ArrayList<>());
+            return res;
+        });
 
-            // 明細データの追加
-            if (row.get("goods_id") != null) {
+        // 明細データの追加
+        if (row.get("goods_id") != null) {
+            String goodsId = (String) row.get("goods_id");
+            Integer customId = toInteger(row.get("custom_id"));
+
+            // 既に同じ商品がグループに追加されているかチェック
+            // （必要に応じて goods_id だけでなく order_count / カートID 単位で判別）
+            ActiveOrderResponse.OrderDetailItem existingItem = response.getDetails().stream()
+                    .filter(item -> item.getGoodsId().equals(goodsId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingItem != null) {
+                // 2行目（ソースなど）の場合：既存のアイテムにソース名を追加・上書き
+                if (customId != null && customId >= 50) { // 50以上はソース
+                    existingItem.setSourceName(getSourceName(String.valueOf(customId)));
+                }
+            } else {
+                // 1行目（ご飯など）の場合：新規アイテムを作成
                 ActiveOrderResponse.OrderDetailItem item = new ActiveOrderResponse.OrderDetailItem();
-                item.setGoodsId((String) row.get("goods_id"));
+                item.setGoodsId(goodsId);
                 item.setGoodsName((String) row.get("goods_name"));
-                // item.setCount((Integer) row.get("count"));
                 item.setCount(toInteger(row.get("count")));
+
+                // ご飯の量の判定
+                boolean isSideMenu = goodsId != null && goodsId.toUpperCase().startsWith("S");
+                String riceCode = "20"; // デフォルト（普通）
+                
+                if (isSideMenu) {
+                    riceCode = "0";
+                } else if (customId != null && customId < 50) { // 50未満をご飯コードとする場合
+                    riceCode = String.valueOf(customId);
+                }
+
+                item.setRiceAmount(getRiceName(riceCode));
+                item.setRicePrice(getRicePrice(riceCode));
+
+                // もし1行目にソースコードが入っている場合への対応
+                if (customId != null && customId >= 50) {
+                    item.setSourceName(getSourceName(String.valueOf(customId)));
+                }
+
                 response.getDetails().add(item);
             }
         }
-
-        // 表示用の商品名文字列（カンマ区切り）を生成
-        for (ActiveOrderResponse res : map.values()) {
-            String names = res.getDetails().stream()
-                    .map(ActiveOrderResponse.OrderDetailItem::getGoodsName)
-                    .collect(Collectors.joining(", "));
-            res.setGoodsNames(names);
-        }
-
-        return new ArrayList<>(map.values());
     }
+
+    // 表示用の商品名文字列（重複を除外して生成）
+    for (ActiveOrderResponse res : map.values()) {
+        String names = res.getDetails().stream()
+                .map(ActiveOrderResponse.OrderDetailItem::getGoodsName)
+                .distinct()
+                .collect(Collectors.joining(", "));
+        res.setGoodsNames(names);
+    }
+
+    return new ArrayList<>(map.values());
+}
 
     /**
      * ログインユーザーの予約履歴一覧を取得します。
@@ -305,7 +356,18 @@ public class OrderService {
             item.setSourcePrice(sPrice);
 
             // ライスコード（初期値: 標準 "20"）
-            String riceCode = "20";
+            boolean isSideMenu = goodsId != null && goodsId.toUpperCase().startsWith("S");
+            
+            // DB（row）からライスコードを取得（カラム名が set_goods_id や rice_code などにある場合）
+            Integer setGoodsId = toInteger(row.get("set_goods_id"));
+            String riceCode;
+
+            if (setGoodsId != null && setGoodsId > 0) {
+                riceCode = String.valueOf(setGoodsId);
+            } else {
+                riceCode = isSideMenu ? "0" : "20";
+            }
+
             item.setRiceCode(riceCode);
             item.setRiceAmount(getRiceName(riceCode));
             int rPrice = getRicePrice(riceCode);
@@ -332,6 +394,7 @@ public class OrderService {
 
     private String getRiceName(String key) {
         return switch (key) {
+            case "0" -> "なし";
             case "10" -> "小盛り (150g)";
             case "30" -> "大盛り (350g)";
             case "40" -> "特盛 (450g)";
@@ -341,6 +404,7 @@ public class OrderService {
 
     private int getRicePrice(String key) {
         return switch (key) {
+            case "0" -> 0;
             case "10" -> -30;
             case "30" -> 50;
             case "40" -> 100;

@@ -5,6 +5,9 @@ import lombok.Data;
 @Data 
 public class OrderDetailRequest {
 
+    // 注文明細ID
+    private Integer orderCount;
+
     // 商品ID
     private String goodsId;
 
@@ -19,4 +22,5 @@ public class OrderDetailRequest {
 
     // カスタムID
     private Integer customId;
+
 }
