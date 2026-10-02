@@ -28,40 +28,50 @@
     <!-- ライトグレーのメインコンテンツエリア -->
     <div class="grid-container">
         <!-- 注文カード一覧 -->
-        <div th:each="order : ${orders}" class="card" 
-            th:data-get-time="${#dates.format(order.getTime, 'yyyy-MM-dd HH:mm:ss')}"
-            th:data-register-time="${#dates.format(order.registerTime, 'yyyy-MM-dd HH:mm:ss')}">
+        <div th:each="activeOrder : ${orders}" class="card" 
+            th:data-get-time="${#dates.format(activeOrder.order.getTime, 'yyyy-MM-dd HH:mm:ss')}"
+            th:data-register-time="${#dates.format(activeOrder.order.registerTime, 'yyyy-MM-dd HH:mm:ss')}">
             
             <div class="card-header">
-                受付番号 <span class="order-number" th:text="${order.orderNumber}">M72</span>
+                受付番号 <span class="order-number" th:text="${activeOrder.order.orderNumber}">M72</span>
             </div>
 
             <div class="card-body">
-                <!-- 商品ループ -->
-                <div th:each="item, stat : ${order.items}" 
-                    class="item-group" 
-                    th:classappend="${item.setGoodsId != null} ? 'is-set' : ''">
+                <!-- 商品リスト（1商品ごとに1ブロック） -->
+                <div th:each="item : ${activeOrder.details}" class="item-group">
                     
+                    <!-- 商品名と数量 -->
                     <div class="item-title">
-                        <span th:text="'・ ' + ${item.goodsName}">・ 元祖ザンギ弁当（5個）</span>
+                        <span th:text="'・ ' + ${item.goodsName}">・ 名物！ザンギ弁当（3個入り）</span>
                         <span th:text="'x' + ${item.count}">x1</span>
                     </div>
 
-                    <!-- オプション（カスタム） -->
-                    <ul class="custom-list" th:if="${item.customName}">
-                        <li th:text="'・ ' + ${item.customName}">・ ごはん特盛</li>
+                    <!-- オプション（ご飯の量・ソース） -->
+                    <ul class="order-list">
+                        <!-- ご飯の量 -->
+                        <li th:if="${item.riceAmount != null and item.riceAmount != 'なし' and item.riceAmount != ''}"
+                            th:text="'・ ご飯: ' + ${item.riceAmount}">
+                            ご飯: 普通 (250g)
+                        </li>
+
+                        <!-- ソース -->
+                        <li th:if="${item.sourceName != null and item.sourceName != 'なし' and item.sourceName != ''}"
+                            th:text="'・ ' + ${item.sourceName}">
+                            油淋鶏風ネギダレだくだく
+                        </li>
                     </ul>
+
                 </div>
             </div>
 
             <div class="card-footer">
                 <form th:action="@{/w/innerdisplay/complete}" method="post">
-                    <input type="hidden" name="orderId" th:value="${order.orderId}" />
+                    <input type="hidden" name="orderId" th:value="${activeOrder.order.orderId}" />
                     <button type="submit" class="complete-btn">完了</button>
                 </form>
 
                 <div class="time-info">
-                    <span>受付 <span th:text="${#dates.format(order.registerTime, 'HH : mm')}">13 : 50</span></span>
+                    <span>受付 <span th:text="${#dates.format(activeOrder.order.registerTime, 'HH : mm')}">13 : 50</span></span>
                     <span>経過 <span class="elapsed-time">00 : 00</span></span>
                 </div>
             </div>

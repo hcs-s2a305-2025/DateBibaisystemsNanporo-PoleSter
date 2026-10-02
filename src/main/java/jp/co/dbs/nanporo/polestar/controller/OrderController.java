@@ -1,7 +1,6 @@
 package jp.co.dbs.nanporo.polestar.controller;
 
 import java.security.Principal;
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -10,13 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpSession;
 import jp.co.dbs.nanporo.polestar.data.CartData;
 import jp.co.dbs.nanporo.polestar.data.GoodsData;
-import jp.co.dbs.nanporo.polestar.data.OrderData;
 import jp.co.dbs.nanporo.polestar.request.OrderDetailRequest;
 import jp.co.dbs.nanporo.polestar.request.OrderRegisterRequest;
 import jp.co.dbs.nanporo.polestar.response.OrderHistoryResponse;
@@ -286,7 +279,7 @@ public class OrderController {
             }
 
             // 2. 時間チェック（閉店時間 15:00 超過チェック）
-            if (pickupDateTime.toLocalTime().isAfter(java.time.LocalTime.of(15, 0))) {
+            if (pickupDateTime.toLocalTime().isAfter(java.time.LocalTime.of(18, 0))) {
                 return "redirect:/cart";
             }
 
@@ -310,19 +303,58 @@ public class OrderController {
         
         String registerTimeStr = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-        // 4. カートアイテムを OrderDetailRequest のリストへ変換
+        // 4. カートアイテムを OrderDetailRequest のリストへ変換（1商品につきご飯とソースの最大2行）
         List<OrderDetailRequest> detailList = new ArrayList<>();
+        int orderCount = 1; // 明細の枝番カウンタ
+
         for (CartData item : cart) {
-            OrderDetailRequest detail = new OrderDetailRequest();
-            detail.setGoodsId(item.getGoodsId());
-            detail.setSetGoodsId(null); // セット商品IDがある場合は設定
-            detail.setCount(1); // 1明細あたりの個数
-            detail.setPlusZangiCount(item.getZangiCount());
             
-            // ソースコード等をカスタムIDとして設定
-            detail.setCustomId(Integer.parseInt(item.getSourceCode())); 
-            
-            detailList.add(detail);
+            // ご飯コードの取得（デフォルト20:普通）
+            int riceCode = 20;
+            if (item.getRiceCode() != null && !item.getRiceCode().trim().isEmpty()) {
+                try {
+                    riceCode = Integer.parseInt(item.getRiceCode());
+                } catch (NumberFormatException e) {
+                    riceCode = 20;
+                }
+            }
+
+            // ソースコードの取得
+            int sourceId = 0;
+            if (item.getSourceCode() != null && !"0".equals(item.getSourceCode())) {
+                try {
+                    sourceId = Integer.parseInt(item.getSourceCode());
+                } catch (NumberFormatException e) {
+                    sourceId = 0;
+                }
+            }
+
+            // -------------------------------------------------------------
+            // 1行目：ご飯用の明細リクエスト
+            // -------------------------------------------------------------
+            OrderDetailRequest riceDetail = new OrderDetailRequest();
+            riceDetail.setOrderCount(orderCount++); // 枝番を割り振って+1
+            riceDetail.setGoodsId(item.getGoodsId());
+            // setGoodsId や数量のカラム名に合わせて適宜セットしてください
+            riceDetail.setCount(1); 
+            riceDetail.setPlusZangiCount(item.getZangiCount() != null ? item.getZangiCount() : 0);
+            riceDetail.setCustomId(riceCode); // ご飯ID (10, 20, 30, 40)
+
+            detailList.add(riceDetail);
+
+            // -------------------------------------------------------------
+            // 2行目：ソース用の明細リクエスト（ソースが選択されている場合のみ）
+            // -------------------------------------------------------------
+            if (sourceId > 0) {
+                OrderDetailRequest sourceDetail = new OrderDetailRequest();
+                sourceDetail.setOrderCount(orderCount++); // 次の枝番を割り振って+1
+                sourceDetail.setGoodsId(item.getGoodsId());
+                sourceDetail.setCount(1);
+                sourceDetail.setPlusZangiCount(0); // ソース行は0
+                sourceDetail.setCustomId(sourceId); // ソースID (50〜82)
+
+                detailList.add(sourceDetail);
+            }
         }
 
         // 5. 注文登録リクエストオブジェクトの生成
@@ -424,6 +456,7 @@ public class OrderController {
 
     private String getRiceName(String key) {
         return switch (key) {
+            case "0" -> "なし";
             case "10" -> "小盛り (150g)";
             case "30" -> "大盛り (350g)";
             case "40" -> "特盛 (450g)";
@@ -433,6 +466,7 @@ public class OrderController {
 
     private int getRicePrice(String key) {
         return switch (key) {
+            case "0" -> 0;
             case "10" -> -30;
             case "30" -> 50;
             case "40" -> 100;
@@ -460,9 +494,12 @@ public class OrderController {
 
     private int getSourcePrice(String key) {
         return switch (key) {
-            case "50", "60", "70" -> 80;
-            case "51", "61", "71" -> 120;
-            case "52", "62", "72" -> 150;
+            case "50" -> 50;
+            case "51" -> 100;
+            case "52" -> 150;
+            case "60", "70" -> 80;
+            case "61", "71" -> 160;
+            case "62", "72" -> 240;
             case "80" -> 100;
             case "81" -> 140;
             case "82" -> 180;

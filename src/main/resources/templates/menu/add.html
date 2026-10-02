@@ -39,6 +39,9 @@
                     <h1 th:text="${goods.goodsName}">元祖ザンギ弁当（5個）</h1>
                     <h3 th:text="${'￥' + #numbers.formatInteger(goods.price, 1, 'COMMA') + '円'}">￥780円</h3>
                     <br><br>
+                    <!-- 例：商品カテゴリを判定するためのhidden値 -->
+                    <input type="hidden" id="goodsId" th:value="${goods.goodsId}" value="side" />
+                    <input type="hidden" id="basePrice" th:value="${goods.price}" value="780" />
                     <div class="add-selector d-flex align-items-center mb-3">
                         <h2 class="fs-5 me-3 mb-0 col-auto">ご飯の量：</h2>
                         <select id="riceSelect" class="form-select form-select-sm col" name="riceAmount">
@@ -84,32 +87,7 @@
 	<div th:replace="~{common/Layout :: common-footer}"></div>
 
     <!-- リアルタイム計算JavaScript 【修正ポイント4】 -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const basePriceInput = document.getElementById('basePrice');
-        const riceSelect = document.getElementById('riceSelect');
-        const sourceSelect = document.getElementById('sourceSelect');
-        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
-
-        if (!basePriceInput || !totalPriceDisplay) return;
-
-        const basePrice = parseInt(basePriceInput.value) || 0;
-
-        function updatePrice() {
-            const ricePrice = parseInt(riceSelect.options[riceSelect.selectedIndex].dataset.price || 0);
-            const sourcePrice = parseInt(sourceSelect.options[sourceSelect.selectedIndex].dataset.price || 0);
-            
-            const total = basePrice + ricePrice + sourcePrice;
-            totalPriceDisplay.textContent = total.toLocaleString();
-        }
-
-        if (riceSelect) riceSelect.addEventListener('change', updatePrice);
-        if (sourceSelect) sourceSelect.addEventListener('change', updatePrice);
-
-        // 初期表示時計算
-        updatePrice();
-    });
-    </script>
+    <script src="../../static/js/add.js" th:src="@{/js/add.js}"></script>
     
 </body>
 

@@ -560,7 +560,7 @@ VALUES
     'B001',
     11,
     1,
-    0,
+    3,
     30
 ),
 -- 注文2: 特上海鮮丼 + 満腹セット(味噌汁＋大根サラダ) + 名物！ザンギ弁当（5個）
@@ -626,8 +626,23 @@ VALUES
     830
 );
 /* --------------------------------------------------
-11. 自動採番シーケンスの同期
+11. 自動採番シーケンスの同期（修正版）
 -------------------------------------------------- */
-SELECT setval(pg_get_serial_sequence('notice_t', 'notice_id'), COALESCE((SELECT MAX(notice_id) FROM notice_t), 1));
-SELECT setval(pg_get_serial_sequence('order_t', 'order_id'), COALESCE((SELECT MAX(order_id) FROM order_t), 1));
-SELECT setval(pg_get_serial_sequence('transaction_t', 'transaction_id'), COALESCE((SELECT MAX(transaction_id) FROM transaction_t), 1));
+-- データが存在する場合は MAX値、データが1件もない場合は 1 からスタート（is_called = false）
+SELECT setval(
+    pg_get_serial_sequence('notice_t', 'notice_id'), 
+    COALESCE((SELECT MAX(notice_id) FROM notice_t), 1), 
+    (SELECT MAX(notice_id) FROM notice_t) IS NOT NULL
+);
+
+SELECT setval(
+    pg_get_serial_sequence('order_t', 'order_id'), 
+    COALESCE((SELECT MAX(order_id) FROM order_t), 1), 
+    (SELECT MAX(order_id) FROM order_t) IS NOT NULL
+);
+
+SELECT setval(
+    pg_get_serial_sequence('transaction_t', 'transaction_id'), 
+    COALESCE((SELECT MAX(transaction_id) FROM transaction_t), 1), 
+    (SELECT MAX(transaction_id) FROM transaction_t) IS NOT NULL
+);
