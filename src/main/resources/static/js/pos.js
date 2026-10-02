@@ -24,13 +24,18 @@ const POS_CONFIG = {
         T002: 1,
         T003: 1,
         T004: 1,
-        // ソース系は1個まで。
-        T005: 1,
-        T006: 1,
-        T007: 1,
-        T008: 1,
+        // ソース系は3個まで。
+        T005: 3,
+        T006: 3,
+        T007: 3,
+        T008: 3,
         // 追加ザンギは複数可能とする例。
-        T009: 3,
+        T009: 15,
+        // セット商品は1つだけ。
+        T010: 1,
+        T011: 1,
+        T012: 1,
+        T013: 1,
     },
 
     // ------------------------------
@@ -39,13 +44,14 @@ const POS_CONFIG = {
     // 同じグループは同時に1種類だけ選択可能。
     TOPPING_EXCLUSIVE_GROUPS: {
         RICE_SIZE: ['T001', 'T002', 'T003', 'T004'],
+        SET_GOODS: ['T010', 'T011', 'T012', 'T013'],
     },
 
     // ------------------------------
     // 電卓入力
     // ------------------------------
     MAX_CALCULATOR_DIGITS: 9,
-    MAX_MOBILE_ORDER_DIGITS: 3,
+    MAX_MOBILE_ORDER_DIGITS: 4,
     MOBILE_ORDER_PREFIX: 'M',
 
     // ------------------------------
@@ -135,6 +141,9 @@ let qrMemberId = '';
 
 // アクション1 / 2
 let currentAction12 = 1;
+
+// モバイルオーダー読み込み中フラグ（二重リクエスト防止）
+let isLoadingMobileOrder = false;
 
 // =========================================================
 // 共通関数
@@ -611,14 +620,18 @@ function updateCartDetailTable() {
     } else {
         cartItems.forEach((item, index) => {
             const tr = document.createElement('tr');
+            // トッピング・セット商品のテキスト生成
             const toppingSummary = Object.values(item.toppings || {})
                 .filter(t => Number(t.quantity || 0) > 0)
                 .map(t => `${escapeHtml(t.name)} ×${t.quantity}`)
                 .join('<br>');
 
             const toppingText = toppingSummary
-                ? `<br><small>${toppingSummary}</small>`
+                ? `<br><small class="text-muted">${toppingSummary}</small>`
                 : '';
+
+            // 商品名の中にある改行コード（\n）を <br> に変換しつつエスケープ
+            const safeName = escapeHtml(item.name).replace(/\n/g, '<br>');
 
             tr.innerHTML = `
                 <td>${index + 1}</td>
@@ -704,7 +717,7 @@ function updatePaymentDisplay() {
     }
 
     if (subtotalDisplay) {
-        subtotalDisplay.textContent = formatYen(totalAmount);
+        subtotalDisplay.textContent = formatYen(subtotalAmount);
     }
 
     if (receivedDisplay) {
@@ -839,6 +852,11 @@ function inputCalculatorNumber(number) {
         calculatorValue += String(number).replace(/^0{2}$/, '00');
         calculatorValue = calculatorValue.slice(0, POS_CONFIG.MAX_MOBILE_ORDER_DIGITS);
         updateCalculatorDisplay();
+
+        // 規定桁数（4桁）に達したら自動で予約注文を検索・登録
+        if (calculatorValue.length === POS_CONFIG.MAX_MOBILE_ORDER_DIGITS) {
+            loadMobileOrder();
+        }
         return;
     }
 
@@ -867,7 +885,8 @@ function startMobileOrderInput() {
     }
 
     calculatorMode = 'MOBILE_ORDER';
-    calculatorValue = calculatorValue.replace(/\D/g, '').slice(0, POS_CONFIG.MAX_MOBILE_ORDER_DIGITS);
+    // calculatorValue = calculatorValue.replace(/\D/g, '').slice(0, POS_CONFIG.MAX_MOBILE_ORDER_DIGITS);
+    calculatorValue = '';    
     mobileOrderNumber = '';
     updateCalculatorDisplay();
 }
@@ -979,28 +998,58 @@ function showAction4() {
 // モバイルオーダー
 // =========================================================
 
-function normalizeMobileOrderToppings(toppings) {
-    if (!toppings) {
-        return {};
+function normalizeMobileOrderToppings(rawToppings, rawSetGoods) {
+    const toppings = {};
+    // toppings（ソース類）と setGoods/options（セット商品類）を結合して処理
+    const combineRaw = [];
+    
+    if (rawToppings) {
+        const list = Array.isArray(rawToppings) ? rawToppings : Object.values(rawToppings);
+        combineRaw.push(...list);
+    }
+    if (rawSetGoods) {
+        const list = Array.isArray(rawSetGoods) ? rawSetGoods : Object.values(rawSetGoods);
+        combineRaw.push(...list);
     }
 
-    if (!Array.isArray(toppings)) {
-        return JSON.parse(JSON.stringify(toppings));
-    }
+    combineRaw.forEach((t, idx) => {
+        if (!t) return;
 
-    const normalized = {};
-    toppings.forEach(topping => {
-        const id = topping.toppingId || topping.id || topping.code || topping.name;
-        if (!id) {
-            return;
+        // IDの取得（多角的に検索）
+        const key = String(t.id || t.toppingId || t.setId || t.setGoodsId || t.code || `topping_${idx}`);
+
+        // 商品名の取得（Java側の多様なキー名 [setName, setGoodsName, goodsName 等] に対応）
+        const name = String(
+            t.name || 
+            t.toppingName || 
+            t.setName || 
+            t.setGoodsName || 
+            t.goodsName || 
+            t.optionName || 
+            t.title || 
+            ''
+        ).trim();
+
+        // 名称が取得できない項目は除外
+        if (!name) return;
+
+        // 単価・数量の取得（setPrice や addPrice 等にも対応）
+        const price = Number(t.price ?? t.setPrice ?? t.addPrice ?? t.unitPrice ?? 0);
+        const quantity = Number(t.quantity ?? t.count ?? 1);
+
+        if (toppings[key]) {
+            toppings[key].quantity += quantity;
+        } else {
+            toppings[key] = {
+                id: key,
+                name: name,
+                price: price,
+                quantity: quantity
+            };
         }
-        normalized[id] = {
-            name: topping.name || '',
-            price: Number(topping.price || 0),
-            quantity: Number(topping.quantity || 0)
-        };
     });
-    return normalized;
+
+    return toppings;
 }
 
 function normalizeMobileOrderItems(result) {
@@ -1011,9 +1060,16 @@ function normalizeMobileOrderItems(result) {
     return rawItems.map(item => {
         const unitPrice = Number(item.unitPrice ?? item.price ?? item.amount ?? 0);
         const quantity = Math.max(1, Number(item.quantity || 1));
-        const toppings = normalizeMobileOrderToppings(item.toppings);
+        // toppings だけでなく setGoods / options / sets などの配列もまとめて抽出
+        const rawToppings = item.toppings || item.toppingList;
+        const rawSetGoods = item.setGoods || item.sets || item.options || item.setGoodsList;
+        const toppings = normalizeMobileOrderToppings(rawToppings, rawSetGoods);
+        // トッピング小計（1個当たり）
         const toppingTotal = Object.values(toppings)
             .reduce((sum, topping) => sum + Number(topping.price || 0) * Number(topping.quantity || 0), 0);
+
+        // 1個当たりの合計金額
+        const singleItemTotal = unitPrice;
 
         return {
             productId: String(item.productId ?? item.id ?? item.productCode ?? 'MOBILE_ITEM'),
@@ -1021,15 +1077,15 @@ function normalizeMobileOrderItems(result) {
             unitPrice,
             quantity,
             toppings,
-            // cartItems は total を「1個あたり」に保持するため、
-            // モバイルオーダーの明示的な unitTotal があれば優先し、
-            // line total と解釈しやすい item.total はここでは使わない。
-            total: Number(item.unitTotal ?? (unitPrice + toppingTotal))
+            total: singleItemTotal
         };
     });
 }
 
 async function loadMobileOrder() {
+    // 処理中なら即時リターン
+    if (isLoadingMobileOrder) return;
+
     const digits = String(calculatorValue || '').trim();
 
     if (!/^\d+$/.test(digits)) {
@@ -1044,6 +1100,7 @@ async function loadMobileOrder() {
 
     const orderNo = `${POS_CONFIG.MOBILE_ORDER_PREFIX}${digits.padStart(POS_CONFIG.MAX_MOBILE_ORDER_DIGITS, '0')}`;
 
+    isLoadingMobileOrder = true; // ロック開始
     try {
         const response = await fetch(POS_CONFIG.MOBILE_ORDER_ENDPOINT, {
             method: 'POST',
@@ -1104,6 +1161,8 @@ async function loadMobileOrder() {
     } catch (error) {
         console.error('モバイルオーダー取得エラー:', error);
         alert(error.message || 'モバイルオーダーの取得に失敗しました。');
+    } finally {
+        isLoadingMobileOrder = false; // 成功・失敗にかかわらずロック解除
     }
 }
 
@@ -1115,22 +1174,32 @@ async function postPaymentResult() {
     const received = Number(calculatorValue || 0);
     const total = Number(totalAmount || 0);
 
-    if (total <= 0) {
-        alert('商品が登録されていない、または合計金額が0円です。');
+    if(cartItems.length === 0) {
+        alert('商品が登録されていません。');
         return;
     }
 
-    if (received <= 0) {
-        alert('預かり金額を入力してください。');
-        return;
-    }
+    if (total > 0 && received < total) {
+    alert('預かり金額が合計金額より少なくなっています。');
+    return;
+    }   
 
-    if (received < total) {
-        alert('預かり金額が合計金額より少なくなっています。');
-        return;
-    }
+    // if (total <= 0) {
+    //     alert('商品が登録されていない、または合計金額が0円です。');
+    //     return;
+    // }
 
-    const change = received - total;
+    // if (received <= 0) {
+    //     alert('預かり金額を入力してください。');
+    //     return;
+    // }
+
+    // if (received < total) {
+    //     alert('預かり金額が合計金額より少なくなっています。');
+    //     return;
+    // }
+
+    const change = Math.max(0, received - total);
 
     const paymentData = {
         transactionType: 'SALE',
@@ -1331,11 +1400,11 @@ async function stopQrScanner() {
         return;
     }
 
-    try {
-        await qrScanner.stop();
-    } catch (error) {
-        console.warn('QRスキャナ停止エラー:', error);
-    }
+    // try {
+    //     await qrScanner.stop();
+    // } catch (error) {
+    //     console.warn('QRスキャナ停止エラー:', error);
+    // }
 
     try {
         await qrScanner.clear();

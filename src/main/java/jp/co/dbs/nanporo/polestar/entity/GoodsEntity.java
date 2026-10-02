@@ -1,11 +1,17 @@
 package jp.co.dbs.nanporo.polestar.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
+@Entity 
+@Table (name = "goods_m")
 public class GoodsEntity {
     
     // 商品ID
+    @Id 
     private String goodsId;
 
     // 商品名

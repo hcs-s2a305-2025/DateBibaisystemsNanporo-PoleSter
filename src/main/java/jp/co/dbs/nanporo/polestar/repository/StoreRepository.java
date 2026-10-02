@@ -13,7 +13,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import jp.co.dbs.nanporo.polestar.entity.CustomEntity;
 import jp.co.dbs.nanporo.polestar.entity.GoodsEntity;
+import jp.co.dbs.nanporo.polestar.entity.SetGoodsEntity;
 import jp.co.dbs.nanporo.polestar.request.GoodsEditRequest;
 
 @Repository 
@@ -318,4 +320,45 @@ public class StoreRepository {
         );
         return list.stream().findFirst();
     }
+
+    /* ==================================================
+     *  追加：セット商品（set_goods_m）／カスタム（custom_m）Entity取得用SQL
+     * ================================================== */
+    private static final String SELECT_SET_GOODS_BY_ID = 
+        "SELECT * FROM set_goods_m WHERE set_goods_id = :setGoodsId";
+
+    private static final String SELECT_CUSTOM_BY_ID = 
+        "SELECT * FROM custom_m WHERE custom_id = :customId";
+
+    /**
+     * セット商品IDをキーに SetGoodsEntity を1件取得する（Optional形式）
+     */
+    public Optional<SetGoodsEntity> getSetGoodsEntityById(Integer setGoodsId) {
+        if (setGoodsId == null) {
+            return Optional.empty();
+        }
+        List<SetGoodsEntity> list = jdbc.query(
+            SELECT_SET_GOODS_BY_ID, 
+            Map.of("setGoodsId", setGoodsId), 
+            new BeanPropertyRowMapper<>(SetGoodsEntity.class)
+        );
+        return list.stream().findFirst();
+    }
+
+    /**
+     * カスタムIDをキーに CustomEntity を1件取得する（Optional形式）
+     */
+    public Optional<CustomEntity> getCustomEntityById(Integer customId) {
+        if (customId == null) {
+            return Optional.empty();
+        }
+        List<CustomEntity> list = jdbc.query(
+            SELECT_CUSTOM_BY_ID, 
+            Map.of("customId", customId), 
+            new BeanPropertyRowMapper<>(CustomEntity.class)
+        );
+        return list.stream().findFirst();
+    }
+
+
 }

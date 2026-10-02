@@ -9,9 +9,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jp.co.dbs.nanporo.polestar.entity.CustomEntity;
 import jp.co.dbs.nanporo.polestar.entity.GoodsEntity;
 import jp.co.dbs.nanporo.polestar.entity.OrderDetailEntity;
 import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
+import jp.co.dbs.nanporo.polestar.entity.SetGoodsEntity;
 import jp.co.dbs.nanporo.polestar.entity.TransactionDetailEntity;
 import jp.co.dbs.nanporo.polestar.entity.TransactionEntity;
 import jp.co.dbs.nanporo.polestar.repository.OrderDetailRepository;
@@ -63,18 +65,59 @@ public class PosServiceImple implements PosService {
         List<MobileOrderResponse.MobileOrderItemDto> itemDtos = new ArrayList<>();
 
         for (OrderDetailEntity detail : details) {
-            String goodsName = storeRepository.getGoodsEntityById(detail.getGoodsId())
-                    .map(GoodsEntity::getGoodsName)
-                    .orElse("商品ID:" + detail.getGoodsId());
+            // 1. 本体商品の取得と価格設定
+            GoodsEntity goods = storeRepository.getGoodsEntityById(detail.getGoodsId()).orElse(null);
+            String baseGoodsName = (goods != null) ? goods.getGoodsName() : "商品ID:" + detail.getGoodsId();
+            int goodsPrice = (goods != null && goods.getPrice() != null) ? goods.getPrice() : 0;
+            List<MobileOrderResponse.MobileToppingDto> toppingList = new ArrayList<>();
 
-            Integer unitPrice = (detail.getCount() > 0) ? (order.getSumMoney() / detail.getCount()) : 0;
+            // 2. セット商品の追加価格取得（setGoodsId が存在する場合）
+            int setPrice = 0;
+            if (detail.getSetGoodsId() != null) {
+                SetGoodsEntity setGoods = storeRepository.getSetGoodsEntityById(detail.getSetGoodsId()).orElse(null);
+                if (setGoods != null) {
+                    setPrice = (setGoods.getPrice() != null) ? setGoods.getPrice() : 0;
+                    String setName = setGoods.getSetGoodsName(); 
+                    if (setName != null && !setName.isEmpty()) {
+                        toppingList.add(MobileOrderResponse.MobileToppingDto.builder()
+                            .id("SET_" + detail.getSetGoodsId())
+                            .name(setName)
+                            .price(setPrice)
+                            .quantity(1)
+                            .build());
+                    }
+                }
+            }
+
+            // 3. カスタム/トッピングの取得と名称の結合（customId が存在する場合）
+            int customPrice = 0;
+            if (detail.getCustomId() != null) {
+                CustomEntity custom = storeRepository.getCustomEntityById(detail.getCustomId()).orElse(null);
+                if (custom != null) {
+                    customPrice = (custom.getPrice() != null) ? custom.getPrice() : 0;
+                    String customName = custom.getGoodsName(); 
+                    if (customName != null && !customName.isEmpty()) {
+                        toppingList.add(MobileOrderResponse.MobileToppingDto.builder()
+                            .id("CUSTOM_" + detail.getCustomId())
+                            .name(customName)
+                            .price(customPrice)
+                            .quantity(1)
+                            .build());
+                    }
+                }
+            }
+
+            // 1個あたりの合計単価（本体 + セット + カスタム）
+            int unitPrice = goodsPrice + setPrice + customPrice;
+            int quantity = (detail.getCount() != null && detail.getCount() > 0) ? detail.getCount() : 1;
 
             itemDtos.add(MobileOrderResponse.MobileOrderItemDto.builder()
                     .productId(detail.getGoodsId())
-                    .name(goodsName)
+                    .name(baseGoodsName) // 改行付きで結合した名称をセット
                     .unitPrice(unitPrice)
-                    .quantity(detail.getCount())
-                    .unitTotal(unitPrice * detail.getCount())
+                    .quantity(quantity)
+                    .unitTotal(unitPrice * quantity)
+                    .toppings(toppingList)
                     .build());
         }
 

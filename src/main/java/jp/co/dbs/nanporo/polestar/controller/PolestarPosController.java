@@ -20,7 +20,7 @@ import jp.co.dbs.nanporo.polestar.service.StoreService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/w/polestarpos")
+@RequestMapping("/w/pos")
 @RequiredArgsConstructor
 public class PolestarPosController {
     
@@ -31,13 +31,22 @@ public class PolestarPosController {
     @PostMapping("/mobile-order")
     public ResponseEntity<MobileOrderResponse> getMobileOrder(@RequestBody MobileOrderRequest request) {
         try {
+            if (request == null) {
+                return ResponseEntity.badRequest().body(
+                    MobileOrderResponse.builder()
+                            .success(false)
+                            .message("リクエストデータが空です。")
+                            .build()
+                );
+            }
+
             MobileOrderResponse response = posService.getTodayMobileOrder(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                 MobileOrderResponse.builder()
                         .success(false)
-                        .message(e.getMessage())
+                        .message(e.getMessage() != null ? e.getMessage() : "予約注文の取得に失敗しました。")
                         .build()
             );
         }
