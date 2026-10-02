@@ -40,7 +40,7 @@ class PolestarControllerTest {
     void testHomeWithoutPrincipal() {
         Model model = new ExtendedModelMap();
 
-        String view = controller.home(model, null);
+        String view = controller.home(model, null, null);
 
         assertThat(view).isEqualTo("home");
         assertThat(model.asMap()).isEmpty();
@@ -57,7 +57,7 @@ class PolestarControllerTest {
         when(userService.getNotificationsByMail(mail)).thenReturn(notifications);
         Model model = new ExtendedModelMap();
 
-        String view = controller.home(model, principal);
+        String view = controller.home(model, principal, null);
 
         assertThat(view).isEqualTo("home");
         assertThat(model.asMap()).containsEntry("activeOrders", List.of());

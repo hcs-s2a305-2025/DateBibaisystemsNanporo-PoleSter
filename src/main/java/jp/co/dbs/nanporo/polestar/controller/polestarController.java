@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +29,23 @@ public class PolestarController {
     private NotificationService notificationService;
 
     @GetMapping("/")
-    public String home(Model model, Principal principal) {
+    public String home(Model model, Principal principal, Authentication authentication) {
+        // 1. ログインユーザーの権限（ロール）チェック
+        if (authentication != null && authentication.isAuthenticated()) {
+            boolean isWorker = authentication.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .anyMatch(role -> 
+                    // DBの登録名そのもの、または Spring Security が ROLE_ を付与した形式のどちらかに一致するか検証
+                    "店員".equals(role) || "店長".equals(role) ||
+                    "ROLE_店員".equals(role) || "ROLE_店長".equals(role)
+                );
+            if (isWorker) {
+                // 店員・店長の場合は従業員用ホーム画面へリダイレクト
+                return "redirect:/w/home";
+            }
+        }
+
+        // 2.顧客（または未ログイン）の場合の処理
         if (principal != null) {
             String mail = principal.getName();
             // 予約中の注文リストを取得してModelに登録
