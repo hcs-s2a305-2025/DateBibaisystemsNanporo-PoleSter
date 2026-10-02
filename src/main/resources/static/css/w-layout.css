@@ -518,3 +518,16 @@ h2,h3{
             font-family: 'Saira', monospace;
             word-break: break-all;
         }
+
+        .select-product-name{
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .multi-line-ellipsis {
+            width: 100px;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+        }

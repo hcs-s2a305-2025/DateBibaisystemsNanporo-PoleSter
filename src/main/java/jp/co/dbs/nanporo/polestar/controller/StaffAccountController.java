@@ -72,7 +72,7 @@ public class StaffAccountController {
      * @param mail 対象従業員のメールアドレス
      * @param name 新しい氏名
      * @param role 新しい役割（権限）
-     * @param alive 利用状態フラグ（true: 有効, false: 無効/停止）
+     * @param alive 利用状態フラグ（true: 無効/停止, false: 有効）
      * @return 処理結果レスポンス（成功時: "OK"）
      */
     @PostMapping("/w/account/staff/update")
