@@ -19,6 +19,7 @@ body {
 }
 
 .main-content{
+    display: block;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -531,3 +532,27 @@ h2,h3{
             -webkit-line-clamp: 2;
             overflow: hidden;
         }
+
+.notUsingMiniDisplay{
+    display: none;
+}
+
+/* --------------------------------
+        モバイルレイアウト
+----------------------------------*/
+
+@media screen and (max-width: 1177px) {
+    /* 基本 */
+
+    .main-content{
+        display: none;
+    }
+
+    .notUsingMiniDisplay{
+        display: block;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+}
