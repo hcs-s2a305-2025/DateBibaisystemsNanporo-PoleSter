@@ -41,9 +41,6 @@
             </a>
         </div>
         <div class="header-item d-flex justify-content-end">
-            <button class="edit-btn">
-                <a href="" style="color: #0047A3; text-decoration: none;">編集</a>
-            </button>
         </div>
         <div class="header-btn">
             <h5 id="date"></h5>
@@ -69,10 +66,11 @@
             <!-- 商品選択ブロックエリア -->
             <div class="selector-area action-group-3 col-5">
                 <!-- 商品ボタンエリア（FlexboxやGridで自動折り返し配置） -->
-                <div class="row selectbutton flex-wrap">
+                <div class="col row selectbutton flex-wrap">
                     <!-- DBから取得した menuList を繰り返し描画 -->
                     <button type="button" 
                             class="col-4 selecter-Button-item product-button" 
+                            th:classappend="${item?.soldOut} ? 'sold-out' : ''"
                             data-bs-toggle="modal" 
                             data-bs-target="#posModal1" 
                             th:each="item : ${menuList}"
@@ -94,12 +92,10 @@
                 <div class="" style="display: flex; justify-content: space-around; align-items: center; margin-top: 40px;">
                     <!-- ページネーションエリア -->
                     <div class="d-flex justify-content-center align-items-center" th:if="${response?.totalPages > 0}">
-                        
                         <!-- 前へ (<) ボタン -->
                         <a th:href="@{/w/account/staff(page=${currentPage - 1})}" 
                         class="pagination-arrow" 
                         th:classappend="${currentPage == 0} ? 'disabled'">&lt;</a>
-
                         <!-- ページ番号ボタン（1, 2, 3...） -->
                         <th:block th:each="i : ${#numbers.sequence(0, response?.totalPages - 1)}">
                             <a th:href="@{/w/account/staff(page=${i})}" 
@@ -112,13 +108,6 @@
                         <a th:href="@{/w/account/staff(page=${currentPage + 1})}" 
                         class="pagination-arrow" 
                         th:classappend="${currentPage + 1 == response?.totalPages} ? 'disabled'">&gt;</a>
-                    </div>
-                    <button type="button" class="edit-btn yellow-btn" style="margin-left: 20px;" id="qr-open-btn"
-                            data-bs-toggle="modal" data-bs-target="#qrModal">
-                        <span style="color: #0047A3; text-decoration: none;">QR</span>
-                    </button>
-                    <div class="qr-member-display">
-                        QR ID: <span id="qr-member-id" class="qr-id-value">未読み取り</span>
                     </div>
                 </div>
             </div>
@@ -133,23 +122,21 @@
                     </div>
                 </div>
                 <div class="row selectbutton">
-                    <button type="button"
-                            class="col selecter-Button-item discount-button"
-                            data-discount="-50">
+                    <button class="col discount-button selecter-Button-item" 
+                            data-discount="50" 
+                            data-coupon-name="学生割引" 
+                            data-discount-name="学生割引">
                         <p>割引 学生</p>
                         <p>-50円</p>
                     </button>
-                    <button type="button"
-                            class="col selecter-Button-item discount-button"
-                            data-discount="-100">
+                    <button class="col discount-button selecter-Button-item" 
+                            data-discount="100" 
+                            data-coupon-name="スタンプカード割引" 
+                            data-discount-name="スタンプカード割引">
                         <p>スタンプカード割引</p>
                         <p>-100円</p>
                     </button>
-                    <button type="button"
-                            class="col selecter-Button-item discount-button"
-                            data-discount="-100">
-                        <p>スタンプカード唐揚げ1無料</p>
-                        <p>-100円</p>
+                    <button class="col selecter-Button-item">
                     </button>
                 </div>
                 <div class="row selectbutton">
@@ -277,18 +264,16 @@
 
                         <!-- 6行目: アクション切り替え ＆ 決定行 -->
                         <div class="row">
-                            <!-- 切替実行ボタン -->
-                            <button class="selecter-Button-square" id="toggle-action-btn" style="cursor: pointer;">
-                                <p>切替</p>
-                            </button>
-                            <button type="button" class="selecter-Button-square" id="calculator-backspace">
-                                <p>×</p>
-                            </button>
-                            
-                            <!-- アクション1決定 -->
-                            <button type="button" class="col selecter-Button-narrow yellow-btn action-group-1" id="confirm-manual-btn">
-                                <p>決定</p>
-                            </button>
+                            <!-- 移動してきたQRボタンとID表示領域 -->
+                            <div class="col-7 d-flex align-items-center gap-2">
+                                <button type="button" class="selecter-Button-narrow yellow-btn" id="qr-open-btn"
+                                        data-bs-toggle="modal" data-bs-target="#qrModal" style="min-width: 70px;">
+                                    <p style="color: #0047A3; margin: 0;">QR</p>
+                                </button>
+                                <div class="qr-member-display" style="font-size: 0.85rem; font-weight: bold; color: #333; white-space: nowrap;">
+                                    QR ID: <span id="qr-member-id" class="qr-id-value">未読み取り</span>
+                                </div>
+                            </div>
 
                             <!-- アクション2拡張ボタン -->
                             <button type="button" class="selecter-Button-square yellow-btn action-group-2 d-none" id="exchange-btn">
@@ -393,7 +378,7 @@
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T011" data-topping-name="満腹ザンギセット（味噌汁＋大根サラダ）" data-topping-price="200">
                                     <p>満腹ザンギセット（味噌汁＋大根サラダ）</p>
                                     <p>+200円</p>
-                                    <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T010">0</span>
+                                    <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T011">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T012" data-topping-name="満腹ザンギセット（味噌汁＋マカロニたまごサラダ）" data-topping-price="200">
                                     <p>満腹ザンギセット（味噌汁＋マカロニたまごサラダ）</p>
@@ -461,7 +446,6 @@
                             <div class="col-5 pay-disp">
                                 <div class="pay-amount">
                                     <h3>合計</h3>
-                                    <h1></h1>
                                     <h1>660</h1>
                                     <h3>円</h3>
                                 </div>

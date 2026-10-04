@@ -38,8 +38,22 @@ public class PaymentRequest {
 
     @Data
     public static class ToppingRequest {
+        private Integer customId;
+        private Integer setGoodsId;
+        private Integer plusZangiCount;
         private String name;
         private Integer price;
         private Integer quantity;
+    }
+
+    // 既存のフィールド...
+    private String useCoupon; //  ("学生割引", "学生割引,スタンプカード割引" 等)
+
+    public String getUseCoupon() {
+        return useCoupon;
+    }
+
+    public void setUseCoupon(String useCoupon) {
+        this.useCoupon = useCoupon;
     }
 }

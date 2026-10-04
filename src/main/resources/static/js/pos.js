@@ -127,6 +127,8 @@ let subtotalAmount = 0;
 let discountAmount = 0;
 let returnAmount = 0;
 let totalAmount = 0;
+// 選択中の割引（クーポン）名を管理する配列（追加）
+let appliedCoupons = [];
 
 // 商品カート
 let cartItems = [];
@@ -369,6 +371,8 @@ function updateModalProductDisplay() {
     const nameElem = document.getElementById('modal-product-name');
     const descriptionElem = document.getElementById('modal-product-description');
     const totalElem = document.getElementById('modal-item-total');
+    const stopSaleBtn = document.getElementById('stop-sale-btn');
+    const addProductBtn = document.getElementById('add-product-btn');
 
     if (!currentProduct) {
         if (nameElem) nameElem.textContent = '商品を選択してください';
@@ -389,6 +393,24 @@ function updateModalProductDisplay() {
     if (totalElem) {
         totalElem.textContent = formatYen(getCurrentProductTotal());
     }
+    // --- 販売停止 / 販売再開ボタンの見た目と挙動の切替 ---
+    if (stopSaleBtn) {
+        const btnText = stopSaleBtn.querySelector('h3') || stopSaleBtn;
+        if (currentProduct.isSoldOut) {
+            btnText.textContent = '販売再開';
+            stopSaleBtn.classList.remove('modal-warning');
+            stopSaleBtn.classList.add('modal-success'); // 販売再開用スタイルクラス（またはbtn-success等）
+        } else {
+            btnText.textContent = '販売停止';
+            stopSaleBtn.classList.remove('modal-success');
+            stopSaleBtn.classList.add('modal-warning');
+        }
+    }
+
+    // 販売停止中の商品はカートに追加できないように制御
+    if (addProductBtn) {
+        addProductBtn.disabled = currentProduct.isSoldOut;
+    }
 
     updateToppingControls();
 }
@@ -397,10 +419,12 @@ function openProductModal(button) {
     const productId = button.dataset.productId || '';
     const productName = button.dataset.productName || '商品';
     const productPrice = Number(button.dataset.productPrice || 0);
+    // 販売停止フラグを取得 (文字列 'true' かどうか)
+    const isSoldOut = button.dataset.soldOut === 'true';
     const currentCount = getCartProductQuantity(productId);
     const limit = getProductLimit(productId);
 
-    if (currentCount >= limit) {
+    if (!isSoldOut && currentCount >= limit) {
         alert(`${productName}は登録上限 ${limit}個に達しています。`);
         return;
     }
@@ -409,11 +433,23 @@ function openProductModal(button) {
         productId,
         name: productName,
         unitPrice: productPrice,
+        isSoldOut: isSoldOut,
         toppings: {}
     };
 
     resetToppingBadges();
-    updateModalProductDisplay();
+    // -----------------------------------------------------
+    // 特定商品の場合「ごはん普通」をデフォルト選択
+    // -----------------------------------------------------
+    const defaultRiceKeywords = ['弁当', '特上'];
+    const hasDefaultRice = defaultRiceKeywords.some(keyword => productName.includes(keyword));
+
+    if (hasDefaultRice) {
+        // 'T001' が「ごはん普通」のIDと仮定しています
+        setToppingQuantity('T002', 1);
+    } else {
+        updateModalProductDisplay();
+    }
 }
 
 function setToppingQuantity(toppingId, delta) {
@@ -452,15 +488,37 @@ function setToppingQuantity(toppingId, delta) {
         });
     }
 
+    // -----------------------------------------------------
+    // ソースの数量に応じた「ソースだく」「だくだく」の名称設定
+    // -----------------------------------------------------
+    const isSauce = ['T005', 'T006', 'T007', 'T008'].includes(toppingId) || toppingName.includes('ソース');
+    let displayName = toppingName;
+    let sauceLevel = '';
+
+    if (isSauce) {
+        if (nextQuantity === 2) {
+            displayName = `${toppingName}（ソースだく）`;
+            sauceLevel = 'ソースだく';
+        } else if (nextQuantity === 3) {
+            displayName = `${toppingName}（だくだく）`;
+            sauceLevel = 'だくだく';
+        }
+    }
+
     if (!currentProduct.toppings[toppingId]) {
         currentProduct.toppings[toppingId] = {
-            name: toppingName,
+            id: toppingId,
+            rawName: toppingName,
+            name: displayName,
             price: toppingPrice,
-            quantity: 0
+            quantity: 0,
+            sauceLevel: sauceLevel
         };
     }
 
     currentProduct.toppings[toppingId].quantity = nextQuantity;
+    currentProduct.toppings[toppingId].name = displayName;
+    currentProduct.toppings[toppingId].sauceLevel = sauceLevel;
 
     if (nextQuantity <= 0) {
         delete currentProduct.toppings[toppingId];
@@ -560,6 +618,11 @@ function calculateSubtotal() {
 }
 
 function removeLastCartItem() {
+    // 予約注文が読み込まれている場合は予約注文の取り消しを行う
+    if (mobileOrderNumber) {
+        cancelMobileOrder();
+        return;
+    }
     if (cartItems.length === 0) {
         alert('登録されている商品がありません。');
         return;
@@ -584,6 +647,7 @@ function clearAllCartItems() {
     subtotalAmount = 0;
     discountAmount = 0;
     returnAmount = 0;
+    appliedCoupons = [];
     mobileOrderNumber = '';
     calculatorValue = '';
     calculatorMode = 'NORMAL';
@@ -592,7 +656,7 @@ function clearAllCartItems() {
     document.querySelectorAll('.discount-button').forEach(button => {
         button.dataset.applied = 'false';
         button.setAttribute('aria-pressed', 'false');
-        button.classList.remove('discount-selected');
+        button.classList.remove('discount-selected', 'active');
     });
 
     updateQrMemberDisplay();
@@ -635,7 +699,7 @@ function updateCartDetailTable() {
 
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${escapeHtml(item.name)}${toppingText}</td>
+                <td>${safeName}${toppingText}</td>
                 <td>
                     <div class="cart-quantity-wrap">
                         <button type="button" class="cart-adjust-btn" data-cart-action="decrease" data-cart-index="${index}">−</button>
@@ -717,7 +781,7 @@ function updatePaymentDisplay() {
     }
 
     if (subtotalDisplay) {
-        subtotalDisplay.textContent = formatYen(subtotalAmount);
+        subtotalDisplay.textContent = formatYen(Math.max(0, subtotalAmount + discountAmount));
     }
 
     if (receivedDisplay) {
@@ -731,6 +795,53 @@ function updatePaymentDisplay() {
     updateReturnStatus();
 }
 
+// 販売停止 / 販売再開の切り替え
+async function toggleProductSaleStatus() {
+    if (!currentProduct) return;
+
+    const nextStatus = !currentProduct.isSoldOut;
+    const actionText = nextStatus ? '販売停止' : '販売再開';
+
+    if (!confirm(`「${currentProduct.name}」を${actionText}に変更しますか？`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/w/pos/goods/toggle-sold-out', {
+            method: 'POST',
+            headers: getCsrfHeaders(),
+            body: JSON.stringify({
+                goodsId: currentProduct.productId,
+                soldOut: nextStatus
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || (result && result.success === false)) {
+            throw new Error(result?.message || '状態変更に失敗しました。');
+        }
+
+        // 1. カレント商品の状態更新
+        currentProduct.isSoldOut = nextStatus;
+
+        // 2. メイン画面側の商品ボタンの data-sold-out 属性と見た目を更新
+        const mainProductBtn = document.querySelector(`.product-button[data-product-id="${CSS.escape(currentProduct.productId)}"]`);
+        if (mainProductBtn) {
+            mainProductBtn.dataset.soldOut = String(nextStatus);
+            mainProductBtn.classList.toggle('sold-out', nextStatus);
+        }
+
+        // 3. モーダル内表示の更新
+        updateModalProductDisplay();
+
+        alert(`「${currentProduct.name}」を${actionText}に切り替えました。`);
+    } catch (error) {
+        console.error('販売状態更新エラー:', error);
+        alert(error.message || '通信エラーが発生しました。');
+    }
+}
+
 function recalculateTotal() {
     // 表示上0円未満にならないようにする。
     // 返品額・値引額そのものは別状態として保持し、Java側へ渡せるようにする。
@@ -739,20 +850,45 @@ function recalculateTotal() {
     updateCartDetailTable();
 }
 
+// 割引ボタンの名称を取得するヘルパー関数
+function getDiscountName(button) {
+    // data-discount-name 属性があれば優先し、なければボタンの表示テキストを使用
+    return button.dataset.discountName || button.textContent.trim();
+}
+
+// 適用中の割引名をカンマ区切り文字列にして返す関数
+function getAppliedCouponString() {
+    if (appliedCoupons.length > 0) {
+        return appliedCoupons.join(',');
+    }
+    // ボタンの割引はなく、電卓での手入力値引（discountAmount < 0）のみ適用されている場合
+    if (discountAmount < 0) {
+        return '値引';
+    }
+    return null;
+}
+
 function toggleDiscount(button) {
     const discount = Math.abs(Number(button.dataset.discount || 0));
     const alreadyApplied = button.dataset.applied === 'true';
+    const couponName = getDiscountName(button);
 
     if (alreadyApplied) {
         discountAmount += discount;
         button.dataset.applied = 'false';
         button.setAttribute('aria-pressed', 'false');
-        button.classList.remove('discount-selected');
+        button.classList.remove('discount-selected', 'active');
+        // 配列から解除された割引名を削除
+        appliedCoupons = appliedCoupons.filter(name => name !== couponName);
     } else {
         discountAmount -= discount;
         button.dataset.applied = 'true';
         button.setAttribute('aria-pressed', 'true');
-        button.classList.add('discount-selected');
+        button.classList.add('discount-selected', 'active');
+        // 配列に割引名を追加（重複防止）
+        if (!appliedCoupons.includes(couponName)) {
+            appliedCoupons.push(couponName);
+        }
     }
 
     recalculateTotal();
@@ -998,51 +1134,119 @@ function showAction4() {
 // モバイルオーダー
 // =========================================================
 
-function normalizeMobileOrderToppings(rawToppings, rawSetGoods) {
+// 画面上のボタン（.topping-button）からセット商品・トッピング情報を探す関数
+function findToppingInfoFromDOM(id, fallbackName) {
+    if (!id && !fallbackName) return null;
+
+    // IDの表記表記表記ゆれに対応 (例: "10" や 10 が来たら "T010" に変換して探す)
+    let searchIds = [String(id)];
+    if (/^\d+$/.test(String(id))) {
+        const padded = String(id).padStart(3, '0');
+        searchIds.push(`T${padded}`); // 例: "10" -> "T010"
+        searchIds.push(`T${id}`);     // 例: "10" -> "T10"
+    } else if (String(id).startsWith('T')) {
+        searchIds.push(String(id).substring(1)); // 例: "T010" -> "010"
+    }
+
+    // 1. 画面上の .topping-button から ID が一致するものを探す（手動追加と同じ取得先）
+    for (const searchId of searchIds) {
+        const elem = document.querySelector(
+            `[data-topping-id="${CSS.escape(searchId)}"], ` +
+            `[data-set-id="${CSS.escape(searchId)}"], ` +
+            `[data-id="${CSS.escape(searchId)}"]`
+        );
+        if (elem) {
+            return {
+                id: searchId,
+                name: elem.dataset.toppingName || elem.dataset.setName || elem.dataset.name || fallbackName,
+                price: Number(elem.dataset.toppingPrice || elem.dataset.setPrice || elem.dataset.price || 0)
+            };
+        }
+    }
+
+    // 2. IDでで見つからなくても、名前でボタンを探す
+    if (fallbackName) {
+        const elemByName = document.querySelector(
+            `[data-topping-name="${CSS.escape(fallbackName)}"], ` +
+            `[data-set-name="${CSS.escape(fallbackName)}"], ` +
+            `[data-name="${CSS.escape(fallbackName)}"]`
+        );
+        if (elemByName) {
+            return {
+                id: elemByName.dataset.toppingId || elemByName.dataset.setId || String(id),
+                name: fallbackName,
+                price: Number(elemByName.dataset.toppingPrice || elemByName.dataset.setPrice || 0)
+            };
+        }
+    }
+
+    return null;
+}
+
+function normalizeMobileOrderToppings(item) {
     const toppings = {};
     // toppings（ソース類）と setGoods/options（セット商品類）を結合して処理
-    const combineRaw = [];
-    
-    if (rawToppings) {
-        const list = Array.isArray(rawToppings) ? rawToppings : Object.values(rawToppings);
-        combineRaw.push(...list);
-    }
-    if (rawSetGoods) {
-        const list = Array.isArray(rawSetGoods) ? rawSetGoods : Object.values(rawSetGoods);
-        combineRaw.push(...list);
+    const rawList = [];
+
+    // --- A. 配列形式の抽出 (toppings, setGoods, options, subItems 等) ---
+    const possibleArrays = [
+        item.toppings, item.toppingList,
+        item.setGoods, item.setGoodsList, item.sets, item.setList,
+        item.options, item.optionList, item.subItems
+    ];
+
+    possibleArrays.forEach(target => {
+        if (!target) return;
+        if (Array.isArray(target)) {
+            rawList.push(...target);
+        } else if (typeof target === 'object') {
+            // 単一オブジェクトで届いた場合もリストに追加
+            rawList.push(target);
+        }
+    });
+
+    // --- B. item直下に単体プロパティとして入っているセット商品の抽出 ---
+    const directSetGoodsName = item.setGoodsName || item.setName || item.setGoods || item.optionName;
+    const directSetGoodsId = item.setGoodsId || item.setId || item.setCode;
+    if (directSetGoodsName || directSetGoodsId) {
+        rawList.push({
+            id: directSetGoodsId,
+            name: directSetGoodsName,
+            price: item.setGoodsPrice || item.setPrice || 0,
+            quantity: item.setGoodsQuantity || item.setQuantity || 1
+        });
     }
 
-    combineRaw.forEach((t, idx) => {
+    // --- C. 各項目の整形とDOMからの名前補完 ---
+    rawList.forEach((t, idx) => {
         if (!t) return;
 
-        // IDの取得（多角的に検索）
-        const key = String(t.id || t.toppingId || t.setId || t.setGoodsId || t.code || `topping_${idx}`);
+        // 文字列だけで入っている場合の対応
+        if (typeof t === 'string') {
+            t = { name: t };
+        }
 
-        // 商品名の取得（Java側の多様なキー名 [setName, setGoodsName, goodsName 等] に対応）
-        const name = String(
-            t.name || 
-            t.toppingName || 
-            t.setName || 
-            t.setGoodsName || 
-            t.goodsName || 
-            t.optionName || 
-            t.title || 
-            ''
+        const rawId = t.id || t.toppingId || t.setId || t.setGoodsId || t.code || `opt_${idx}`;
+        const rawName = String(
+            t.name || t.toppingName || t.setName || t.setGoodsName || t.goodsName || t.optionName || ''
         ).trim();
 
-        // 名称が取得できない項目は除外
-        if (!name) return;
+        // DOM（画面上の全ボタン）から名前と価格を補助取得
+        const domInfo = findToppingInfoFromDOM(rawId, rawName);
 
-        // 単価・数量の取得（setPrice や addPrice 等にも対応）
-        const price = Number(t.price ?? t.setPrice ?? t.addPrice ?? t.unitPrice ?? 0);
+        const finalName = domInfo?.name || rawName;
+        if (!finalName) return; // 名前が取れなかったものはスキップ
+
+        const finalId = domInfo?.id || String(rawId);
+        const price = Number(t.price ?? t.setPrice ?? t.addPrice ?? domInfo?.price ?? 0);
         const quantity = Number(t.quantity ?? t.count ?? 1);
 
-        if (toppings[key]) {
-            toppings[key].quantity += quantity;
+        if (toppings[finalId]) {
+            toppings[finalId].quantity += quantity;
         } else {
-            toppings[key] = {
-                id: key,
-                name: name,
+            toppings[finalId] = {
+                id: finalId,
+                name: finalName,
                 price: price,
                 quantity: quantity
             };
@@ -1053,6 +1257,8 @@ function normalizeMobileOrderToppings(rawToppings, rawSetGoods) {
 }
 
 function normalizeMobileOrderItems(result) {
+    // デバッグ用：Javaから届いた生のJSON構造をブラウザのコンソールに出力
+    console.log('[POS Debug] 受信データ全展開:\n' + JSON.stringify(result, null, 2));
     const rawItems = Array.isArray(result)
         ? result
         : (result?.items || result?.orderItems || result?.details || []);
@@ -1061,9 +1267,9 @@ function normalizeMobileOrderItems(result) {
         const unitPrice = Number(item.unitPrice ?? item.price ?? item.amount ?? 0);
         const quantity = Math.max(1, Number(item.quantity || 1));
         // toppings だけでなく setGoods / options / sets などの配列もまとめて抽出
-        const rawToppings = item.toppings || item.toppingList;
-        const rawSetGoods = item.setGoods || item.sets || item.options || item.setGoodsList;
-        const toppings = normalizeMobileOrderToppings(rawToppings, rawSetGoods);
+        // const rawToppings = item.toppings || item.toppingList;
+        // const rawSetGoods = item.setGoods || item.sets || item.options || item.setGoodsList;
+        const toppings = normalizeMobileOrderToppings(item);
         // トッピング小計（1個当たり）
         const toppingTotal = Object.values(toppings)
             .reduce((sum, topping) => sum + Number(topping.price || 0) * Number(topping.quantity || 0), 0);
@@ -1143,11 +1349,12 @@ async function loadMobileOrder() {
         subtotalAmount = 0;
         discountAmount = 0;
         returnAmount = 0;
+        appliedCoupons = [];
 
         document.querySelectorAll('.discount-button').forEach(button => {
             button.dataset.applied = 'false';
             button.setAttribute('aria-pressed', 'false');
-            button.classList.remove('discount-selected');
+            button.classList.remove('discount-selected', 'active');
         });
 
         calculateSubtotal();
@@ -1164,6 +1371,59 @@ async function loadMobileOrder() {
     } finally {
         isLoadingMobileOrder = false; // 成功・失敗にかかわらずロック解除
     }
+}
+
+// 予約注文を取り消す関数を追加
+function cancelMobileOrder() {
+    if (!mobileOrderNumber) {
+        return false;
+    }
+
+    if (confirm(`予約注文（${mobileOrderNumber}）を取り消して通常会計に戻しますか？`)) {
+        mobileOrderNumber = '';
+        cartItems = [];
+        subtotalAmount = 0;
+        discountAmount = 0;
+        returnAmount = 0;
+        calculatorValue = '';
+        calculatorMode = 'NORMAL';
+
+        // 割引ボタン選択解除
+        document.querySelectorAll('.discount-button').forEach(button => {
+            button.dataset.applied = 'false';
+            button.setAttribute('aria-pressed', 'false');
+            button.classList.remove('discount-selected', 'active');
+        });
+
+        updateProductBadges();
+        updateCartDetailTable();
+        updateMobileOrderDisplay();
+        recalculateTotal();
+        updateCalculatorDisplay();
+        showAction3(); // 通常会計画面へ戻す
+        alert('予約注文を取り消しました。');
+        return true;
+    }
+    return true; // キャンセル時も処理を中断させるためtrue
+}
+
+// removeLastCartItem() の先頭に予約注文の判定を追加
+function removeLastCartItem() {
+    // 予約注文が読み込まれている場合は予約注文の取り消しを行う
+    if (mobileOrderNumber) {
+        cancelMobileOrder();
+        return;
+    }
+
+    if (cartItems.length === 0) {
+        alert('登録されている商品がありません。');
+        return;
+    }
+
+    cartItems.pop();
+    calculateSubtotal();
+    updateProductBadges();
+    updateCartDetailTable();
 }
 
 // =========================================================
@@ -1184,21 +1444,6 @@ async function postPaymentResult() {
     return;
     }   
 
-    // if (total <= 0) {
-    //     alert('商品が登録されていない、または合計金額が0円です。');
-    //     return;
-    // }
-
-    // if (received <= 0) {
-    //     alert('預かり金額を入力してください。');
-    //     return;
-    // }
-
-    // if (received < total) {
-    //     alert('預かり金額が合計金額より少なくなっています。');
-    //     return;
-    // }
-
     const change = Math.max(0, received - total);
 
     const paymentData = {
@@ -1207,6 +1452,7 @@ async function postPaymentResult() {
         mobileOrderNo: mobileOrderNumber || null,
         subtotal: subtotalAmount,
         discount: discountAmount,
+        useCoupon: getAppliedCouponString(),
         returnAmount,
         total,
         received,
@@ -1218,11 +1464,19 @@ async function postPaymentResult() {
             unitPrice: item.unitPrice,
             quantity: item.quantity,
             total: item.total,
-            toppings: Object.values(item.toppings || {}).map(t => ({
-                name: t.name,
-                price: t.price,
-                quantity: t.quantity
-            }))
+            toppings: Object.entries(item.toppings || {}).map(([id, t]) => {
+                const numericId = parseInt(String(id).replace(/\D/g, ''), 10) || null;
+                return {
+                    id: id,
+                    name: t.name,
+                    price: t.price,
+                    quantity: t.quantity,
+                    customId: numericId,
+                    setGoodsId: numericId,
+                    sauceLevel: t.sauceLevel || null,
+                    customValue: t.sauceLevel || null
+                };
+            })
         }))
     };
 
@@ -1297,6 +1551,7 @@ async function completeReturnPayment() {
         mobileOrderNo: mobileOrderNumber || null,
         subtotal: subtotalAmount,
         discount: discountAmount,
+        useCoupon: getAppliedCouponString(),
         returnAmount,
         total: totalAmount,
         received: refundCash,
@@ -1365,6 +1620,7 @@ function resetTransactionState() {
     subtotalAmount = 0;
     discountAmount = 0;
     returnAmount = 0;
+    appliedCoupons = [];
     calculatorValue = '';
     calculatorMode = 'NORMAL';
     mobileOrderNumber = '';
@@ -1373,7 +1629,7 @@ function resetTransactionState() {
     document.querySelectorAll('.discount-button').forEach(button => {
         button.dataset.applied = 'false';
         button.setAttribute('aria-pressed', 'false');
-        button.classList.remove('discount-selected');
+        button.classList.remove('discount-selected', 'active');
     });
 
     updateProductBadges();
@@ -1608,7 +1864,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // トッピングボタン
     // -----------------------------------------------------
     document.querySelectorAll('.topping-button').forEach(button => {
-        button.addEventListener('click', function () {
+        button.addEventListener('click', function (event) {
+            // ＋/−調整ボタンが押された場合は親ボタンのクリック処理（＋1）を行わない
+            if (event.target.closest('[data-topping-action]')) {
+                return;
+            }
             selectTopping(this);
         });
     });
@@ -1663,9 +1923,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 販売停止
     // -----------------------------------------------------
     document.getElementById('stop-sale-btn')
-        ?.addEventListener('click', function () {
-            alert('販売停止の状態変更はJava側APIへ接続してください。');
-        });
+        ?.addEventListener('click', toggleProductSaleStatus);
 
     // -----------------------------------------------------
     // 商品詳細の + / - / 削除
@@ -1782,9 +2040,8 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.discount-button').forEach(button => {
         button.dataset.applied = 'false';
         button.setAttribute('aria-pressed', 'false');
-
         button.addEventListener('click', function () {
-            toggleDiscount(this);
+        toggleDiscount(this);
         });
     });
 

@@ -14,7 +14,7 @@ public class SetGoodsEntity {
     @Id 
     private Integer setGoodsId;
     // セット商品名
-    private String setGoodsName;
+    private String goodsName;
     // セット商品価格
     private Integer price;
     // セット商品カロリー

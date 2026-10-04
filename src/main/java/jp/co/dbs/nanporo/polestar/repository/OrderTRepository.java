@@ -21,5 +21,9 @@ public interface OrderTRepository extends JpaRepository<OrderEntity, Integer> {
         @Param("startOfDay") LocalDateTime startOfDay,
         @Param("endOfDay") LocalDateTime endOfDay
     );
+
+    // 当日の店頭注文における最大の orderNumber (4桁数字のみ対象) を取得
+    @Query("SELECT MAX(o.orderNumber) FROM OrderEntity o WHERE o.registerTime >= :startOfDay AND o.registerTime <= :endOfDay AND o.orderNumber NOT LIKE 'M%' AND o.orderNumber NOT LIKE 'POS-%'")
+    Optional<String> findMaxOrderNumberToday(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
     
 }

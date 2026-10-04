@@ -42,7 +42,7 @@
 
 .selecter-Button-modal{
     width: 130px;
-    height: 100px;
+    height: 120px;
     box-shadow: inset -3px -4px 1px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;

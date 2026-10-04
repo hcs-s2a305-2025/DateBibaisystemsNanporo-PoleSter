@@ -231,7 +231,7 @@ class EntityClassesTest {
 
         SetGoodsEntity setGoods = new SetGoodsEntity();
         setGoods.setSetGoodsId(3);
-        setGoods.setSetGoodsName("弁当セット");
+        setGoods.setGoodsName("弁当セット");
         setGoods.setPrice(200);
         setGoods.setCalorie(100);
         setGoods.setAllergy("卵");
@@ -239,7 +239,7 @@ class EntityClassesTest {
 
         SetGoodsEntity expectedSetGoods = new SetGoodsEntity();
         expectedSetGoods.setSetGoodsId(3);
-        expectedSetGoods.setSetGoodsName("弁当セット");
+        expectedSetGoods.setGoodsName("弁当セット");
         expectedSetGoods.setPrice(200);
         expectedSetGoods.setCalorie(100);
         expectedSetGoods.setAllergy("卵");

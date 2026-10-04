@@ -1,5 +1,8 @@
 package jp.co.dbs.nanporo.polestar.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -63,6 +66,27 @@ public class PolestarPosController {
             return ResponseEntity.badRequest().body(
                 new PaymentResponse(false, e.getMessage(), null)
             );
+        }
+    }
+
+    // 商品の販売状態（販売中/販売停止）を切り替えるAPI
+    @PostMapping("/goods/toggle-sold-out")
+    public ResponseEntity<Map<String, Object>> toggleGoodsSoldOut(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String goodsId = request.get("goodsId").toString();
+            Boolean soldOut = (Boolean) request.get("soldOut");
+
+            // Service層で DB (goods_m など) の sold_out カラムを更新
+            posService.updateGoodsSoldOut(goodsId, soldOut);
+
+            response.put("success", true);
+            response.put("message", "販売状態を更新しました。");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

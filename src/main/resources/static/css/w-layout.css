@@ -341,7 +341,7 @@ h2,h3{
         .selecter-Button-square {
             position: relative;
         }
-
+        
         .quantity-badge {
             position: absolute;
             top: 6px;
@@ -427,7 +427,7 @@ h2,h3{
             }
         }
 
-                /* POS機能拡張用: 外部CSSを壊さずに追加する最小限のUI */
+        /* POS機能拡張用: 外部CSSを壊さずに追加する最小限のUI */
         .calculator-input-preview {
             margin-top: 6px;
             font-size: 0.9rem;
@@ -531,6 +531,44 @@ h2,h3{
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2;
             overflow: hidden;
+        }
+
+        /* 割引ボタン選択時の強調スタイル */
+        .discount-button.discount-selected,
+        .discount-button.active {
+            color: #0047A3 !important;           /* テーマテキストカラー（紺色） */
+            border: 2px solid #ffd736 !important;  /* 枠線を強調 */
+            font-weight: bold;
+        }
+        /* メイン画面で販売停止中の商品のスタイル */
+        .product-button.sold-out {
+            opacity: 0.6;
+            background-color: #6c757d !important;
+            position: relative;
+        }
+        .product-button.sold-out p {
+            color: #ffffff !important; /* グレー背景時にテキストを白字化 */
+        }
+
+        .product-button.sold-out::after {
+            content: "売り切れ";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(220, 53, 69, 0.9);
+            color: white;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            z-index: 5;
+            font-size: 0.85rem;
+        }
+
+        /* モーダルの販売再開ボタン用クラス */
+        .modal-success {
+            background-color: #198754 !important;
+            color: #ffffff !important;
         }
 
 .notUsingMiniDisplay{

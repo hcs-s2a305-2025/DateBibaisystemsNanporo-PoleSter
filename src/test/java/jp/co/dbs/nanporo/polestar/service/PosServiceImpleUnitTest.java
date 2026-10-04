@@ -78,7 +78,7 @@ class PosServiceImpleUnitTest {
 		when(storeRepository.getGoodsEntityById("B001")).thenReturn(Optional.of(goods));
 		when(storeRepository.getGoodsEntityById("B404")).thenReturn(Optional.empty());
 		SetGoodsEntity set = new SetGoodsEntity();
-		set.setSetGoodsName("セット");
+		set.setGoodsName("セット");
 		set.setPrice(100);
 		when(storeRepository.getSetGoodsEntityById(2)).thenReturn(Optional.of(set));
 		CustomEntity custom = new CustomEntity();
@@ -138,7 +138,7 @@ class PosServiceImpleUnitTest {
 		goods.setPrice(null);
 		when(storeRepository.getGoodsEntityById("B020")).thenReturn(Optional.of(goods));
 		SetGoodsEntity set = new SetGoodsEntity();
-		set.setSetGoodsName("");
+		set.setGoodsName("");
 		set.setPrice(null);
 		when(storeRepository.getSetGoodsEntityById(7)).thenReturn(Optional.of(set));
 		CustomEntity custom = new CustomEntity();

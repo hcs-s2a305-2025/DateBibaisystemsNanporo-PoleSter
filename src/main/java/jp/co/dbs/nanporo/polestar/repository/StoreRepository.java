@@ -182,6 +182,13 @@ public class StoreRepository {
 
         return jdbc.update(UPDATE_SOLD_OUT, params);
     }
+    /**
+     * 商品IDが Integer の場合のオーバーロードメソッド
+     */
+    public int updateSoldOut(Integer goodsId, boolean soldOut) {
+        if (goodsId == null) return 0;
+        return updateSoldOut(String.valueOf(goodsId), soldOut);
+    }
 
     /* ==================================================
      *  カスタム／トッピングマスタ（custom_m）操作用SQL
@@ -322,7 +329,7 @@ public class StoreRepository {
     }
 
     /* ==================================================
-     *  追加：セット商品（set_goods_m）／カスタム（custom_m）Entity取得用SQL
+     *  セット商品（set_goods_m）／カスタム（custom_m）Entity取得用SQL
      * ================================================== */
     private static final String SELECT_SET_GOODS_BY_ID = 
         "SELECT * FROM set_goods_m WHERE set_goods_id = :setGoodsId";
