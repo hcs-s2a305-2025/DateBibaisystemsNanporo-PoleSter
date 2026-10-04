@@ -210,12 +210,52 @@ class EntityClassesTest {
     }
 
     @Test
+    @DisplayName("カスタム商品とセット商品Entityの各項目を保持する")
+    void testCustomAndSetGoodsEntities() {
+        CustomEntity custom = new CustomEntity();
+        custom.setCustomId(50);
+        custom.setGoodsName("ソース");
+        custom.setPrice(80);
+        custom.setCalorie(20);
+        custom.setAllergy("大豆");
+        custom.setSoldOut(false);
+
+        CustomEntity expectedCustom = new CustomEntity();
+        expectedCustom.setCustomId(50);
+        expectedCustom.setGoodsName("ソース");
+        expectedCustom.setPrice(80);
+        expectedCustom.setCalorie(20);
+        expectedCustom.setAllergy("大豆");
+        expectedCustom.setSoldOut(false);
+        assertEquivalent(custom, expectedCustom);
+
+        SetGoodsEntity setGoods = new SetGoodsEntity();
+        setGoods.setSetGoodsId(3);
+        setGoods.setSetGoodsName("弁当セット");
+        setGoods.setPrice(200);
+        setGoods.setCalorie(100);
+        setGoods.setAllergy("卵");
+        setGoods.setSoldOut(true);
+
+        SetGoodsEntity expectedSetGoods = new SetGoodsEntity();
+        expectedSetGoods.setSetGoodsId(3);
+        expectedSetGoods.setSetGoodsName("弁当セット");
+        expectedSetGoods.setPrice(200);
+        expectedSetGoods.setCalorie(100);
+        expectedSetGoods.setAllergy("卵");
+        expectedSetGoods.setSoldOut(true);
+        assertEquivalent(setGoods, expectedSetGoods);
+    }
+
+    @Test
     @DisplayName("JPA Entityのテーブルマッピングを確認する")
     void testJpaMappings() {
         assertTable(OrderEntity.class, "order_t");
         assertTable(OrderDetailEntity.class, "order_detail_t");
         assertTable(TransactionEntity.class, "transaction_t");
         assertTable(TransactionDetailEntity.class, "transaction_detail_t");
+        assertTable(CustomEntity.class, "custom_m");
+        assertTable(SetGoodsEntity.class, "set_goods_m");
         assertThat(OrderDetailEntity.class.getAnnotation(IdClass.class).value())
                 .isEqualTo(OrderDetailKey.class);
         assertThat(TransactionDetailEntity.class.getAnnotation(IdClass.class).value())

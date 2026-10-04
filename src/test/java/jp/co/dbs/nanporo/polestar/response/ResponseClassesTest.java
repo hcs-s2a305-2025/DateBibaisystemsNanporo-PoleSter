@@ -46,12 +46,19 @@ class ResponseClassesTest {
     @Test
     @DisplayName("モバイル注文レスポンスのビルダーと明細を保持する")
     void testMobileOrderResponse() {
+        MobileOrderResponse.MobileToppingDto topping = MobileOrderResponse.MobileToppingDto.builder()
+            .id("CUSTOM_50")
+            .name("おろしポン酢")
+            .price(80)
+            .quantity(1)
+            .build();
         MobileOrderResponse.MobileOrderItemDto item = MobileOrderResponse.MobileOrderItemDto.builder()
                 .productId("G02")
                 .name("牛丼")
                 .unitPrice(600)
                 .quantity(2)
                 .unitTotal(1200)
+            .toppings(List.of(topping))
                 .build();
 
         MobileOrderResponse response = MobileOrderResponse.builder()
@@ -74,6 +81,7 @@ class ResponseClassesTest {
 
         assertEquivalent(response, expected);
         assertThat(response.getItems().get(0).getUnitTotal()).isEqualTo(1200);
+        assertThat(response.getItems().get(0).getToppings().get(0).getName()).isEqualTo("おろしポン酢");
     }
 
     @Test
@@ -119,6 +127,27 @@ class ResponseClassesTest {
 
         assertEquivalent(response, expected);
         assertThat(response.getOrderNumber()).isEqualTo("20261002-055");
+    }
+
+    @Test
+    @DisplayName("注文商品グループの基本情報とカスタム名一覧を保持する")
+    void testOrderDetailGroupResponse() {
+        OrderDetailGroupResponse response = new OrderDetailGroupResponse();
+        response.setGoodsId("B001");
+        response.setGoodsName("弁当");
+        response.setCount(2);
+        response.setPlusZangiCount(1);
+        response.getCustomNames().add("大盛り");
+
+        OrderDetailGroupResponse expected = new OrderDetailGroupResponse();
+        expected.setGoodsId("B001");
+        expected.setGoodsName("弁当");
+        expected.setCount(2);
+        expected.setPlusZangiCount(1);
+        expected.getCustomNames().add("大盛り");
+
+        assertEquivalent(response, expected);
+        assertThat(new OrderDetailGroupResponse().getCustomNames()).isEmpty();
     }
 
     @Test

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +23,7 @@ import jp.co.dbs.nanporo.polestar.repository.UserRepository.SalesFlashDto;
 import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
 
 @SpringBootTest
+@Tag("integration")
 class UserServiceTest {
 	
 	@Autowired
