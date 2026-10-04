@@ -42,6 +42,16 @@ class PolestarPosControllerTest {
     }
 
     @Test
+    @DisplayName("nullリクエストを明示的な400レスポンスにする")
+    void testGetMobileOrderWithNullRequest() {
+        var result = controller.getMobileOrder(null);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(result.getBody().isSuccess()).isFalse();
+        assertThat(result.getBody().getMessage()).isEqualTo("リクエストデータが空です。");
+    }
+
+    @Test
     @DisplayName("モバイル注文取得の例外を400レスポンスに変換する")
     void testGetMobileOrderFailure() {
         MobileOrderRequest request = new MobileOrderRequest();
@@ -52,6 +62,18 @@ class PolestarPosControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(result.getBody()).extracting(MobileOrderResponse::isSuccess).isEqualTo(false);
         assertThat(result.getBody().getMessage()).isEqualTo("not found");
+    }
+
+    @Test
+    @DisplayName("メッセージなしの例外には予約取得の既定メッセージを返す")
+    void testGetMobileOrderFailureWithoutMessage() {
+        MobileOrderRequest request = new MobileOrderRequest();
+        when(posService.getTodayMobileOrder(request)).thenThrow(new IllegalStateException());
+
+        var result = controller.getMobileOrder(request);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(result.getBody().getMessage()).isEqualTo("予約注文の取得に失敗しました。");
     }
 
     @Test

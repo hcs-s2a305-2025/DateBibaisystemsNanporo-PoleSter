@@ -279,7 +279,7 @@ public class OrderController {
             }
 
             // 2. 時間チェック（閉店時間 15:00 超過チェック）
-            if (pickupDateTime.toLocalTime().isAfter(java.time.LocalTime.of(18, 0))) {
+            if (pickupDateTime.toLocalTime().isAfter(java.time.LocalTime.of(15, 0))) {
                 return "redirect:/cart";
             }
 
@@ -494,12 +494,12 @@ public class OrderController {
 
     private int getSourcePrice(String key) {
         return switch (key) {
-            case "50" -> 50;
-            case "51" -> 100;
+            case "50" -> 80;
+            case "51" -> 120;
             case "52" -> 150;
             case "60", "70" -> 80;
-            case "61", "71" -> 160;
-            case "62", "72" -> 240;
+            case "61", "71" -> 120;
+            case "62", "72" -> 150;
             case "80" -> 100;
             case "81" -> 140;
             case "82" -> 180;

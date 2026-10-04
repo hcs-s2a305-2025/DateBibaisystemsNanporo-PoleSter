@@ -72,17 +72,18 @@ class InnerdisplayServiceUnitTest {
 		for (int code : new int[] {50, 51, 52, 60, 61, 62, 70, 71, 72, 80, 81, 82}) {
 			rows.add(row(orderId++, "B" + orderId, "商品", code, 1));
 		}
+		rows.add(row(orderId, "B999", "商品", -1, 1));
 		when(repository.getKitchenOrders()).thenReturn(rows);
 
 		List<ActiveOrderResponse> orders = service.getActiveOrders("staff@example.com");
 
-		assertThat(orders).hasSize(18);
+		assertThat(orders).hasSize(19);
 		assertThat(orders).extracting(order -> order.getDetails().get(0).getRiceAmount())
 				.containsExactly("なし", "小盛り (150g)", "普通 (250g)", "大盛り (350g)",
 						"特盛り (450g)", "普通 (250g)", "普通 (250g)", "普通 (250g)",
 						"普通 (250g)", "普通 (250g)", "普通 (250g)", "普通 (250g)",
 						"普通 (250g)", "普通 (250g)", "普通 (250g)", "普通 (250g)",
-						"普通 (250g)", "普通 (250g)");
+						"普通 (250g)", "普通 (250g)", "普通 (250g)");
 		assertThat(orders.subList(6, 18)).extracting(order -> order.getDetails().get(0).getSourceName())
 				.containsExactly("おろしポン酢ソース", "おろしポン酢ソースだく", "おろしポン酢ソースだくだく",
 						"自家製タルタルソース", "自家製タルタルソースだく", "自家製タルタルソースだくだく",

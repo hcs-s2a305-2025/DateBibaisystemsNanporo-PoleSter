@@ -1,6 +1,8 @@
 package jp.co.dbs.nanporo.polestar.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -8,13 +10,13 @@ import static org.mockito.Mockito.when;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
@@ -255,6 +257,21 @@ class OrderControllerTest {
         assertThat(item.getZangiPrice()).isEqualTo(100);
     }
 
+    @Test
+    @DisplayName("ライスとソースを指定しない場合は既定表示と加算額を設定する")
+    void testAddToCartWithoutRiceOrSource() {
+        when(storeService.getGoodsDetail("G1")).thenReturn(goods());
+        MockHttpSession session = new MockHttpSession();
+
+        controller.addToCart("G1", 0, "0", "0", null, session);
+
+        CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
+        assertThat(item.getRiceAmount()).isEqualTo("なし");
+        assertThat(item.getRicePrice()).isZero();
+        assertThat(item.getSourceType()).isEqualTo("なし");
+        assertThat(item.getSourcePrice()).isZero();
+    }
+
     @ParameterizedTest(name = "ソースコード {0} の加算料金と表示名")
     @CsvSource({
             "50, 80, 'おろしポン酢ソース'", "51, 120, 'おろしポン酢ソースだく'", "52, 150, 'おろしポン酢ソースだくだく'",
@@ -386,8 +403,12 @@ class OrderControllerTest {
     @Test
     @DisplayName("30分未満の直前予約は拒否する")
     void testCheckoutTooSoon() {
-        LocalDateTime soon = LocalDateTime.now().plusMinutes(10);
-        assertInvalidPickup(soon.toLocalDate().toString(), soon.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+        LocalDate today = LocalDate.now();
+        LocalDateTime fixedNow = today.atTime(12, 0);
+        try (MockedStatic<LocalDateTime> dateTime = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS)) {
+            dateTime.when(LocalDateTime::now).thenReturn(fixedNow);
+            assertInvalidPickup(today.toString(), "12:10");
+        }
     }
 
     @Test
@@ -411,8 +432,34 @@ class OrderControllerTest {
         assertThat(request.getGetTime()).isEqualTo(pickupDate + "T14:00:00");
         assertThat(request.getSumMoney()).isEqualTo(450);
         assertThat(request.getMemo()).isEqualTo("少なめ");
-        assertThat(request.getOrderDetails()).hasSize(1);
+        assertThat(request.getOrderDetails()).hasSize(2);
         assertThat(session.getAttribute("cart")).isNull();
+    }
+
+    @Test
+    @DisplayName("オプションコード不正時は既定値で注文明細を構築する")
+    void testCheckoutWithInvalidOptionCodes() {
+        MockHttpSession session = new MockHttpSession();
+        CartData invalidOptions = cartItem("invalid", "B1", 100, "not-a-number");
+        invalidOptions.setRiceCode("not-a-number");
+        invalidOptions.setZangiCount(null);
+        CartData validRice = cartItem("valid", "B2", 200, "0");
+        validRice.setRiceCode("30");
+        CartData emptyRice = cartItem("empty", "B3", 300, null);
+        emptyRice.setRiceCode("");
+        session.setAttribute("cart", List.of(invalidOptions, validRice, emptyRice));
+
+        String pickupDate = LocalDate.now().plusDays(1).toString();
+        assertThat(controller.checkout(pickupDate, "14:00", null, session, () -> "customer@example.com"))
+                .isEqualTo("redirect:/home");
+
+        ArgumentCaptor<OrderRegisterRequest> requestCaptor = ArgumentCaptor.forClass(OrderRegisterRequest.class);
+        verify(orderService).insertOrder(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().getOrderDetails()).hasSize(3)
+                .extracting(detail -> detail.getCustomId())
+                .containsExactly(20, 30, 20);
+        assertThat(requestCaptor.getValue().getOrderDetails()).extracting(detail -> detail.getPlusZangiCount())
+                .containsExactly(0, 0, 0);
     }
 
     @Test

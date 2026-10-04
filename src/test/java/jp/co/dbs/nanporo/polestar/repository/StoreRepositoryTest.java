@@ -26,7 +26,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
+import jp.co.dbs.nanporo.polestar.entity.CustomEntity;
 import jp.co.dbs.nanporo.polestar.entity.GoodsEntity;
+import jp.co.dbs.nanporo.polestar.entity.SetGoodsEntity;
 import jp.co.dbs.nanporo.polestar.request.GoodsEditRequest;
 
 @ExtendWith(MockitoExtension.class)
@@ -305,6 +307,32 @@ class StoreRepositoryTest {
         doReturn(List.of()).when(jdbc).query(anyString(), anyMap(), any(RowMapper.class));
 
         assertThat(repository.getGoodsEntityById("missing")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("セット商品ID未指定・存在・未登録をOptionalで返す")
+    void testGetSetGoodsEntityById() {
+        assertThat(repository.getSetGoodsEntityById(null)).isEmpty();
+
+        SetGoodsEntity setGoods = new SetGoodsEntity();
+        doReturn(List.of(setGoods)).when(jdbc).query(anyString(), anyMap(), any(RowMapper.class));
+        assertThat(repository.getSetGoodsEntityById(3)).contains(setGoods);
+
+        doReturn(List.of()).when(jdbc).query(anyString(), anyMap(), any(RowMapper.class));
+        assertThat(repository.getSetGoodsEntityById(4)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("カスタムID未指定・存在・未登録をOptionalで返す")
+    void testGetCustomEntityById() {
+        assertThat(repository.getCustomEntityById(null)).isEmpty();
+
+        CustomEntity custom = new CustomEntity();
+        doReturn(List.of(custom)).when(jdbc).query(anyString(), anyMap(), any(RowMapper.class));
+        assertThat(repository.getCustomEntityById(50)).contains(custom);
+
+        doReturn(List.of()).when(jdbc).query(anyString(), anyMap(), any(RowMapper.class));
+        assertThat(repository.getCustomEntityById(99)).isEmpty();
     }
 
     private MapSqlParameterSource captureParameters() {

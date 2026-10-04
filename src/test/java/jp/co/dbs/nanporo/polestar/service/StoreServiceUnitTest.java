@@ -95,7 +95,8 @@ class StoreServiceUnitTest {
 		when(repository.getRiceCustoms()).thenReturn(List.of(
 				customRow(10, "小盛り", 0, false), customRow(20, "普通", "50", "TRUE")));
 		when(repository.getSauceCustoms()).thenReturn(List.of(
-				customRow(50, "ソース", "不正", "1"), customRow(51, "ソースだく", 80, null)));
+				customRow(50, "ソース", "不正", "1"), customRow(51, "ソースだく", 80, "false"),
+				customRow(52, "ソースなし", 0, null)));
 
 		List<CustomData> rice = service.getRiceOptions();
 		List<CustomData> sauce = service.getSauceOptions();
@@ -107,7 +108,26 @@ class StoreServiceUnitTest {
 		assertThat(sauce.get(0).getPrice()).isZero();
 		assertThat(sauce.get(0).getSoldOut()).isTrue();
 		assertThat(sauce.get(1).getSoldOut()).isFalse();
+		assertThat(sauce.get(2).getSoldOut()).isFalse();
 		assertThat(service.getCategoryList()).extracting("id").containsExactly("B", "S", "U");
+	}
+
+	@Test
+	@DisplayName("空のDB行と大小文字キーを使った項目検索を処理する")
+	void getMenuListWithMissingValues() throws Exception {
+		when(repository.getAllGoods()).thenReturn(List.of(new HashMap<>()));
+
+		assertThat(service.getMenuList()).hasSize(1)
+				.first()
+				.satisfies(goods -> {
+					assertThat(goods.getGoodsId()).isNull();
+					assertThat(goods.getPrice()).isZero();
+				});
+
+		var getValue = StoreService.class.getDeclaredMethod("getValue", Map.class, String.class);
+		getValue.setAccessible(true);
+		assertThat(getValue.invoke(service, Map.of("goods_id", "B001"), "GOODS_ID")).isEqualTo("B001");
+		assertThat(getValue.invoke(service, Map.of(), "goods_id")).isNull();
 	}
 
 	@Test

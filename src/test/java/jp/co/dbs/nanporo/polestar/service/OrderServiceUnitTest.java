@@ -91,11 +91,12 @@ class OrderServiceUnitTest {
 				activeRow("1", "B001", "弁当", "50", "2", "1200", "受付"),
 				activeRow(1L, "B001", "弁当", "60", 2, 1200, "受付"),
 				activeRow(1, "S001", "サイド", null, 1, 1200, "受付"),
-				activeRow(2, null, null, null, null, null, "完成")));
+				activeRow(2, null, null, null, null, null, "完成"),
+				activeRow(3, "B002", "小盛り", "10", 1, 300, "受付")));
 
 		List<ActiveOrderResponse> orders = service.getActiveOrders("guest@example.com");
 
-		assertThat(orders).hasSize(2);
+		assertThat(orders).hasSize(3);
 		assertThat(orders.get(0).getOrder().getSumMoney()).isEqualTo(1200);
 		assertThat(orders.get(0).getDetails()).hasSize(2);
 		assertThat(orders.get(0).getDetails().get(0).getSourceName()).isEqualTo("自家製タルタルソース");
@@ -104,6 +105,7 @@ class OrderServiceUnitTest {
 		assertThat(orders.get(0).getGoodsNames()).isEqualTo("弁当, サイド");
 		assertThat(orders.get(1).getOrder().getSumMoney()).isZero();
 		assertThat(orders.get(1).getDetails()).isEmpty();
+		assertThat(orders.get(2).getDetails().get(0).getRiceAmount()).isEqualTo("小盛り (150g)");
 	}
 
 	@Test
@@ -175,11 +177,12 @@ class OrderServiceUnitTest {
 		when(orderRepository.getOrderDetailsByOrderId(5)).thenReturn(List.of(
 				cartRow("B001", "弁当", "1000", "7", "80", "30"),
 				cartRow("S001", "サイド", null, null, null, null),
-				cartRow("B002", "小盛", 500, 5, 10, 10)));
+				cartRow("B002", "小盛", 500, 5, 10, 10),
+				cartRow("B005", "標準ライス", 400, 5, 0, 0)));
 
 		List<CartData> cart = service.restoreCartFromOrder(5);
 
-		assertThat(cart).hasSize(3);
+		assertThat(cart).hasSize(4);
 		assertThat(cart.get(0).getPrice()).isEqualTo(1000);
 		assertThat(cart.get(0).getZangiPrice()).isEqualTo(200);
 		assertThat(cart.get(0).getSourceType()).isEqualTo("皆辣麻婆ソース");
@@ -192,6 +195,7 @@ class OrderServiceUnitTest {
 		assertThat(cart.get(1).getSourceType()).isEqualTo("なし");
 		assertThat(cart.get(2).getRiceAmount()).isEqualTo("小盛り (150g)");
 		assertThat(cart.get(2).getRicePrice()).isEqualTo(-30);
+		assertThat(cart.get(3).getRiceAmount()).isEqualTo("普通 (250g)");
 	}
 
 	@Test
