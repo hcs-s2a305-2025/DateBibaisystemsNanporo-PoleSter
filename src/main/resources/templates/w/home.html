@@ -34,7 +34,7 @@
             <a href="../w/polestarpos" class="item-block-w">POSレジ</a>
             <a href="../settings" class="item-block-w">設定</a>
         </div>
-        <div class="menu-grid" sec:authorize="hasAuthority('店長')">
+        <div class="menu-grid" sec:authorize="hasAnyAuthority('店長', 'ROLE_店長')">
             <a href="../w/account/staff" class="item-block-w">従業員管理</a>
             <a href="../w/account/customer" class="item-block-w">利用者管理</a>
             <a href="../w/casherhistory" class="item-block-w">会計履歴</a>
