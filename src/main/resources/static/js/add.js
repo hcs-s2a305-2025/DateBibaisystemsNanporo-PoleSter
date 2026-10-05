@@ -4,94 +4,92 @@ document.addEventListener('DOMContentLoaded', function() {
     const sourceSelect = document.getElementById('sourceSelect');
     const totalPriceDisplay = document.getElementById('totalPriceDisplay');
     const goodsIdInput = document.getElementById('goodsId');
+    // 商品名を表示している h1 要素を取得
+    const goodsNameElement = document.querySelector('.add-select h1');
 
     if (!basePriceInput || !totalPriceDisplay) return;
 
     const basePrice = parseInt(basePriceInput.value) || 0;
 
-    function checkSideMenu() {
-        const goodsIdVal = goodsIdInput ? String(goodsIdInput.value).trim() : '';
-        // 商品IDの先頭が 'S' または 's' の場合
-        const isSideMenu = goodsIdVal.toUpperCase().startsWith('S');
+    function checkMenuOptions() {
+        const goodsIdVal = goodsIdInput ? String(goodsIdInput.value).trim().toUpperCase() : '';
+        const goodsName = goodsNameElement ? goodsNameElement.textContent.trim() : '';
 
+        // 1. お弁当類（B: お弁当, U: 裏商品）かどうかの判定
+        const isBento = goodsIdVal.startsWith('B') || goodsIdVal.startsWith('U');
+        
+        // 2. 商品名に「ザンギ」が含まれるかどうかの判定
+        const isZangi = goodsName.includes('ザンギ');
+
+        // --- ご飯の量の表示制御 ---
         if (riceSelect) {
             const riceContainer = riceSelect.closest('.add-selector') || riceSelect.parentElement;
 
-            if (isSideMenu) {
-                // --- サイドメニューの場合 ---
-                // 既に "0" の option が無ければ動的に追加する
-                let noneOption = riceSelect.querySelector('option[value="0"]');
-                if (!noneOption) {
-                    noneOption = new Option('なし', '0');
-                    noneOption.dataset.price = "0";
-                    riceSelect.add(noneOption, 0); // 先頭に追加
-                }
-
-                // 強制的に value を "0" (なし) にセット
-                riceSelect.value = "0";
-
-                // 「ご飯の量：」の選択エリアごと非表示にする
-                if (riceContainer) {
-                    riceContainer.style.setProperty('display', 'none', 'important');
-                }
-            } else {
-                // --- 弁当（通常商品）の場合 ---
-                // もし "0" (なし) の option が存在していたら削除する
+            if (isBento) {
+                // お弁当・裏商品の場合：ご飯の量を表示
                 const noneOption = riceSelect.querySelector('option[value="0"]');
                 if (noneOption) {
                     noneOption.remove();
                 }
 
-                // デフォルトを「普通(20)」にする
+                // デフォルト値を「普通 (20)」に設定
                 if (!riceSelect.value || riceSelect.value === "0") {
                     riceSelect.value = "20";
                 }
 
-                // 表示する
                 if (riceContainer) {
                     riceContainer.style.display = '';
+                }
+            } else {
+                // 単品（サイドメニュー等）の場合：ご飯の量を非表示＆値を0に固定
+                let noneOption = riceSelect.querySelector('option[value="0"]');
+                if (!noneOption) {
+                    noneOption = new Option('なし', '0');
+                    noneOption.dataset.price = "0";
+                    riceSelect.add(noneOption, 0);
+                }
+
+                riceSelect.value = "0";
+
+                if (riceContainer) {
+                    riceContainer.style.setProperty('display', 'none', 'important');
                 }
             }
         }
 
+        // --- ソースの表示制御 ---
         if (sourceSelect) {
-    const sourceContainer = sourceSelect.closest('.add-selector') || sourceSelect.parentElement;
+            const sourceContainer = sourceSelect.closest('.add-selector') || sourceSelect.parentElement;
 
-    // 「なし」オプションが存在しない場合は作成して先頭に追加する関数
-    let noneOption = sourceSelect.querySelector('option[value="0"]');
-    if (!noneOption) {
-        noneOption = new Option('なし', '0');
-        noneOption.dataset.price = "0";
-        sourceSelect.add(noneOption, 0); // 先頭に追加
-    }
+            // 「なし (0)」オプションの存在チェック・追加
+            let noneOption = sourceSelect.querySelector('option[value="0"]');
+            if (!noneOption) {
+                noneOption = new Option('なし', '0');
+                noneOption.dataset.price = "0";
+                sourceSelect.add(noneOption, 0);
+            }
 
-    if (isSideMenu && goodsIdVal !== "S001" && goodsIdVal !== "S002") {
-        // --- サイドメニュー（S001/S002以外）の場合：ソース選択不可 ---
-        
-        // 値を「なし(0)」に強制変更
-        sourceSelect.value = "0";
+            if (isZangi) {
+                // 「ザンギ」が含まれる商品の場合：ソース選択を表示
+                if (!sourceSelect.value) {
+                    sourceSelect.value = "0";
+                }
 
-        // 非表示にして選択できないようにする
-        if (sourceContainer) {
-            sourceContainer.style.setProperty('display', 'none', 'important');
-        }
-    } else {
-        // --- 弁当類、またはサイドメニューのS001 / S002の場合：ソース選択可能 ---
+                if (sourceContainer) {
+                    sourceContainer.style.display = '';
+                }
+            } else {
+                // 「ザンギ」が含まれない商品の場合：ソース選択を非表示＆値を「なし (0)」に設定
+                sourceSelect.value = "0";
 
-        // 初期選択値がない、または値が存在しない場合のデフォルト設定
-        // （サーバー側で th:selected が指定されていない場合は先頭の「なし」が選ばれます）
-        if (!sourceSelect.value) {
-            sourceSelect.value = "0";
-        }
-
-        // 表示する
-        if (sourceContainer) {
-            sourceContainer.style.display = '';
+                if (sourceContainer) {
+                    sourceContainer.style.setProperty('display', 'none', 'important');
+                }
+            }
         }
     }
-}
-    }
 
+    // 金額の計算・更新処理
     function updatePrice() {
         let ricePrice = 0;
         let sourcePrice = 0;
@@ -113,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (riceSelect) riceSelect.addEventListener('change', updatePrice);
     if (sourceSelect) sourceSelect.addEventListener('change', updatePrice);
 
-    // 画面読み込み時に判定・計算を実行
-    checkSideMenu();
+    // 画面読み込み時に表示判定および金額計算を実行
+    checkMenuOptions();
     updatePrice();
 });

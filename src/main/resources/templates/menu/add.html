@@ -42,7 +42,8 @@
                     <!-- 例：商品カテゴリを判定するためのhidden値 -->
                     <input type="hidden" id="goodsId" th:value="${goods.goodsId}" value="side" />
                     <input type="hidden" id="basePrice" th:value="${goods.price}" value="780" />
-                    <div class="add-selector d-flex align-items-center mb-3">
+                    <div class="add-selector d-flex align-items-center mb-3"
+                        th:if="${#strings.startsWith(goods.goodsId, 'B') || #strings.startsWith(goods.goodsId, 'U')}">
                         <h2 class="fs-5 me-3 mb-0 col-auto">ご飯の量：</h2>
                         <select id="riceSelect" class="form-select form-select-sm col" name="riceAmount">
                             <option value="20" data-price="0" th:selected="${selectedRice == '20'}" selected>普通 (250g)</option>
@@ -51,7 +52,8 @@
                             <option value="40" data-price="100" th:selected="${selectedRice == '40'}">特盛 (450g) (+100円)</option>
                         </select>
                     </div>
-                    <div class="add-selector d-flex align-items-center mb-3">
+                    <div class="add-selector d-flex align-items-center mb-3"
+                        th:if="${#strings.contains(goods.goodsName, 'ザンギ')}">
                         <h2 class="fs-5 me-3 mb-0 col-auto">　ソース：</h2>
                         <select id="sourceSelect" class="form-select form-select-sm col" name="sourceType">
                             <option value="0" data-price="0" th:selected="${selectedSource == '0'}">なし</option>
