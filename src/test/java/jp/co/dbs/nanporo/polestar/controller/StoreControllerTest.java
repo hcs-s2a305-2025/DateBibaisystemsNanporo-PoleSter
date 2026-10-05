@@ -45,10 +45,10 @@ class StoreControllerTest {
     @DisplayName("メニュー画面へ商品一覧を設定する")
     void testShowMenu() {
         List<GoodsData> goods = List.of(new GoodsData());
-        when(storeService.getMenuList()).thenReturn(goods);
+        when(storeService.getMenuList(null)).thenReturn(goods);
         var model = new ExtendedModelMap();
 
-        assertThat(controller.showMenu(model)).isEqualTo("menu");
+        assertThat(controller.showMenu(null, model)).isEqualTo("menu");
         assertThat(model.asMap()).containsEntry("menuList", goods);
     }
 
@@ -56,7 +56,7 @@ class StoreControllerTest {
     @DisplayName("POS画面へ商品一覧を設定する")
     void testShowPos() {
         List<GoodsData> goods = List.of(new GoodsData());
-        when(storeService.getMenuList()).thenReturn(goods);
+        when(storeService.getMenuList(null)).thenReturn(goods);
         var model = new ExtendedModelMap();
 
         assertThat(controller.showPos(model)).isEqualTo("w/polestarpos");
@@ -73,10 +73,10 @@ class StoreControllerTest {
     @DisplayName("商品編集一覧画面へ商品一覧を設定する")
     void testShowEditMenu() {
         List<GoodsData> goods = List.of(new GoodsData());
-        when(storeService.getMenuList()).thenReturn(goods);
+        when(storeService.getMenuList(null)).thenReturn(goods);
         var model = new ExtendedModelMap();
 
-        assertThat(controller.shoeEditMenu(model)).isEqualTo("w/editmenu");
+        assertThat(controller.showEditMenu(null, model)).isEqualTo("w/editmenu");
         assertThat(model.asMap()).containsEntry("menuList", goods);
     }
 

@@ -36,15 +36,20 @@ public class StoreController {
     private StoreRepository storeRepository;
 
     @GetMapping("/menu")
-    public String showMenu(Model model) {
-        List<GoodsData> menuList = storeService.getMenuList();
+    public String showMenu(@RequestParam(name = "prefix", required = false) String prefix, Model model) {
+        //1. カテゴリ絞り込みを考慮した商品リストの取得
+        List<GoodsData> menuList = storeService.getMenuList(prefix);
+        // 2. 下部タブ表示用のカテゴリリストを取得
+        List<CategoryData> categoryList = storeService.getCategoryList();
         model.addAttribute("menuList", menuList);
+        model.addAttribute("categoryList", categoryList);
+        model.addAttribute("selectedPrefix", prefix);
         return "menu";
     }
 
     @GetMapping("/w/polestarpos")
     public String showPos(Model model) {
-        List<GoodsData> menuList = storeService.getMenuList();
+        List<GoodsData> menuList = storeService.getMenuList(null); // 全商品を取得
         model.addAttribute("menuList", menuList);
         return "w/polestarpos";
     }
@@ -55,9 +60,14 @@ public class StoreController {
     }
     
     @GetMapping("/w/editmenu")
-    public String shoeEditMenu(Model model) {
-        List<GoodsData> menuList = storeService.getMenuList();
+    public String showEditMenu(@RequestParam(name = "prefix", required = false) String prefix, Model model) {
+        // 1. カテゴリ絞り込みを考慮した商品リストを取得
+        List<GoodsData> menuList = storeService.getMenuList(prefix);
+        // 2. タブ表示用のカテゴリリストを取得
+        List<CategoryData> categoryList = storeService.getCategoryList();
         model.addAttribute("menuList", menuList);
+        model.addAttribute("categoryList", categoryList);
+        model.addAttribute("selectedPrefix", prefix);
         return "w/editmenu";
     }
 

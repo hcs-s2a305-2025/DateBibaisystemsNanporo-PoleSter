@@ -42,20 +42,22 @@
                 </div>
                 
                 <!-- 注文内の商品リスト（商品ごとに繰り返し） -->
-                <div th:each="item : ${order.items}" class="border-top pt-3 mt-2">
-                    <!-- 商品名と数量 -->
-                    <h4 th:text="${item.goodsName + (item.count > 1 ? ' × ' + item.count : '')}">元祖ザンギ弁当（5個）</h4>
-                    
-                    <!-- 金額 -->
-                    <h5 th:text="${#numbers.formatInteger(item.goodsPrice, 1, 'COMMA') + '円'}">780円</h5>
-                    
-                    <!-- 商品画像 -->
-                    <img class="product-img mb-2" src="../static/img/ザンギ弁当.jpg" th:src="@{'/' + ${item.Photo}}" alt="商品画像">
-                    
-                    <!-- トッピング・ソース情報 -->
-                    <div th:if="${item.customName != null}">
-                        <p class="text-secondary mb-1" th:text="${item.customName + '(+' + item.customPrice + '円)'}">タルタルソース(+80円)</p>
+                <div th:each="item : ${order.items}" class="border-top pt-3 mt-2 d-flex justify-content-between align-items-center">
+                    <!-- 左側：商品名・金額・トッピング情報 -->
+                    <div class="pe-2" style="min-width: 0; flex: 1;">
+                        <!-- 商品名と数量 -->
+                        <h4 class="text-truncate mb-1" th:text="${item.goodsName + (item.count > 1 ? ' × ' + item.count : '')}">元祖ザンギ弁当（5個）</h4>
+                        
+                        <!-- 金額 -->
+                        <h5 class="text-truncate mb-1" th:text="${#numbers.formatInteger(item.goodsPrice, 1, 'COMMA') + '円'}">780円</h5>
+                        
+                        <!-- トッピング・ソース情報 -->
+                        <div th:if="${item.customName != null}">
+                            <p class="text-secondary mb-0 small" th:text="${item.customName + '(+' + item.customPrice + '円)'}">タルタルソース(+80円)</p>
+                        </div>
                     </div>
+                    <!-- 右側：商品画像 -->
+                    <img class="product-img" src="../static/img/ザンギ弁当.jpg" th:src="@{${item.Photo}}" alt="商品画像">
                 </div>
 
                 <hr class="my-3">

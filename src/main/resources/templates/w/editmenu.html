@@ -82,21 +82,24 @@
         </div>
     </main>
 
-    <!-- ソート用カテゴリ（th:eachで動的取得） -->
+    <!-- ソート用カテゴリ -->
     <div class="foot-menu">
         <div class="foot-menu-select">
             <!-- 「すべて」タブ -->
-            <a href="/editmenu" th:href="@{/editmenu}" 
-                class="foot-menu-select-button text-decoration-none"  
-                th:classappend="${selectedCategoryId == null} ? '' : 'text-secondary'"
-            >すべて</a>
+            <a th:href="@{/w/editmenu}" 
+            class="foot-menu-select-button text-decoration-none"  
+            th:classappend="${selectedPrefix == null || selectedPrefix == ''} ? 'active-category' : 'text-secondary'">
+                すべて
+            </a>
 
-            <!-- 各カテゴリタブ（th:eachでループ表示） -->
-            <a href="#" th:href="@{/menu(categoryId=${category.id})}" 
-                class="foot-menu-select-button text-decoration-none" 
-                th:each="category : ${categoryList}" 
-                th:classappend="${selectedCategoryId == category.id} ? '' : 'text-secondary'"
-                th:text="${category.name}">ザンギ弁当</a>
+            <!-- 各カテゴリタブ（動的繰り返し表示） -->
+            <a th:each="category : ${categoryList}" 
+            th:href="@{/w/editmenu(prefix=${category.id})}" 
+            class="foot-menu-select-button text-decoration-none" 
+            th:classappend="${selectedPrefix == category.id} ? 'active-category' : 'text-secondary'"
+            th:text="${category.name}">
+                カテゴリ名
+            </a>
         </div>
     </div>
 

@@ -53,7 +53,7 @@ class StoreServiceUnitTest {
 		upperCase.put("CATEGORY_ID", "S");
 		when(repository.getAllGoods()).thenReturn(List.of(lowerCase, upperCase));
 
-		List<GoodsData> goods = service.getMenuList();
+		List<GoodsData> goods = service.getMenuList(null);
 
 		assertThat(goods).hasSize(2);
 		assertThat(goods.get(0).getPrice()).isEqualTo(500);
@@ -117,7 +117,7 @@ class StoreServiceUnitTest {
 	void getMenuListWithMissingValues() throws Exception {
 		when(repository.getAllGoods()).thenReturn(List.of(new HashMap<>()));
 
-		assertThat(service.getMenuList()).hasSize(1)
+		assertThat(service.getMenuList(null)).hasSize(1)
 				.first()
 				.satisfies(goods -> {
 					assertThat(goods.getGoodsId()).isNull();
