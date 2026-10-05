@@ -226,11 +226,16 @@ class UserServiceTest {
 	@Test
 	@DisplayName("当日の予約・注文件数を返す")
 	void testCountOrder() {
+		LocalDate today = LocalDate.now();
+		Integer expectedCount = jdbc.queryForObject(
+				"SELECT COUNT(*) FROM order_t WHERE DATE(get_time) = :today AND status != 'キャンセル'",
+				Map.of("today", today), Integer.class);
+
 		// テスト対象メソッドを実行する
 		int su = service.countOrder();
 		
 		// 実行結果の確認
-		assertThat(su).isEqualTo(0);
+		assertThat(su).isEqualTo(expectedCount);
 	}
 
 	@Test

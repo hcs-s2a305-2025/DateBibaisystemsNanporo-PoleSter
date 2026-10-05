@@ -5,8 +5,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Map;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.ExtendedModelMap;
 
+import jp.co.dbs.nanporo.polestar.response.ActiveOrderResponse;
 import jp.co.dbs.nanporo.polestar.service.InnerdisplayService;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,12 +28,13 @@ class InnerdisplayControllerTest {
     @Test
     @DisplayName("厨房注文一覧をModelに登録する")
     void testShowDisplay() {
-        List<Map<String, Object>> orders = List.of(Map.of("orderId", 1));
-        when(innerdisplayService.getKitchenOrdersGrouped()).thenReturn(orders);
+        List<ActiveOrderResponse> orders = List.of(new ActiveOrderResponse());
+        when(innerdisplayService.getActiveOrders(null)).thenReturn(orders);
         var model = new ExtendedModelMap();
 
         assertThat(controller.showDisplay(model)).isEqualTo("w/innerdisplay");
         assertThat(model.asMap()).containsEntry("orders", orders);
+        verify(innerdisplayService).getActiveOrders(null);
     }
 
     @Test

@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -53,7 +52,7 @@ class StoreServiceUnitTest {
 		upperCase.put("CATEGORY_ID", "S");
 		when(repository.getAllGoods()).thenReturn(List.of(lowerCase, upperCase));
 
-		List<GoodsData> goods = service.getMenuList();
+		List<GoodsData> goods = service.getMenuList(null);
 
 		assertThat(goods).hasSize(2);
 		assertThat(goods.get(0).getPrice()).isEqualTo(500);
@@ -64,6 +63,22 @@ class StoreServiceUnitTest {
 		assertThat(goods.get(1).getPrice()).isZero();
 		assertThat(goods.get(1).getCalorie()).isZero();
 		assertThat(goods.get(1).getSoldOut()).isTrue();
+	}
+
+	@Test
+	@DisplayName("カテゴリ指定時は前後の空白を除いて商品一覧を取得する")
+	void getMenuListByPrefix() {
+		when(repository.getGoodsByPrefix("S")).thenReturn(List.of(goodsRow("S001", 120, 200, false)));
+		when(repository.getAllGoods()).thenReturn(List.of(goodsRow("B001", 500, 650, false)));
+
+		List<GoodsData> goods = service.getMenuList("  S  ");
+		List<GoodsData> allGoods = service.getMenuList("   ");
+
+		assertThat(goods).hasSize(1);
+		assertThat(goods.get(0).getGoodsId()).isEqualTo("S001");
+		assertThat(allGoods).extracting(GoodsData::getGoodsId).containsExactly("B001");
+		verify(repository).getGoodsByPrefix("S");
+		verify(repository).getAllGoods();
 	}
 
 	@Test
@@ -117,7 +132,7 @@ class StoreServiceUnitTest {
 	void getMenuListWithMissingValues() throws Exception {
 		when(repository.getAllGoods()).thenReturn(List.of(new HashMap<>()));
 
-		assertThat(service.getMenuList()).hasSize(1)
+		assertThat(service.getMenuList(null)).hasSize(1)
 				.first()
 				.satisfies(goods -> {
 					assertThat(goods.getGoodsId()).isNull();
@@ -135,6 +150,7 @@ class StoreServiceUnitTest {
 	void getAllergenList() {
 		when(repository.getGoodsById("B002")).thenReturn(goodsRowWithAllergy("B002", "なし"));
 		when(repository.getGoodsById("B003")).thenReturn(null);
+		when(repository.getGoodsById("B004")).thenReturn(goodsRowWithAllergy("B004", null));
 		Map<String, Object> allergenRow = goodsRow("B001", 100, 200, false);
 		allergenRow.put("allergy", "小麦,大豆");
 		when(repository.getGoodsById("B001")).thenReturn(allergenRow);
@@ -142,12 +158,14 @@ class StoreServiceUnitTest {
 		List<AllergenData> active = service.getAllergenList("B001");
 		List<AllergenData> none = service.getAllergenList("B002");
 		List<AllergenData> missing = service.getAllergenList("B003");
+		List<AllergenData> unspecified = service.getAllergenList("B004");
 
 		assertThat(active).hasSize(12);
 		assertThat(active).filteredOn(data -> Boolean.TRUE.equals(data.getChecked())).extracting(AllergenData::getName)
 				.containsExactly("小麦", "大豆");
 		assertThat(none).noneMatch(data -> Boolean.TRUE.equals(data.getChecked()));
 		assertThat(missing).noneMatch(data -> Boolean.TRUE.equals(data.getChecked()));
+		assertThat(unspecified).noneMatch(data -> Boolean.TRUE.equals(data.getChecked()));
 	}
 
 	@Test
@@ -157,7 +175,7 @@ class StoreServiceUnitTest {
 		request.setGoodsName("新商品");
 		request.setPhoto("new.png");
 		request.setAllergy("なし");
-		when(repository.generateGoodsId("B")).thenReturn("B007");
+		when(repository.generateGoodsId("B")).thenReturn("B007", "B008");
 
 		service.saveGoods(request);
 
@@ -168,6 +186,13 @@ class StoreServiceUnitTest {
 		when(repository.generateGoodsId("S")).thenReturn("S004");
 		service.saveGoods(request);
 		verify(repository).insertGoods("S004", request, null, "");
+
+		request.setGoodsId(" ");
+		request.setPhoto(null);
+		request.setCategoryId("");
+		request.setAllergy("なし");
+		service.saveGoods(request);
+		verify(repository).insertGoods("B008", request, null, "");
 	}
 
 	@Test

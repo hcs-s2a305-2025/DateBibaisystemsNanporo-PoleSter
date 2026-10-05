@@ -2,7 +2,6 @@ package jp.co.dbs.nanporo.polestar.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;

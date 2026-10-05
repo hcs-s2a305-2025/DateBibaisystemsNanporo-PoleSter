@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.sql.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -28,7 +27,7 @@ class UserServiceAiIntegrationTest {
 	@DisplayName("AI生成APIへJSONを送信しレスポンスを受信する")
 	void sendsRequestToAiApi() throws IOException {
 		AtomicReference<String> requestBody = new AtomicReference<>();
-		HttpServer server = HttpServer.create(new InetSocketAddress(11434), 0);
+		HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
 		server.createContext("/api/generate", exchange -> {
 			requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
 			byte[] response = "{\"response\":\"提案結果\"}".getBytes(StandardCharsets.UTF_8);
@@ -42,6 +41,8 @@ class UserServiceAiIntegrationTest {
 
 		try {
 			UserService service = new UserService();
+			ReflectionTestUtils.setField(service, "aiApiUrl",
+					"http://127.0.0.1:" + server.getAddress().getPort() + "/api/generate");
 			StoreRepository storeRepository = mock(StoreRepository.class);
 			when(storeRepository.getAll()).thenReturn(java.util.List.of());
 			ReflectionTestUtils.setField(service, "storeRepository", storeRepository);

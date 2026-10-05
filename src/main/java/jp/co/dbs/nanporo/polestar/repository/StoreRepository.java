@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import jp.co.dbs.nanporo.polestar.entity.CustomEntity;
@@ -367,5 +365,23 @@ public class StoreRepository {
         return list.stream().findFirst();
     }
 
+    /* ==================================================
+    *  商品マスタ（goods_m）操作用SQL
+    * ================================================== */
+
+    // カテゴリ頭文字で絞り込んで商品一覧を取得するSQL (追加)
+    private static final String SELECT_GOODS_BY_PREFIX = 
+            "SELECT goods_id, goods_name, price, photo, sold_out "
+            + "FROM goods_m "
+            + "WHERE goods_id LIKE :prefix "
+            + "ORDER BY goods_id ASC";
+
+    /**
+     * 指定された頭文字（B:弁当, S:サイド, U:裏商品など）で始まる商品一覧を取得します。(追加)
+     */
+    public List<Map<String, Object>> getGoodsByPrefix(String prefix) {
+        Map<String, Object> params = Map.of("prefix", prefix + "%");
+        return jdbc.queryForList(SELECT_GOODS_BY_PREFIX, params);
+    }
 
 }

@@ -5,6 +5,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,5 +104,36 @@ class PolestarPosControllerTest {
         assertThat(result.getBody().getMessage()).isEqualTo("invalid payment");
         assertThat(result.getBody().getTransactionId()).isNull();
         verify(posService).processPayment(request);
+    }
+
+    @Test
+    @DisplayName("商品の販売状態を更新して成功レスポンスを返す")
+    void testToggleGoodsSoldOut() {
+        var result = controller.toggleGoodsSoldOut(Map.of("goodsId", "B001", "soldOut", true));
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody()).containsEntry("success", true)
+                .containsEntry("message", "販売状態を更新しました。");
+        verify(posService).updateGoodsSoldOut("B001", true);
+    }
+
+    @Test
+    @DisplayName("販売状態更新の例外を400レスポンスにし、空リクエストも処理する")
+    void testToggleGoodsSoldOutFailure() {
+        doThrow(new IllegalArgumentException("指定された商品が見つかりません。ID: B999"))
+                .when(posService).updateGoodsSoldOut("B999", false);
+
+        var failure = controller.toggleGoodsSoldOut(Map.of("goodsId", "B999", "soldOut", false));
+
+        assertThat(failure.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(failure.getBody()).containsEntry("success", false)
+                .containsEntry("message", "指定された商品が見つかりません。ID: B999");
+        verify(posService).updateGoodsSoldOut("B999", false);
+
+        var nullRequest = controller.toggleGoodsSoldOut(null);
+
+        assertThat(nullRequest.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(nullRequest.getBody()).containsEntry("success", false)
+                .containsKey("message");
     }
 }

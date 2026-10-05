@@ -1,10 +1,14 @@
 package jp.co.dbs.nanporo.polestar.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,9 +19,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jp.co.dbs.nanporo.polestar.repository.OuterdisplayRepository;
+import jp.co.dbs.nanporo.polestar.response.ActiveOrderResponse;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
@@ -34,7 +40,7 @@ class OuterdisplayServiceUnitTest {
 	void getActiveOrders() {
 		LocalDate today = LocalDate.now();
 		when(repository.getAllActiveOrders()).thenReturn(List.of(
-				row(1, "B001", "遅い商品", Timestamp.valueOf(today.atTime(14, 0)), "受付", 700),
+				row(1, "B001", "遅い商品", Timestamp.valueOf(today.atTime(14, 0)), "受付", 700L),
 				row(2, "B002", "早い商品", Timestamp.valueOf(today.atTime(12, 0)).toString(), "調理中", "900"),
 				row(3, null, null, Timestamp.valueOf(today.atTime(13, 0)), "受取可", null),
 				row(4, "B004", "昨日の商品", Timestamp.valueOf(today.minusDays(1).atTime(12, 0)), "呼び出し中", 500),
@@ -68,6 +74,35 @@ class OuterdisplayServiceUnitTest {
 		assertThat(response.getCallingOrders()).hasSize(2);
 		assertThat(response.getCallingOrders()).extracting(order -> order.getOrder().getStatus())
 				.containsExactly("受取可", "呼び出し中");
+	}
+
+	@Test
+	@DisplayName("注文データがない応答はディスプレイのどちらの一覧にも含めない")
+	void getDisplayOrdersWithMissingOrder() {
+		OuterdisplayService serviceSpy = spy(service);
+		doReturn(List.of(new ActiveOrderResponse())).when(serviceSpy).getActiveOrders();
+
+		var response = serviceSpy.getDisplayOrders();
+
+		assertThat(response.getCookingOrders()).isEmpty();
+		assertThat(response.getCallingOrders()).isEmpty();
+	}
+
+	@Test
+	@DisplayName("注文応答に注文データがない場合は本日の注文一覧から除外する")
+	void getActiveOrdersWithMissingOrder() {
+		LocalDate today = LocalDate.now();
+		when(repository.getAllActiveOrders()).thenReturn(List.of(
+				row(6, "B006", "商品", Timestamp.valueOf(today.atTime(12, 0)), "受付", 500)));
+
+		try (MockedConstruction<ActiveOrderResponse> responses = mockConstruction(ActiveOrderResponse.class,
+				(mock, context) -> {
+					when(mock.getOrder()).thenReturn(null);
+					when(mock.getDetails()).thenReturn(new ArrayList<>());
+				})) {
+			assertThat(service.getActiveOrders()).isEmpty();
+			assertThat(responses.constructed()).hasSize(1);
+		}
 	}
 
 	private Map<String, Object> row(Integer id, String goodsId, String goodsName,

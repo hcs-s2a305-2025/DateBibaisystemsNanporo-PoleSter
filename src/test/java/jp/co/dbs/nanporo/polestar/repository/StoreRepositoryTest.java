@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +48,21 @@ class StoreRepositoryTest {
         when(jdbc.queryForList(anyString(), anyMap())).thenReturn(expected);
 
         assertThat(repository.getAllGoods()).isSameAs(expected);
+    }
+
+    @Test
+    @DisplayName("カテゴリ頭文字をLIKE条件に渡して商品一覧を取得する")
+    void testGetGoodsByPrefix() {
+        List<Map<String, Object>> expected = List.of(Map.of("goods_id", "S001"));
+        when(jdbc.queryForList(anyString(), anyMap())).thenReturn(expected);
+
+        assertThat(repository.getGoodsByPrefix("S")).isSameAs(expected);
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> params = ArgumentCaptor.forClass(Map.class);
+        verify(jdbc).queryForList(sql.capture(), params.capture());
+        assertThat(sql.getValue()).contains("WHERE goods_id LIKE :prefix", "ORDER BY goods_id ASC");
+        assertThat(params.getValue()).containsEntry("prefix", "S%");
     }
 
     @Test
@@ -186,6 +202,20 @@ class StoreRepositoryTest {
         MapSqlParameterSource params = captureParameters();
         assertThat(params.getValue("goodsId")).isEqualTo("B001");
         assertThat(params.getValue("soldOut")).isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("Integer型商品IDがnullなら更新せず、指定時は文字列IDへ委譲する")
+    void testUpdateSoldOutIntegerOverloads() {
+        assertThat(repository.updateSoldOut((Integer) null, true)).isZero();
+        verify(jdbc, never()).update(anyString(), any(SqlParameterSource.class));
+
+        when(jdbc.update(anyString(), any(SqlParameterSource.class))).thenReturn(1);
+        assertThat(repository.updateSoldOut(7, false)).isEqualTo(1);
+
+        MapSqlParameterSource params = captureParameters();
+        assertThat(params.getValue("goodsId")).isEqualTo("7");
+        assertThat(params.getValue("soldOut")).isEqualTo(false);
     }
 
     @Test

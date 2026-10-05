@@ -28,8 +28,14 @@ public class StoreService{
         "小麦", "卵", "乳", "えび", "かに", "そば", "落花生", "大豆", "牛肉", "豚肉", "鶏肉", "ごま"
     );
 
-    public List<GoodsData> getMenuList(){
-        List<Map<String, Object>> rows = storeRepository.getAllGoods();
+    public List<GoodsData> getMenuList(String prefix){
+        List<Map<String, Object>> rows;
+        // prefix が指定されている場合は該当カテゴリを検索、未指定時は全件検索
+        if (prefix != null && !prefix.trim().isEmpty()) {
+            rows = storeRepository.getGoodsByPrefix(prefix.trim());
+        } else {
+            rows = storeRepository.getAllGoods();
+        }
         List<GoodsData> goodsList = new ArrayList<>();
 
         for (Map<String, Object> row : rows) {

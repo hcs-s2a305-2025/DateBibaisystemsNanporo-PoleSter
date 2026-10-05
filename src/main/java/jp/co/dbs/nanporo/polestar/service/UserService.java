@@ -7,7 +7,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +16,7 @@ import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,6 +45,9 @@ public class UserService {
     /** パスワードエンコーダー */
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Value("${ollama.api.url:http://localhost:11434/api/generate}")
+    private String aiApiUrl = "http://localhost:11434/api/generate";
 
     /**
      * 指定されたメールアドレスからユーザを検索するメソッド
@@ -506,8 +509,6 @@ public class UserService {
                 """, age, gender, menuText.toString(), userPrompt);
 
         //Ollamaへの送信リクエスト作成 
-        String url = "http://localhost:11434/api/generate";
-
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", "gemma2");
         requestBody.put("prompt", systemPrompt);
@@ -521,7 +522,7 @@ public class UserService {
 
         // API呼び出し レスポンス取得
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(aiApiUrl, entity, Map.class);
             Map<String, Object> responseBody = response.getBody();
 
             if (responseBody != null && responseBody.containsKey("response")) {

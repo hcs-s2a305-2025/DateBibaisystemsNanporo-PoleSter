@@ -86,6 +86,7 @@ class RequestClassesTest {
         request.setChange(400);
         request.setPaymentMethod("現金");
         request.setItems(List.of(item));
+        request.setUseCoupon("学生割引");
 
         PaymentRequest.ToppingRequest expectedTopping = new PaymentRequest.ToppingRequest();
         expectedTopping.setName("大盛り");
@@ -110,11 +111,13 @@ class RequestClassesTest {
         expected.setChange(400);
         expected.setPaymentMethod("現金");
         expected.setItems(List.of(expectedItem));
+        expected.setUseCoupon("学生割引");
 
         assertEquivalent(request, expected);
         assertEquivalent(item, expectedItem);
         assertEquivalent(topping, expectedTopping);
         assertThat(request.getItems().get(0).getToppings().get(0).getPrice()).isEqualTo(100);
+        assertThat(request.getUseCoupon()).isEqualTo("学生割引");
     }
 
     @Test

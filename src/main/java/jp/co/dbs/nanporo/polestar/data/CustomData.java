@@ -1,7 +1,5 @@
 package jp.co.dbs.nanporo.polestar.data;
 
-import org.hibernate.sql.ast.tree.predicate.BooleanExpressionPredicate;
-
 import lombok.Data;
 
 @Data 
