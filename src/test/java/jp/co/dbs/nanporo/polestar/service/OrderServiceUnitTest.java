@@ -85,18 +85,38 @@ class OrderServiceUnitTest {
 	}
 
 	@Test
+	@DisplayName("明細なしの注文を登録し、null商品IDと0カスタムIDも受け付ける")
+	void insertOrderWithoutDetailsAndNullGoodsId() {
+		when(orderRepository.insertOrder(any(OrderData.class))).thenReturn(21, 22, 23);
+		when(orderRepository.insertOrderDetail(any(OrderDetailData.class))).thenReturn(1);
+
+		assertThat(service.insertOrder(orderRequest(null)).getOrderId()).isEqualTo(21);
+		assertThat(service.insertOrder(orderRequest(List.of())).getOrderId()).isEqualTo(22);
+		service.insertOrder(orderRequest(List.of(detail(null, 0, 1))));
+
+		ArgumentCaptor<OrderDetailData> detailCaptor = ArgumentCaptor.forClass(OrderDetailData.class);
+		verify(orderRepository).insertOrderDetail(detailCaptor.capture());
+		assertThat(detailCaptor.getValue().getGoodsId()).isNull();
+		assertThat(detailCaptor.getValue().getCustomId()).isZero();
+	}
+
+	@Test
 	@DisplayName("複数行の注文を注文単位にまとめ商品とソースを表示する")
 	void getActiveOrders() {
 		when(orderRepository.getActiveOrdersByMail("guest@example.com")).thenReturn(List.of(
 				activeRow("1", "B001", "弁当", "50", "2", "1200", "受付"),
 				activeRow(1L, "B001", "弁当", "60", 2, 1200, "受付"),
+				activeRow(1, "B001", "弁当", "10", 2, 1200, "受付"),
+				activeRow(1, "B001", "弁当", null, 2, 1200, "受付"),
 				activeRow(1, "S001", "サイド", null, 1, 1200, "受付"),
 				activeRow(2, null, null, null, null, null, "完成"),
-				activeRow(3, "B002", "小盛り", "10", 1, 300, "受付")));
+				activeRow(3, "B002", "小盛り", "10", 1, 300, "受付"),
+				activeRow(3, "B003", "商品", null, 1, 300, "受付"),
+				activeRowWithUnstableGoodsId(4)));
 
 		List<ActiveOrderResponse> orders = service.getActiveOrders("guest@example.com");
 
-		assertThat(orders).hasSize(3);
+		assertThat(orders).hasSize(4);
 		assertThat(orders.get(0).getOrder().getSumMoney()).isEqualTo(1200);
 		assertThat(orders.get(0).getDetails()).hasSize(2);
 		assertThat(orders.get(0).getDetails().get(0).getSourceName()).isEqualTo("自家製タルタルソース");
@@ -106,6 +126,7 @@ class OrderServiceUnitTest {
 		assertThat(orders.get(1).getOrder().getSumMoney()).isZero();
 		assertThat(orders.get(1).getDetails()).isEmpty();
 		assertThat(orders.get(2).getDetails().get(0).getRiceAmount()).isEqualTo("小盛り (150g)");
+		assertThat(orders.get(3).getDetails().get(0).getGoodsId()).isNull();
 	}
 
 	@Test
@@ -118,8 +139,10 @@ class OrderServiceUnitTest {
 				"B001", "", "82");
 		Map<String, Object> second = historyRow(2, "M0002", 800, null,
 				"B002", "menu.png", null);
+		Map<String, Object> missingPhotoAndZeroCustom = historyRow(2, "M0002", 800, null,
+				"B003", null, 0);
 		when(orderRepository.getOrderHistoryByMail("guest@example.com"))
-				.thenReturn(List.of(nullId, parentOnly, detail, second));
+				.thenReturn(List.of(nullId, parentOnly, detail, second, missingPhotoAndZeroCustom));
 
 		List<OrderHistoryResponse> history = service.getOrderHistory("guest@example.com");
 
@@ -130,6 +153,8 @@ class OrderServiceUnitTest {
 		assertThat(history.get(0).getItems().get(0).getCustomPrice()).isEqualTo(180);
 		assertThat(history.get(1).getItems().get(0).getPhoto()).isEqualTo("menu.png");
 		assertThat(history.get(1).getItems().get(0).getCustomName()).isNull();
+		assertThat(history.get(1).getItems().get(1).getPhoto()).isEqualTo("img/ザンギ弁当.jpg");
+		assertThat(history.get(1).getItems().get(1).getCustomName()).isNull();
 	}
 
 	@Test
@@ -216,13 +241,14 @@ class OrderServiceUnitTest {
 				cartRow("S001", "サイド", 100, 5, 0, 0),
 				cartRow("B002", "弁当", 100, 5, 0, 10),
 				cartRow("B003", "弁当", 100, 5, 0, 40),
-				cartRow("B004", "弁当", 100, 5, 0, 99)));
+				cartRow("B004", "弁当", 100, 5, 0, 99),
+				cartRow(null, "商品IDなし", 100, 5, 0, 0)));
 
 		List<CartData> rice = service.restoreCartFromOrder(9);
 
 		assertThat(rice).extracting(CartData::getRiceAmount)
-				.containsExactly("なし", "小盛り (150g)", "特盛 (450g)", "普通 (250g)");
-		assertThat(rice).extracting(CartData::getRicePrice).containsExactly(0, -30, 100, 0);
+				.containsExactly("なし", "小盛り (150g)", "特盛 (450g)", "普通 (250g)", "普通 (250g)");
+		assertThat(rice).extracting(CartData::getRicePrice).containsExactly(0, -30, 100, 0, 0);
 	}
 
 	private OrderRegisterRequest orderRequest(List<OrderDetailRequest> details) {
@@ -263,6 +289,24 @@ class OrderServiceUnitTest {
 		row.put("custom_id", customId);
 		row.put("count", count);
 		return row;
+	}
+
+	private Map<String, Object> activeRowWithUnstableGoodsId(Integer orderId) {
+		return new HashMap<>(activeRow(orderId, "B004", "商品", null, 1, 300, "受付")) {
+			private boolean firstGoodsIdRead = true;
+
+			@Override
+			public Object get(Object key) {
+				if ("goods_id".equals(key)) {
+					if (firstGoodsIdRead) {
+						firstGoodsIdRead = false;
+					} else {
+						return null;
+					}
+				}
+				return super.get(key);
+			}
+		};
 	}
 
 	private Map<String, Object> historyRow(Integer orderId, String orderNumber, Integer sumMoney,

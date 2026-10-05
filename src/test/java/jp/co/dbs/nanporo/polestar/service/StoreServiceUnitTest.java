@@ -135,6 +135,7 @@ class StoreServiceUnitTest {
 	void getAllergenList() {
 		when(repository.getGoodsById("B002")).thenReturn(goodsRowWithAllergy("B002", "なし"));
 		when(repository.getGoodsById("B003")).thenReturn(null);
+		when(repository.getGoodsById("B004")).thenReturn(goodsRowWithAllergy("B004", null));
 		Map<String, Object> allergenRow = goodsRow("B001", 100, 200, false);
 		allergenRow.put("allergy", "小麦,大豆");
 		when(repository.getGoodsById("B001")).thenReturn(allergenRow);
@@ -142,12 +143,14 @@ class StoreServiceUnitTest {
 		List<AllergenData> active = service.getAllergenList("B001");
 		List<AllergenData> none = service.getAllergenList("B002");
 		List<AllergenData> missing = service.getAllergenList("B003");
+		List<AllergenData> unspecified = service.getAllergenList("B004");
 
 		assertThat(active).hasSize(12);
 		assertThat(active).filteredOn(data -> Boolean.TRUE.equals(data.getChecked())).extracting(AllergenData::getName)
 				.containsExactly("小麦", "大豆");
 		assertThat(none).noneMatch(data -> Boolean.TRUE.equals(data.getChecked()));
 		assertThat(missing).noneMatch(data -> Boolean.TRUE.equals(data.getChecked()));
+		assertThat(unspecified).noneMatch(data -> Boolean.TRUE.equals(data.getChecked()));
 	}
 
 	@Test
@@ -157,7 +160,7 @@ class StoreServiceUnitTest {
 		request.setGoodsName("新商品");
 		request.setPhoto("new.png");
 		request.setAllergy("なし");
-		when(repository.generateGoodsId("B")).thenReturn("B007");
+		when(repository.generateGoodsId("B")).thenReturn("B007", "B008");
 
 		service.saveGoods(request);
 
@@ -168,6 +171,13 @@ class StoreServiceUnitTest {
 		when(repository.generateGoodsId("S")).thenReturn("S004");
 		service.saveGoods(request);
 		verify(repository).insertGoods("S004", request, null, "");
+
+		request.setGoodsId(" ");
+		request.setPhoto(null);
+		request.setCategoryId("");
+		request.setAllergy("なし");
+		service.saveGoods(request);
+		verify(repository).insertGoods("B008", request, null, "");
 	}
 
 	@Test
