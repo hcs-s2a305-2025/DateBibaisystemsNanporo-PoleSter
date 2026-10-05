@@ -51,6 +51,21 @@ class StoreRepositoryTest {
     }
 
     @Test
+    @DisplayName("カテゴリ頭文字をLIKE条件に渡して商品一覧を取得する")
+    void testGetGoodsByPrefix() {
+        List<Map<String, Object>> expected = List.of(Map.of("goods_id", "S001"));
+        when(jdbc.queryForList(anyString(), anyMap())).thenReturn(expected);
+
+        assertThat(repository.getGoodsByPrefix("S")).isSameAs(expected);
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, Object>> params = ArgumentCaptor.forClass(Map.class);
+        verify(jdbc).queryForList(sql.capture(), params.capture());
+        assertThat(sql.getValue()).contains("WHERE goods_id LIKE :prefix", "ORDER BY goods_id ASC");
+        assertThat(params.getValue()).containsEntry("prefix", "S%");
+    }
+
+    @Test
     @DisplayName("商品IDに一致する商品を返す")
     void testGetGoodsByIdFound() {
         Map<String, Object> expected = Map.of("goods_id", "B001");

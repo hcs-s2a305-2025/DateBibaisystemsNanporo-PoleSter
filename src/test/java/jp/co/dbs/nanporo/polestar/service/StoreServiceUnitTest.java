@@ -67,6 +67,22 @@ class StoreServiceUnitTest {
 	}
 
 	@Test
+	@DisplayName("カテゴリ指定時は前後の空白を除いて商品一覧を取得する")
+	void getMenuListByPrefix() {
+		when(repository.getGoodsByPrefix("S")).thenReturn(List.of(goodsRow("S001", 120, 200, false)));
+		when(repository.getAllGoods()).thenReturn(List.of(goodsRow("B001", 500, 650, false)));
+
+		List<GoodsData> goods = service.getMenuList("  S  ");
+		List<GoodsData> allGoods = service.getMenuList("   ");
+
+		assertThat(goods).hasSize(1);
+		assertThat(goods.get(0).getGoodsId()).isEqualTo("S001");
+		assertThat(allGoods).extracting(GoodsData::getGoodsId).containsExactly("B001");
+		verify(repository).getGoodsByPrefix("S");
+		verify(repository).getAllGoods();
+	}
+
+	@Test
 	@DisplayName("商品詳細の未入力・未登録と売切値の各形式を処理する")
 	void getGoodsDetail() {
 		assertThat(service.getGoodsDetail(null)).isNull();
