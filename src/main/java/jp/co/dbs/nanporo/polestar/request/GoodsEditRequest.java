@@ -1,9 +1,5 @@
 package jp.co.dbs.nanporo.polestar.request;
 
-import java.util.List;
-
-import org.springframework.web.multipart.MultipartFile;
-
 import lombok.Data;
 
 @Data 

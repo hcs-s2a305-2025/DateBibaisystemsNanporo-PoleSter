@@ -5,14 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import jp.co.dbs.nanporo.polestar.response.ActiveOrderResponse;
-import jp.co.dbs.nanporo.polestar.service.NotificationService;
 import jp.co.dbs.nanporo.polestar.service.OrderService;
 import jp.co.dbs.nanporo.polestar.service.UserService;
 
@@ -24,9 +21,6 @@ public class PolestarController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired 
-    private NotificationService notificationService;
 
     @GetMapping("/")
     public String home(Model model, Principal principal) {

@@ -1,7 +1,6 @@
 package jp.co.dbs.nanporo.polestar;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.HttpClientErrorException.NotFound;
 
 @Configuration 
 public class MessageConfig {

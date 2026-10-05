@@ -1,6 +1,5 @@
 package jp.co.dbs.nanporo.polestar.entity;
 
-import java.security.Timestamp;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
