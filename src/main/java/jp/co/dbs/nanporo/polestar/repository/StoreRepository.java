@@ -28,7 +28,7 @@ public class StoreRepository {
 
     // 全商品情報を取得するSQL
     private static final String SELECT_ALL_GOODS = 
-            "SELECT goods_id, goods_name, price, photo, sold_out "
+            "SELECT goods_id, goods_name, price, photo, sold_out, watch_rank "
             + "FROM goods_m "
             + "ORDER BY goods_id ASC";
 
@@ -371,7 +371,7 @@ public class StoreRepository {
 
     // カテゴリ頭文字で絞り込んで商品一覧を取得するSQL (追加)
     private static final String SELECT_GOODS_BY_PREFIX = 
-            "SELECT goods_id, goods_name, price, photo, sold_out "
+            "SELECT goods_id, goods_name, price, photo, sold_out, watch_rank "
             + "FROM goods_m "
             + "WHERE goods_id LIKE :prefix "
             + "ORDER BY goods_id ASC";

@@ -48,7 +48,7 @@ class StoreControllerTest {
         when(storeService.getMenuList(null)).thenReturn(goods);
         var model = new ExtendedModelMap();
 
-        assertThat(controller.showMenu(null, model)).isEqualTo("menu");
+        assertThat(controller.showMenu(null, null, model)).isEqualTo("menu");
         assertThat(model.asMap()).containsEntry("menuList", goods);
     }
 

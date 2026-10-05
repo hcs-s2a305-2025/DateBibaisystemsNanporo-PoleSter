@@ -37,7 +37,7 @@ VALUES
     '室木渚音',
     '$2a$10$xRTXvpMWly0oGiu65WZlm.3YL95LGVV2ASFjDhe6WF4.Qji1huIPa',
     '顧客',
-    '一般',
+    'シルバー',
     '男',
     '1990-01-02',
     0,

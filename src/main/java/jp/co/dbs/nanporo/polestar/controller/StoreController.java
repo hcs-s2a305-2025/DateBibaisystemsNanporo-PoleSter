@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +18,13 @@ import jp.co.dbs.nanporo.polestar.data.AllergenData;
 import jp.co.dbs.nanporo.polestar.data.CategoryData;
 import jp.co.dbs.nanporo.polestar.data.CustomData;
 import jp.co.dbs.nanporo.polestar.data.GoodsData;
+import jp.co.dbs.nanporo.polestar.data.UserData;
+import jp.co.dbs.nanporo.polestar.entity.UserEntity;
 import jp.co.dbs.nanporo.polestar.repository.StoreRepository;
 import jp.co.dbs.nanporo.polestar.request.GoodsEditRequest;
 import jp.co.dbs.nanporo.polestar.service.StoreService;
+import jp.co.dbs.nanporo.polestar.service.UserService;
+
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -34,10 +39,27 @@ public class StoreController {
     @Autowired 
     private StoreRepository storeRepository;
 
+    @Autowired 
+    private UserService userService;
+
     @GetMapping("/menu")
-    public String showMenu(@RequestParam(name = "prefix", required = false) String prefix, Model model) {
+    public String showMenu(@RequestParam(name = "prefix", required = false) String prefix, 
+                            Authentication authentication,
+                            Model model) {
+        // 1. ログインユーザーの会員ランクを取得（未ログイン時や設定なし時は「一般」）
+        String userMemberRank = "一般";
+        if (authentication != null && authentication.isAuthenticated()) {
+            // ログイン中のメールアドレス（識別子）を取得
+            String mail = authentication.getName(); 
+            
+            // DBからユーザー情報を取得
+            UserEntity user = userService.findByMail(mail);
+            if (user != null && user.getMemberRank() != null) {
+                userMemberRank = user.getMemberRank(); // 「ゴールド」「シルバー」等
+            }
+        }
         //1. カテゴリ絞り込みを考慮した商品リストの取得
-        List<GoodsData> menuList = storeService.getMenuList(prefix);
+        List<GoodsData> menuList = storeService.getMenuList(prefix, userMemberRank);
         // 2. 下部タブ表示用のカテゴリリストを取得
         List<CategoryData> categoryList = storeService.getCategoryList();
         model.addAttribute("menuList", menuList);

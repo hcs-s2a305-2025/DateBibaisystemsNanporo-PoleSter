@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class StoreService{
         "小麦", "卵", "乳", "えび", "かに", "そば", "落花生", "大豆", "牛肉", "豚肉", "鶏肉", "ごま"
     );
 
-    public List<GoodsData> getMenuList(String prefix){
+    public List<GoodsData> getMenuList(String prefix, String userMemberRank){
         List<Map<String, Object>> rows;
         // prefix が指定されている場合は該当カテゴリを検索、未指定時は全件検索
         if (prefix != null && !prefix.trim().isEmpty()) {
@@ -36,14 +35,46 @@ public class StoreService{
         } else {
             rows = storeRepository.getAllGoods();
         }
+        int userRankLevel = getRankLevel(userMemberRank);
         List<GoodsData> goodsList = new ArrayList<>();
 
         for (Map<String, Object> row : rows) {
-            goodsList.add(mapRowToGoodsData(row));
+            GoodsData goods = mapRowToGoodsData(row);
+            // ユーザーのランクレベル >= 商品の閲覧ランクレベル の場合のみ表示
+            if (userRankLevel >= getRankLevel(goods.getWatchRank())) {
+                goodsList.add(goods);
+            }
         }
 
         return goodsList;
     }
+    /**
+     * 管理画面・POS用（全ランクの商品を取得する）
+     */
+    public List<GoodsData> getMenuList(String prefix) {
+        // ゴールド（最高ランク）を指定することで全商品を取得
+        return getMenuList(prefix, "ゴールド");
+    }
+    /**
+     * ランク名を比較用の数値レベルに変換するヘルパーメソッド
+     */
+    private int getRankLevel(String rank) {
+        if (rank == null) {
+            return 1; // 未指定時は一般
+        }
+        switch (rank) {
+            case "ブロンズ":
+                return 2;
+            case "シルバー":
+                return 3;
+            case "ゴールド":
+                return 4;
+            case "一般":
+            default:
+                return 1;
+        }
+    }
+
 
     /**
      * 商品詳細画面表示用の単一商品データを取得する
