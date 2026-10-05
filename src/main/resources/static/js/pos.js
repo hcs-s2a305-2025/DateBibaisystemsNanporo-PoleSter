@@ -1676,9 +1676,24 @@ async function handleQrScan(decodedText) {
         return;
     }
 
-    const id = String(decodedText || '').trim();
+    let id = String(decodedText || '').trim();
     if (!id) {
         return;
+    }
+    // JSON形式（{"mail":"..."}など）の場合はJavaScript側でメールアドレスのみを抽出
+    if (id.startsWith('{') && id.includes('mail')) {
+        try {
+            const parsed = JSON.parse(id);
+            if (parsed && parsed.mail) {
+                id = parsed.mail;
+            }
+        } catch (e) {
+            // JSONパース失敗時は正規表現で抽出
+            const match = id.match(/"mail"\s*:\s*"([^"]+)"/);
+            if (match && match[1]) {
+                id = match[1];
+            }
+        }
     }
 
     qrScanCompleted = true;

@@ -148,7 +148,7 @@ public class PosServiceImple implements PosService {
     public PaymentResponse processPayment(PaymentRequest request) {
         LocalDateTime now = LocalDateTime.now();
         Integer orderId = 0;
-        String mail = request.getQrId() != null ? request.getQrId() : "店頭注文";
+        String mail = parseMailAddress(request.getQrId());
 
         // 1. 注文番号の頭文字が 'M' の場合：予約注文の受取会計処理
         if (request.isMobileOrder()) {
@@ -346,6 +346,28 @@ public class PosServiceImple implements PosService {
 
         // 6. UserRepository の UPDATE メソッドでDBを更新
         userRepository.updateMemberPointAndRank(mailOrQrId, remainingPoint, newCardComplete, newRank);
+    }
+
+    /**
+     * QRコード等から渡された文字列から純粋なメールアドレスを抽出します。
+     * 例: {"mail":"isidaharu@example.com"} -> isidaharu@example.com
+     */
+    private String parseMailAddress(String rawInput) {
+        if (rawInput == null || rawInput.trim().isEmpty()) {
+            return "店頭注文";
+        }
+
+        String input = rawInput.trim();
+
+        // JSON形式 ({"mail":"..."}) の場合はJava標準の正規表現でメールアドレス部分のみを抽出
+        if (input.startsWith("{") && input.contains("mail")) {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\"mail\"\\s*:\\s*\"([^\"]+)\"").matcher(input);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+
+        return input;
     }
 
     /**
