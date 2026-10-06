@@ -36,14 +36,14 @@ class LoginControllerTest {
     @Test
     @DisplayName("ログイン画面を返す")
     void testGetLogin() {
-        assertThat(controller.getLogin()).isEqualTo("login");
+        assertThat(controller.getLogin(null)).isEqualTo("login");
     }
 
     @Test
     @DisplayName("営業日：店長権限はスタッフ画面へ遷移する")
     void testLoginSuccessForManagerOnOpenDay() {
         // 店長は休業日チェックがスキップされるか、または営業日の場合
-        assertThat(controller.loginSuccess(authentication("店長"), redirectAttributes))
+        assertThat(controller.loginSuccess(authentication("店長"), null, redirectAttributes))
                 .isEqualTo("redirect:/w/home");
     }
 
@@ -53,7 +53,7 @@ class LoginControllerTest {
         // 休業日（「臨時休業」）が設定されていても、店長はスルーされる
         when(service.getCloseDay()).thenReturn("臨時休業");
 
-        assertThat(controller.loginSuccess(authentication("店長"), redirectAttributes))
+        assertThat(controller.loginSuccess(authentication("店長"), null, redirectAttributes))
                 .isEqualTo("redirect:/w/home");
 
         // redirectAttributes にメッセージが設定されていないことを検証
@@ -65,7 +65,7 @@ class LoginControllerTest {
     void testLoginSuccessForStaffOnOpenDay() {
         when(service.getCloseDay()).thenReturn(null);
 
-        assertThat(controller.loginSuccess(authentication("ROLE_店員"), redirectAttributes))
+        assertThat(controller.loginSuccess(authentication("ROLE_店員"), null, redirectAttributes))
                 .isEqualTo("redirect:/w/home");
     }
 
@@ -74,7 +74,7 @@ class LoginControllerTest {
     void testLoginSuccessForStaffOnClosedDay() {
         when(service.getCloseDay()).thenReturn("定休日");
 
-        String result = controller.loginSuccess(authentication("ROLE_店員"), redirectAttributes);
+        String result = controller.loginSuccess(authentication("ROLE_店員"), null, redirectAttributes);
 
         assertThat(result).isEqualTo("redirect:/login");
         verify(redirectAttributes).addFlashAttribute(
@@ -88,9 +88,9 @@ class LoginControllerTest {
     void testLoginSuccessForCustomerOrAnonymousOnOpenDay() {
         when(service.getCloseDay()).thenReturn(null);
 
-        assertThat(controller.loginSuccess(authentication("ROLE_顧客"), redirectAttributes))
+        assertThat(controller.loginSuccess(authentication("ROLE_顧客"), null, redirectAttributes))
                 .isEqualTo("redirect:/");
-        assertThat(controller.loginSuccess(null, redirectAttributes))
+        assertThat(controller.loginSuccess(null, null, redirectAttributes))
                 .isEqualTo("redirect:/");
     }
 
@@ -99,7 +99,7 @@ class LoginControllerTest {
     void testLoginSuccessForCustomerOrAnonymousOnClosedDay() {
         when(service.getCloseDay()).thenReturn("臨時休業");
 
-        String resultCustomer = controller.loginSuccess(authentication("ROLE_顧客"), redirectAttributes);
+        String resultCustomer = controller.loginSuccess(authentication("ROLE_顧客"), null, redirectAttributes);
 
         assertThat(resultCustomer).isEqualTo("redirect:/login");
         verify(redirectAttributes).addFlashAttribute(

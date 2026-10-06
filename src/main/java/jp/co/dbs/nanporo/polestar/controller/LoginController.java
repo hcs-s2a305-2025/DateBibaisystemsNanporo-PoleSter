@@ -6,10 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jp.co.dbs.nanporo.polestar.service.UserService;
 
 
@@ -25,7 +29,17 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public String getLogin() {
+    public String getLogin(Model model) {
+        // リダイレクト経由のメッセージが届いていない場合、GETアクセス時も休業日チェックを実施
+        if (!model.containsAttribute("closedMessage")) {
+            String closeType = service.getCloseDay();
+            if (closeType != null) {
+                model.addAttribute(
+                    "closedMessage", 
+                    "本日は「" + closeType + "」のため、店長のみログイン可能です。"
+                );
+            }
+        }
         return "login";
     }
     
@@ -33,7 +47,9 @@ public class LoginController {
      * ログイン成功時の権限判定・画面振り分け処理
      */
     @GetMapping("/login-success")
-    public String loginSuccess(Authentication authentication, RedirectAttributes redirectAttributes) {
+    public String loginSuccess(Authentication authentication,
+                                HttpServletRequest request, 
+                                RedirectAttributes redirectAttributes) {
 
         boolean tentyou = false;
         boolean tenin = false;
@@ -48,15 +64,22 @@ public class LoginController {
                 }
             }
         }
-
+        // 店長以外の場合、休業日判定を実施
         if (!tentyou) {
             // 休業日確認
             String closeType = service.getCloseDay();
 
             if (closeType != null) {
+                // ★ ログインセッションを完全に破棄（ログアウト状態にする）
+                SecurityContextHolder.clearContext();
+                HttpSession session = request.getSession(false);
+                if (session != null) {
+                    session.invalidate();
+                }
+
                 redirectAttributes.addFlashAttribute(
                     "closedMessage",
-                    "本日は「" + closeType + "」のため、システムを休止しております。"
+                    "本日は「" + closeType + "」のため、店長以外のログインを制限しております。"
                 );
                 return "redirect:/login";
             }
