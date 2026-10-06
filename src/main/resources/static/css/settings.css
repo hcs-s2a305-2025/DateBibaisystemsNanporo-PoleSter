@@ -55,3 +55,24 @@
         height: 30px;
     }
 }
+
+.icon-option {
+        cursor: pointer;
+        /* 非選択時は透明な枠線を付けてサイズズレを防止 */
+        border: 3px solid transparent; 
+        border-radius: 50%;
+        padding: 3px;
+        transition: all 0.2s ease-in-out;
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+    }
+    .icon-option:hover {
+        transform: scale(1.08);
+        opacity: 0.9;
+    }
+    /* ラジオボタンがチェックされた時の選択枠（細い実線枠） */
+    .btn-check:checked + label .icon-option {
+    border: 3px solid #FFE380;
+    box-shadow: none;
+}

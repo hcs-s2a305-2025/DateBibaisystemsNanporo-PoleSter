@@ -37,7 +37,9 @@
                     </div>
                     <!-- ユーザ情報を表示 -->
                     <div  class="lowwer-item">
-                        <img src="../static/img/sibainu1.jpg" alt="プロフィール画像">
+                        <img src="../../static/img/sibainu1.jpg" 
+                            th:src="@{/img/{iconName}(iconName=${user.icon})}" 
+                            alt="プロフィール画像">
                         <h5 class="username" th:text="${user.name}">ユーザネーム</h5>
                         <p th:text="${user.mail}">zangui@ben.com</p>
                     </div>

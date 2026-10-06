@@ -356,17 +356,19 @@ public class UserRepository {
 
     
     /**
-     * ユーザの基本情報（メールアドレスおよび名前）を更新します（パスワード更新なし）。
+     * ユーザの基本情報（メールアドレス・名前・アイコン）を更新します（パスワード更新なし）。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
+     * @param icon 新しいアイコン
      */
-    public  void updateNoPassword(String mail, String nowMail, String name) {
+    public  void updateNoPassword(String mail, String nowMail, String name, String icon) {
         String sql ="""
                 UPDATE user_m
                 SET mail = :mail,
-                    name = :name
+                    name = :name,
+                    icon = :icon
                 WHERE mail = :nowMail
                 """;
 
@@ -374,24 +376,27 @@ public class UserRepository {
         params.put("mail", mail);
         params.put("nowMail", nowMail);
         params.put("name", name);
+        params.put("icon", icon);
 
         jdbc.update(sql, params);
     }
 
     /**
-     * ユーザの基本情報（メールアドレス、名前）およびパスワードを更新します。
+     * ユーザの基本情報（メールアドレス・名前・アイコン）およびパスワードを更新します。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
      * @param password 新しいパスワード
+     * @param icon 新しいアイコン
      */
-    public  void updateYesPassword(String mail, String nowMail, String name, String password) {
+    public  void updateYesPassword(String mail, String nowMail, String name, String password, String icon) {
         String sql ="""
                 UPDATE user_m
                 SET mail = :mail,
                     name = :name,
-                    password = :password
+                    password = :password,
+                    icon = :icon
                 WHERE mail = :nowMail
                 """;
 
@@ -400,6 +405,7 @@ public class UserRepository {
         params.put("nowMail", nowMail);
         params.put("name", name);
         params.put("password", password);
+        params.put("icon", icon);
 
         jdbc.update(sql, params);
     }

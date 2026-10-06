@@ -265,20 +265,21 @@ class UserRepositoryTest {
     @Test
     @DisplayName("パスワードを変更せずユーザー情報を更新する")
     void testUpdateNoPassword() {
-        repository.updateNoPassword("new@example.com", "old@example.com", "新しい名前");
+        repository.updateNoPassword("new@example.com", "old@example.com", "新しい名前", "sibainu1.png");
 
         assertThat(captureUpdateParams()).containsEntry("mail", "new@example.com")
-                .containsEntry("nowMail", "old@example.com").containsEntry("name", "新しい名前");
+                .containsEntry("nowMail", "old@example.com").containsEntry("name", "新しい名前")
+                .containsEntry("icon", "sibainu1.png");
     }
 
     @Test
     @DisplayName("パスワードを含めてユーザー情報を更新する")
     void testUpdateYesPassword() {
-        repository.updateYesPassword("new@example.com", "old@example.com", "新しい名前", "encoded");
+        repository.updateYesPassword("new@example.com", "old@example.com", "新しい名前", "encoded", "sibainu1.png");
 
         assertThat(captureUpdateParams()).containsEntry("mail", "new@example.com")
                 .containsEntry("nowMail", "old@example.com").containsEntry("name", "新しい名前")
-                .containsEntry("password", "encoded");
+                .containsEntry("password", "encoded").containsEntry("icon", "sibainu1.png");
     }
 
     @Test

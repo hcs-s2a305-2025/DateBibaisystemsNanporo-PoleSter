@@ -93,6 +93,7 @@ public class SettingController {
      * パスワード入力の有無を判定し、適切な更新処理を呼び出します。
      * また、メールアドレスが変更された場合は Spring Security の認証情報（SecurityContext）を再設定します。
      *
+     * @param icon アイコン
      * @param name 新しい名前
      * @param mailAddress 新しいメールアドレス
      * @param oldPassword 現在のパスワード（任意）
@@ -104,6 +105,7 @@ public class SettingController {
      */
     @PostMapping("/settings/edit/update")
     public String updateProfile(
+        @RequestParam (name = "icon") String icon,
         @RequestParam(name = "name") String name,
         @RequestParam(name = "mailAddress") String mailAddress,
         @RequestParam(name = "oldPassword", required = false) String oldPassword,
@@ -116,7 +118,7 @@ public class SettingController {
             String nowMail = principal.getName();
             if(oldPassword.isEmpty() && newPassword.isEmpty() && newPasswordConf.isEmpty()) { // パスワード変更なし
 
-                service.updateNoPassword(mailAddress, nowMail, name);
+                service.updateNoPassword(mailAddress, nowMail, name, icon);
 
             } else { // パスワード変更あり
 
@@ -137,7 +139,7 @@ public class SettingController {
                     return "redirect:/settings/edit";
                 }
 
-                service.updateYesPassword(mailAddress, nowMail, name, newPassword);
+                service.updateYesPassword(mailAddress, nowMail, name, newPassword,icon);
             }
 
             // メルアド変更の場合

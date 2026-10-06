@@ -195,6 +195,7 @@ public class UserService {
         user.setPointCardComplete((int) row.get("point_card_complete"));
         user.setGender((String) row.get("gender"));
         user.setBirthday((Date)row.get("birthday"));
+        user.setIcon((String) row.get("icon"));
 
         return user;
     }
@@ -403,29 +404,31 @@ public class UserService {
 
 
     /**
-     * パスワード変更を伴わない形でユーザの基本情報（メールアドレス・名前）を更新します。
+     * パスワード変更を伴わない形でユーザの基本情報（メールアドレス・名前・アイコン）を更新します。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
+     * @param icon 新しいアイコン
      */
-    public void updateNoPassword(String mail, String nowMail, String name) {
-        repository.updateNoPassword(mail, nowMail, name);
+    public void updateNoPassword(String mail, String nowMail, String name, String icon) {
+        repository.updateNoPassword(mail, nowMail, name, icon);
     } 
 
 
     /**
-     * パスワード変更を含めてユーザ情報（メールアドレス・名前・パスワード）を更新します。
+     * パスワード変更を含めてユーザ情報（メールアドレス・名前・パスワード・アイコン）を更新します。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
      * @param password 新しいパスワード（ハッシュ化されて保存されます）
+     * @param icon 新しいアイコン
      */
-    public void updateYesPassword(String mail, String nowMail, String name, String password) {
+    public void updateYesPassword(String mail, String nowMail, String name, String password, String icon) {
 
         password = passwordEncoder.encode(password);
-        repository.updateYesPassword(mail, nowMail, name, password);
+        repository.updateYesPassword(mail, nowMail, name, password, icon);
     }
 
 
