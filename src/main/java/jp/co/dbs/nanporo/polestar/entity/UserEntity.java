@@ -29,14 +29,14 @@ public class UserEntity {
     private Date birthday;
 
     // 迷惑行為件数　INTEGER型
-    private int cancelCount;
+    private Integer cancelCount;
 
     // 状態　BOOLEAN型
     private Boolean alive;
 
     // ポイント　INTEGER型
-    private int point;
+    private Integer point;
 
     // ポイントカード達成枚数　INTEGER型
-    private  int pointCardComplete;
+    private  Integer pointCardComplete;
 }

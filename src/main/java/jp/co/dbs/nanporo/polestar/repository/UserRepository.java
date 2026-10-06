@@ -427,34 +427,29 @@ public class UserRepository {
         jdbc.update(sql, params);
     }
 
-    public List<Map<String, Object>> getCloseDay() {
+    /**
+     * ユーザのポイント、ポイントカード完了数、会員ランクを更新します。
+     *
+     * @param mail 対象のメールアドレス
+     * @param point 新しいポイント数
+     * @param pointCardComplete 新しいカード完了数
+     * @param memberRank 新しい会員ランク
+     */
+    public void updateMemberPointAndRank(String mail, int point, int pointCardComplete, String memberRank) {
         String sql = """
-                SELECT *
-                FROM close_t
+                UPDATE user_m
+                SET point = :point,
+                    point_card_complete = :pointCardComplete,
+                    member_rank = :memberRank
+                WHERE mail = :mail
                 """;
 
         Map<String, Object> params = new HashMap<>();
-
-        return jdbc.queryForList(sql, params);
-    }
-
-    public void cancelUpdate(LocalDate today) {
-        String sql = """
-            UPDATE order_t
-            SET status = 'キャンセル'
-            WHERE get_time >= :startTime 
-                AND get_time < :endTime
-            """;
-
-        // 当日の 00:00:00 と 翌日の 00:00:00 を作成
-        LocalDateTime startTime = today.atStartOfDay();
-        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("startTime", startTime);
-        params.put("endTime", endTime);
+        params.put("mail", mail);
+        params.put("point", point);
+        params.put("pointCardComplete", pointCardComplete);
+        params.put("memberRank", memberRank);
 
         jdbc.update(sql, params);
     }
-
 }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +18,13 @@ import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
 import jp.co.dbs.nanporo.polestar.entity.SetGoodsEntity;
 import jp.co.dbs.nanporo.polestar.entity.TransactionDetailEntity;
 import jp.co.dbs.nanporo.polestar.entity.TransactionEntity;
+import jp.co.dbs.nanporo.polestar.entity.UserEntity;
 import jp.co.dbs.nanporo.polestar.repository.OrderDetailRepository;
 import jp.co.dbs.nanporo.polestar.repository.OrderTRepository;
 import jp.co.dbs.nanporo.polestar.repository.StoreRepository;
 import jp.co.dbs.nanporo.polestar.repository.TransactionDetailRepository;
 import jp.co.dbs.nanporo.polestar.repository.TransactionRepository;
+import jp.co.dbs.nanporo.polestar.repository.UserRepository;
 import jp.co.dbs.nanporo.polestar.request.MobileOrderRequest;
 import jp.co.dbs.nanporo.polestar.request.PaymentRequest;
 import jp.co.dbs.nanporo.polestar.response.MobileOrderResponse;
@@ -37,6 +40,7 @@ public class PosServiceImple implements PosService {
     private final StoreRepository storeRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionDetailRepository transactionDetailRepository;
+    private final UserRepository userRepository;
 
     /**
      * 当日の予約注文（モバイルオーダー）取得処理
@@ -144,7 +148,7 @@ public class PosServiceImple implements PosService {
     public PaymentResponse processPayment(PaymentRequest request) {
         LocalDateTime now = LocalDateTime.now();
         Integer orderId = 0;
-        String mail = request.getQrId() != null ? request.getQrId() : "店頭注文";
+        String mail = parseMailAddress(request.getQrId());
 
         // 1. 注文番号の頭文字が 'M' の場合：予約注文の受取会計処理
         if (request.isMobileOrder()) {
@@ -270,8 +274,100 @@ public class PosServiceImple implements PosService {
 
             transactionDetailRepository.save(detail);
         }
-
+        // 取引トラン保存完了後、ポイントおよび会員ランクの更新処理を実行
+        updateMemberPointAndRank(mail, orderId);
         return new PaymentResponse(true, "会計処理が正常に完了しました", savedTransaction.getTransactionId());
+    }
+
+    /**
+     * 会員ポイント・ポイントカード完了数・会員ランクの更新処理
+     */
+    private void updateMemberPointAndRank(String mailOrQrId, Integer orderId) {
+        // 会員情報がない・店頭注文（未読み取り）の場合は処理をスキップ
+        if (mailOrQrId == null || "店頭注文".equals(mailOrQrId) || mailOrQrId.trim().isEmpty()) {
+            return;
+        }
+
+        // 1. 会員検索 (queryForMapは一致するレコードがないと EmptyResultDataAccessException を投げるため例外捕捉)
+        Map<String, Object> userMap;
+        try {
+            userMap = userRepository.findByMail(mailOrQrId);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            // 該当するユーザーが存在しない場合は終了
+            return;
+        }
+
+        if (userMap == null || userMap.isEmpty()) {
+            return;
+        }
+
+        List<OrderDetailEntity> orderDetails = orderDetailRepository.findByOrderId(orderId);
+        int totalZangiCount = 0;
+
+        // 2. 今回の注文に含まれるザンギ個数を集計
+        for (OrderDetailEntity detail : orderDetails) {
+            GoodsEntity goods = storeRepository.getGoodsEntityById(detail.getGoodsId()).orElse(null);
+            
+            // 商品マスタのザンギ個数 (zangi_count)
+            int baseZangiCount = (goods != null && goods.getZangiCount() != null) ? goods.getZangiCount() : 0;
+            // 明細のプラスザンギ個数 (plus_zangi_count)
+            int plusZangiCount = (detail.getPlusZangiCount() != null) ? detail.getPlusZangiCount() : 0;
+            // 注文数量
+            int itemCount = (detail.getCount() != null && detail.getCount() > 0) ? detail.getCount() : 1;
+
+            totalZangiCount += (baseZangiCount + plusZangiCount) * itemCount;
+        }
+
+        if (totalZangiCount <= 0) {
+            return;
+        }
+
+        // 3. Mapから現在の値を取り出し（DBのカラム名と合わせる）
+        int currentPoint = userMap.get("point") != null ? ((Number) userMap.get("point")).intValue() : 0;
+        int currentCardComplete = userMap.get("point_card_complete") != null ? ((Number) userMap.get("point_card_complete")).intValue() : 0;
+        String currentRank = (String) userMap.get("member_rank");
+
+        // 4. ポイント計算と繰り越し処理
+        int totalPoint = currentPoint + totalZangiCount;
+        int completedCardsToAdd = totalPoint / 20; // 20ポイントで1枚達成
+        int remainingPoint = totalPoint % 20;      // 余りポイント
+
+        int newCardComplete = currentCardComplete + completedCardsToAdd;
+
+        // 5. 会員ランク判定
+        String newRank = currentRank;
+        if (newCardComplete >= 5) {
+            newRank = "ゴールド";
+        } else if (newCardComplete >= 3) {
+            newRank = "シルバー";
+        } else if (newCardComplete >= 1) {
+            newRank = "ブロンズ";
+        }
+
+        // 6. UserRepository の UPDATE メソッドでDBを更新
+        userRepository.updateMemberPointAndRank(mailOrQrId, remainingPoint, newCardComplete, newRank);
+    }
+
+    /**
+     * QRコード等から渡された文字列から純粋なメールアドレスを抽出します。
+     * 例: {"mail":"isidaharu@example.com"} -> isidaharu@example.com
+     */
+    private String parseMailAddress(String rawInput) {
+        if (rawInput == null || rawInput.trim().isEmpty()) {
+            return "店頭注文";
+        }
+
+        String input = rawInput.trim();
+
+        // JSON形式 ({"mail":"..."}) の場合はJava標準の正規表現でメールアドレス部分のみを抽出
+        if (input.startsWith("{") && input.contains("mail")) {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\"mail\"\\s*:\\s*\"([^\"]+)\"").matcher(input);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+
+        return input;
     }
 
     /**
@@ -396,5 +492,4 @@ public class PosServiceImple implements PosService {
             throw new IllegalArgumentException("指定された商品が見つかりません。ID: " + goodsId);
         }
     }
-    
 }

@@ -2,16 +2,25 @@
 <header class="header-content" th:fragment="common-header">
     <div class="header-btn"></div>
     <div class="system-title">
-        <a href="/" th:href="@{/}"><h2>ORDER ZANGI</h2></a>
+        <!-- 従業員（店長・店員）の場合：店舗用ホームへ -->
+        <a href="/w/home.html" th:href="@{/w/home}" sec:authorize="hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
+            <h2>ORDER ZANGI</h2>
+        </a>
+        <!-- それ以外（顧客・未ログイン）の場合：トップページへ -->
+        <a href="/" th:href="@{/}" sec:authorize="!hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
+            <h2>ORDER ZANGI</h2>
+        </a>
     </div>
+    <!-- 顧客のみ（または未ログイン時のみ）スタンプカードを表示 -->
     <div class="header-stampcard header-btn">
-        <a href="/stampcard" th:href="@{/stampcard}">
+        <a href="/stampcard" th:href="@{/stampcard}" sec:authorize="hasAnyAuthority('顧客', 'ROLE_顧客') or isAnonymous()">
             <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
         </a>
     </div>
 </header>
 
-<footer class="footer-content" th:fragment="common-footer">
+<!-- 顧客（または未ログイン）のみフッターを表示 -->
+<footer class="footer-content" th:fragment="common-footer" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" sec:authorize="hasAnyAuthority('顧客', 'ROLE_顧客') or isAnonymous()">
     <div class="footer-btn">
         <a href="home"><img style="width: 36px; height: 53px;" src="../static/img/ホームボタン.png" th:src="@{/img/ホームボタン.png}" alt="ホーム"></a>
     </div>
@@ -36,10 +45,11 @@
         <h3><a href="/w/home.html" th:href="@{/w/home}" style="font-size: 20px; color: #555; text-decoration: none; font-weight: bold;">＜戻る</a></h3>
     </div>
     <div class="header-item">
-        <p>ログイン：店長</p>
+        <p sec:authorize="hasAnyAuthority('店長', 'ROLE_店長')">ログイン：店長</p>
+        <p sec:authorize="hasAnyAuthority('店員', 'ROLE_店員')">ログイン：店員</p>
     </div>
     <div class="system-title">
-        <a href="/" th:href="@{/}">
+        <a href="/w/home" th:href="@{/w/home}">
             <h2>ORDER ZANGI</h2>
         </a>
     </div>
