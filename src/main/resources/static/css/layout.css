@@ -42,6 +42,30 @@ h2,h3{
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* 3グループ均等分割（中央タイトル固定用） */
+.header-left-group {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px; /* 戻るボタンとログイン情報の間の余白 */
+}
+
+.header-center-group {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.header-right-group {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
 .system-title a{
     color: #393939;
     text-decoration: none;
@@ -65,6 +89,35 @@ h2,h3{
 .header-btn-w a{
     color: #393939;
     text-decoration: none;
+}
+
+/* ログアウトボタン（参考画像通りの視認性の高いスタイル） */
+.btn-logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background-color: #dc3545; /* 鮮やかな赤色 */
+    color: #ffffff !important;
+    border: none;
+    border-radius: 18px; /* 丸みのある角丸デザイン */
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    white-space: nowrap; /* スマホ画面等での折り返し（縦崩れ）を完全に防止 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-logout:hover {
+    background-color: #bb2d3b;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-logout:active {
+    transform: translateY(0);
 }
 
 /* コンテンツ */

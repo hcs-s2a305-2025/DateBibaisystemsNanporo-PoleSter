@@ -1,21 +1,33 @@
-
-<header class="header-content" th:fragment="common-header">
-    <div class="header-btn"></div>
-    <div class="system-title">
-        <!-- 従業員（店長・店員）の場合：店舗用ホームへ -->
+<!-- 顧客用 -->
+<header class="header-content" th:fragment="common-header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <!-- 左エリア：スタンプカード -->
+    <div class="header-left-group">
+        <div class="header-btn header-stampcard">
+            <a href="/stampcard" th:href="@{/stampcard}" sec:authorize="hasAnyAuthority('顧客', 'ROLE_顧客') or isAnonymous()">
+                <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
+            </a>
+        </div>
+    </div>
+    <!-- 中央エリア：システムタイトル -->
+    <div class="header-center-group system-title">
         <a href="/w/home.html" th:href="@{/w/home}" sec:authorize="hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
-            <h2>ORDER ZANGI</h2>
+            <h2 style="margin: 0;">ORDER ZANGI</h2>
         </a>
-        <!-- それ以外（顧客・未ログイン）の場合：トップページへ -->
         <a href="/" th:href="@{/}" sec:authorize="!hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
-            <h2>ORDER ZANGI</h2>
+            <h2 style="margin: 0;">ORDER ZANGI</h2>
         </a>
     </div>
-    <!-- 顧客のみ（または未ログイン時のみ）スタンプカードを表示 -->
-    <div class="header-stampcard header-btn">
-        <a href="/stampcard" th:href="@{/stampcard}" sec:authorize="hasAnyAuthority('顧客', 'ROLE_顧客') or isAnonymous()">
-            <img style="width: 65px; height: auto;" src="../static/img/スタンプカード.png" th:src="@{/img/スタンプカード.png}" alt="スタンプカード">
-        </a>
+    <!-- 右エリア：ログアウトボタン -->
+    <div class="header-right-group">
+        <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="margin: 0;">
+            <button type="submit" class="btn-logout">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+                </svg>
+                <span>ログアウト</span>
+            </button>
+        </form>
     </div>
 </header>
 
@@ -40,24 +52,33 @@
 
 
 <!-- 店舗用 -->
-<header class="header-content" th:fragment="common-w-header">
-    <div class="header-btn">
-        <h3><a href="/w/home.html" th:href="@{/w/home}" style="font-size: 20px; color: #555; text-decoration: none; font-weight: bold;">＜戻る</a></h3>
+<header class="header-content" th:fragment="common-w-header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <!-- 左エリア：戻るボタン ＆ ログイン情報 -->
+    <div class="header-left-group">
+        <div class="header-btn">
+            <h3><a href="/w/home.html" th:href="@{/w/home}" style="font-size: 20px; color: #555; text-decoration: none; font-weight: bold;">＜戻る</a></h3>
+        </div>
+        <div class="header-item">
+            <p sec:authorize="hasAnyAuthority('店長', 'ROLE_店長')" style="margin: 0;">ログイン：店長</p>
+            <p sec:authorize="hasAnyAuthority('店員', 'ROLE_店員')" style="margin: 0;">ログイン：店員</p>
+        </div>
     </div>
-    <div class="header-item">
-        <p sec:authorize="hasAnyAuthority('店長', 'ROLE_店長')">ログイン：店長</p>
-        <p sec:authorize="hasAnyAuthority('店員', 'ROLE_店員')">ログイン：店員</p>
-    </div>
-    <div class="system-title">
+    <!-- 中央エリア：システムタイトル（真中央に固定） -->
+    <div class="header-center-group system-title">
         <a href="/w/home" th:href="@{/w/home}">
-            <h2>ORDER ZANGI</h2>
+            <h2 style="margin: 0;">ORDER ZANGI</h2>
         </a>
     </div>
-    <div class="header-item d-flex justify-content-end" style="width: 73px;">
-        <div></div>
-    </div>
-    <div class="header-btn" style="width: 112px;">
-        <h5 id="date"></h5>
-        <h5 class="clock"></h5>
+    <!-- 右エリア：ログアウトボタン（右端に配置） -->
+    <div class="header-right-group">
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="btn-logout">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+                </svg>
+                <span>ログアウト</span>
+            </button>
+        </form>
     </div>
 </header>
