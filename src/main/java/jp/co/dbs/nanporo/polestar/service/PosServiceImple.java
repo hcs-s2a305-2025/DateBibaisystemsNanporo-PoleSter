@@ -5,12 +5,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jp.co.dbs.nanporo.polestar.data.CasherHistoryDto;
 import jp.co.dbs.nanporo.polestar.entity.CustomEntity;
 import jp.co.dbs.nanporo.polestar.entity.GoodsEntity;
 import jp.co.dbs.nanporo.polestar.entity.OrderDetailEntity;
@@ -193,7 +195,7 @@ public class PosServiceImple implements PosService {
             newOrder.setMail(mail); // 「店頭注文」または QR ID
             newOrder.setRegisterTime(Timestamp.valueOf(now)); // 会計時間を設定
             newOrder.setGetTime(Timestamp.valueOf(now));      // 会計時間と全く同じ時間を設定
-            newOrder.setStatus("会計済");
+            newOrder.setStatus("調理中"); // 店頭注文は初期ステータスを「調理中」に設定
             newOrder.setSumMoney(request.getTotal());
 
             // order_t に登録し、自動採番された order_id を取得
@@ -491,5 +493,98 @@ public class PosServiceImple implements PosService {
         if (updatedCount == 0) {
             throw new IllegalArgumentException("指定された商品が見つかりません。ID: " + goodsId);
         }
+    }
+
+    /**
+     * 指定日付の会計履歴一覧、総売上、および総客数を取得します
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getCasherHistory(LocalDate date) {
+        if (date == null) {
+            date = LocalDate.now();
+        }
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        // 1. 指定日の取引一覧を取得
+        List<TransactionEntity> transactions = transactionRepository
+                .findByTransactionDateBetweenOrderByTransactionDateDesc(startOfDay, endOfDay);
+
+        List<CasherHistoryDto> historyList = new ArrayList<>();
+        int totalSales = 0;
+
+        java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss");
+
+        for (TransactionEntity tx : transactions) {
+            totalSales += (tx.getSumMoney() != null) ? tx.getSumMoney() : 0;
+
+            // 2. 取引ごとの明細一覧を取得
+            List<TransactionDetailEntity> details = transactionDetailRepository.findByTransactionId(tx.getTransactionId());
+
+            List<String> goodsNameList = new ArrayList<>();
+            List<String> detailList = new ArrayList<>();
+
+            for (TransactionDetailEntity d : details) {
+                String gName = d.getGoodsName();
+                if (d.getCount() != null && d.getCount() > 1) {
+                    gName += " ×" + d.getCount();
+                }
+                goodsNameList.add(gName);
+
+                if (d.getSetGoodsName() != null && !d.getSetGoodsName().isEmpty()) {
+                    detailList.add("セット:" + d.getSetGoodsName());
+                }
+                if (d.getCustomId() != null) {
+                    CustomEntity custom = storeRepository.getCustomEntityById(d.getCustomId()).orElse(null);
+                    if (custom != null && custom.getGoodsName() != null) {
+                        detailList.add(custom.getGoodsName());
+                    }
+                }
+            }
+
+            if (tx.getUseCoupon() != null && !tx.getUseCoupon().trim().isEmpty()) {
+                detailList.add("利用:" + tx.getUseCoupon());
+            }
+
+            historyList.add(CasherHistoryDto.builder()
+                    .transactionId(tx.getTransactionId())
+                    .time(tx.getTransactionDate() != null ? tx.getTransactionDate().format(timeFormatter) : "")
+                    .goodsName(String.join(", ", goodsNameList))
+                    .detail(String.join(" / ", detailList))
+                    .sumMoney(tx.getSumMoney() != null ? tx.getSumMoney() : 0)
+                    .receivedMoney(tx.getReceivedMoney() != null ? tx.getReceivedMoney() : 0)
+                    .changeMoney(tx.getChangeMoney() != null ? tx.getChangeMoney() : 0)
+                    .build());
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("historyList", historyList);
+        result.put("totalSales", totalSales);
+        result.put("totalCustomers", transactions.size()); // 総客数（取引件数）を追加
+        result.put("selectedDate", date.toString());
+
+        return result;
+    }
+
+    /**
+     * 取引の会計金額（合計・預かり・おつり）を更新する処理
+     */
+    @Override
+    @Transactional
+    public void updateTransactionMoney(Integer transactionId, Integer sumMoney, Integer receivedMoney, Integer changeMoney) {
+        if (transactionId == null) {
+            throw new IllegalArgumentException("取引IDが指定されていません。");
+        }
+
+        TransactionEntity transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("指定された取引が見つかりません。ID: " + transactionId));
+
+        transaction.setSumMoney(sumMoney != null ? sumMoney : 0);
+        transaction.setReceivedMoney(receivedMoney != null ? receivedMoney : 0);
+        transaction.setChangeMoney(changeMoney != null ? changeMoney : 0);
+
+        transactionRepository.save(transaction);
     }
 }

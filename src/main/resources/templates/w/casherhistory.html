@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>casherhistory</title>
+	<title>店舗端末履歴画面 - casherhistory</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -16,48 +16,176 @@
 	<!-- Bootstrap JS -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<link href="../../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
+    <link href="../../static/css/w-history.css" th:href="@{/css/w-history.css}" rel="stylesheet" />
 </head>
 
 <body>
-	<!-- ヘッダー部 -->
+    <!-- ヘッダー部 -->
     <div th:replace="~{common/Layout :: common-w-header}"></div>
-
     <!-- メインコンテンツ部 -->
     <main class="main-content">
+        <div class="history-container">
+            <h2 class="history-title">履歴</h2>
 
-        <!-- 入力項目エリア -->
-        <h2>履歴</h2>
-        <div class="item-block">
-            <section class="">
-                <form action="casherhistory">
-                    <div class="search-group" style="margin-bottom: 30px;">
-                        <label type="date">日付 <span style="color: red;">*</span></label>
-                        <input type="date" id="date" name="date" required value="2026年9月8日"></label>
+            <!-- 上部サマリーカード -->
+            <div class="summary-card">
+                <form th:action="@{/w/casherhistory}" method="get" id="dateForm">
+                    <div class="date-picker-wrap">
+                        <input type="date" id="searchDate" name="date" class="date-picker-input"
+                                th:value="${selectedDate}" onchange="document.getElementById('dateForm').submit()" />
                     </div>
                 </form>
-            </section>
-            <h5>総売上：</h5>
-        </div>
+                
+                <div class="summary-metrics">
+                    <div>
+                        <span class="summary-label">総売上：</span>
+                        <span class="summary-value" th:text="'¥ ' + ${#numbers.formatInteger(totalSales != null ? totalSales : 0, 1, 'COMMA')}">¥ 0</span>
+                    </div>
+                    <div>
+                        <span class="summary-label">総客数：</span>
+                        <span class="summary-value" th:text="${totalCustomers != null ? totalCustomers : 0} + '人'">0人</span>
+                    </div>
+                </div>
+            </div>
 
-        <!-- 一覧表示領域 -->
-        <div class="item-block">
-            <section>
-                <table class=history-table>
-                    <thead>
-                        <tr>
-                            <th>時刻</th>
-                            <th>商品名</th>
-                            <th>詳細</th>
-                            <th>合計：</th>
-                            <th>預かり：</th>
-                            <th>おつり：</th>
-                            <th>編集</th>
-                        </tr>
-                    </thead>
-            </section>
+            <!-- 履歴一覧カードエリア -->
+            <div class="history-list" th:if="${historyList != null and !#lists.isEmpty(historyList)}">
+                <div class="history-card" th:each="item : ${historyList}">
+                    <!-- 上段：時刻、商品名、詳細ボタン -->
+                    <div class="history-card-header">
+                        <div class="history-time" th:text="${#strings.substring(item.time, 0, 5)}">11 : 02</div>
+                        <div class="history-goods" th:text="${item.goodsName}" th:title="${item.goodsName}">元祖ザンギ弁当 (5個)</div>
+                        <button type="button" class="detail-btn" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#detailModal"
+                                th:data-goods="${item.goodsName}"
+                                th:data-detail="${item.detail}">
+                            詳細 <span class="detail-icon"><i class="bi bi-box-arrow-up-right"></i></span>
+                        </button>
+                    </div>
+                    
+                    <!-- 下段：合計・預かり・おつり、編集ボタン -->
+                    <div class="history-card-body">
+                        <div class="history-amounts">
+                            <div class="amount-item">
+                                合計：<span th:text="'￥' + ${#numbers.formatInteger(item.sumMoney, 1, 'NONE')}">￥780</span>
+                            </div>
+                            <div class="amount-item">
+                                預かり：<span th:text="'￥' + ${#numbers.formatInteger(item.receivedMoney, 1, 'NONE')}">￥800</span>
+                            </div>
+                            <div class="amount-item">
+                                おつり：<span th:text="'￥' + ${#numbers.formatInteger(item.changeMoney, 1, 'NONE')}">￥20</span>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="edit-btn"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editModal"
+                                th:data-id="${item.transactionId}"
+                                th:data-sum="${item.sumMoney}"
+                                th:data-received="${item.receivedMoney}"
+                                th:data-change="${item.changeMoney}">
+                            編集
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- データなしの場合 -->
+            <div class="text-center py-5 text-muted" th:if="${historyList == null or #lists.isEmpty(historyList)}">
+                <p class="fs-5">指定した日付の会計履歴はありません。</p>
+            </div>
         </div>
     </main>
+    <!-- 会計金額編集モーダル -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form th:action="@{/w/casherhistory/update}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" id="editModalLabel">会計金額の編集</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="transactionId" id="modalTransactionId" />
+                        <input type="hidden" name="selectedDate" th:value="${selectedDate}" />
+
+                        <div class="mb-3">
+                            <label for="modalSumMoney" class="form-label fw-bold">合計金額（円）</label>
+                            <input type="number" class="form-control" id="modalSumMoney" name="sumMoney" required min="0" oninput="calculateChange()" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalReceivedMoney" class="form-label fw-bold">預かり金額（円）</label>
+                            <input type="number" class="form-control" id="modalReceivedMoney" name="receivedMoney" required min="0" oninput="calculateChange()" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalChangeMoney" class="form-label fw-bold">おつり（円）</label>
+                            <input type="number" class="form-control" id="modalChangeMoney" name="changeMoney" required min="0" readonly />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                        <button type="submit" class="btn btn-primary fw-bold">更新保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注文詳細確認モーダル -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="detailModalLabel">注文詳細情報</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="fw-bold text-muted small">商品名</label>
+                        <div id="modalGoodsName" class="fs-6 fw-bold mt-1"></div>
+                    </div>
+                    <div>
+                        <label class="fw-bold text-muted small">セット / カスタム / クーポン等</label>
+                        <div id="modalDetailInfo" class="fs-6 text-secondary mt-1"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
+        // 編集モーダルへのデータ設定
+        const editModal = document.getElementById('editModal');
+        if (editModal) {
+            editModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                document.getElementById('modalTransactionId').value = button.getAttribute('data-id');
+                document.getElementById('modalSumMoney').value = button.getAttribute('data-sum');
+                document.getElementById('modalReceivedMoney').value = button.getAttribute('data-received');
+                document.getElementById('modalChangeMoney').value = button.getAttribute('data-change');
+            });
+        }
+
+        // 詳細モーダルへのデータ設定
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) {
+            detailModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                document.getElementById('modalGoodsName').textContent = button.getAttribute('data-goods') || 'ー';
+                document.getElementById('modalDetailInfo').textContent = button.getAttribute('data-detail') || '詳細情報なし';
+            });
+        }
+
+        // 合計・預かり変更時の「おつり」自動計算
+        function calculateChange() {
+            const sum = parseInt(document.getElementById('modalSumMoney').value, 10) || 0;
+            const received = parseInt(document.getElementById('modalReceivedMoney').value, 10) || 0;
+            const change = received - sum;
+            document.getElementById('modalChangeMoney').value = change >= 0 ? change : 0;
+        }
         // 日付・時計のリアルタイム表示
         function updateClock() {
             const now = new Date();

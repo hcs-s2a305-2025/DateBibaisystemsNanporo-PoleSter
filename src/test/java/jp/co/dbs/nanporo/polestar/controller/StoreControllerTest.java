@@ -63,11 +63,11 @@ class StoreControllerTest {
         assertThat(model.asMap()).containsEntry("menuList", goods);
     }
 
-    @Test
-    @DisplayName("会計履歴画面を表示する")
-    void testShowCashHistory() {
-        assertThat(controller.showCashHistory(new ExtendedModelMap())).isEqualTo("w/casherhistory");
-    }
+    // @Test
+    // @DisplayName("会計履歴画面を表示する")
+    // void testShowCashHistory() {
+    //     assertThat(controller.showCashHistory(new ExtendedModelMap())).isEqualTo("w/casherhistory");
+    // }
 
     @Test
     @DisplayName("商品編集一覧画面へ商品一覧を設定する")

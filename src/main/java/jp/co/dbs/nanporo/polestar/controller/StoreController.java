@@ -75,10 +75,11 @@ public class StoreController {
         return "w/polestarpos";
     }
 
-    @GetMapping("/w/casherhistory")
-    public String showCashHistory(Model model) {
-        return "w/casherhistory";
-    }
+    // CashHistoryController での処理に置き換えたため、以下のメソッドはコメントアウト
+    // @GetMapping("/w/casherhistory")
+    // public String showCashHistory(Model model) {
+    //     return "w/casherhistory";
+    // }
     
     @GetMapping("/w/editmenu")
     public String showEditMenu(@RequestParam(name = "prefix", required = false) String prefix, Model model) {
