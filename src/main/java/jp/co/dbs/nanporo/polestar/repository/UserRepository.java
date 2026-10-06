@@ -426,4 +426,35 @@ public class UserRepository {
 
         jdbc.update(sql, params);
     }
+
+    public List<Map<String, Object>> getCloseDay() {
+        String sql = """
+                SELECT *
+                FROM close_t
+                """;
+
+        Map<String, Object> params = new HashMap<>();
+
+        return jdbc.queryForList(sql, params);
+    }
+
+    public void cancelUpdate(LocalDate today) {
+        String sql = """
+            UPDATE order_t
+            SET status = 'キャンセル'
+            WHERE get_time >= :startTime 
+                AND get_time < :endTime
+            """;
+
+        // 当日の 00:00:00 と 翌日の 00:00:00 を作成
+        LocalDateTime startTime = today.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("startTime", startTime);
+        params.put("endTime", endTime);
+
+        jdbc.update(sql, params);
+    }
+
 }

@@ -77,15 +77,51 @@
         <h1 class="orbitron">Pole<span style="color: #ffd736;">star</span></h1>
     </main>
 
+    <!-- 休業日メッセージ表示用 モーダル -->
+    <div class="modal fade" id="closedModal" tabindex="-1" aria-labelledby="closedModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header text-dark" style="background-color: #ffd736a9;">
+                    <h5 class="modal-title" id="closedModalLabel">システム休止のお知らせ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="fs-5 mb-0" th:text="${closedMessage}">本日は休業日のためシステムを休止しております。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- スプラッシュ画面消去処理 script -->
-    <script>
+    <script th:inline="javascript">
         window.addEventListener('DOMContentLoaded', () => {
             const splash = document.getElementById('splash-screen');
             // 1.5秒（1500ms）後にフェードアウトを開始
             setTimeout(() => {
+            if (splash) {
                 splash.classList.add('fade-out');
-            }, 1500);
-        });
+                
+                // アニメーション完了後（さらに0.5秒後）に要素自体を非表示にする
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 500);
+            }
+        }, 1500);
+    });
+
+        function showClosedModal() {
+        // スプラッシュ画面が消え終わったタイミング（2.0秒後）でモーダル表示
+        setTimeout(() => {
+            const modalEl = document.getElementById('closedModal');
+            if (modalEl) {
+                const closedModal = new bootstrap.Modal(modalEl);
+                closedModal.show();
+            }
+        }, 2000);
+    }
+    </script>
+    <script th:if="${closedMessage != null}">
+        showClosedModal();
     </script>
 </body>
 

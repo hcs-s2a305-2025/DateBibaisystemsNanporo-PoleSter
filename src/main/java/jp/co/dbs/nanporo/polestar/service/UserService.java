@@ -281,12 +281,15 @@ public class UserService {
 
 
     /**
-     * 当日（本日）付で「臨時休業」を登録します。
+     * 当日（本日）付で「臨時休業」を登録し、予約を「キャンセル」にします。
      */
     public void insertClose() {
         // 今日の日付
         LocalDate today = LocalDate.now();
         repository.insertClose(today, "臨時休業");
+
+        // 今日の予約をキャンセルに
+        repository.cancelUpdate(today);
     }
 
 
@@ -536,4 +539,38 @@ public class UserService {
         }
     }
 
+    public String getCloseDay() {
+
+        // 今日の日付
+        LocalDate today = LocalDate.now();
+        // 休業日リスト
+        List<Map<String, Object>> list = repository.getCloseDay();
+
+        String result = null;
+
+        for(Map<String, Object> map : list) {
+            Object value = map.get("close_day");
+
+            if (value != null) {
+                LocalDate closeDate = null;
+
+                // DBからの型に応じて LocalDate に変換
+                if (value instanceof java.sql.Date sqlDate) {
+                    closeDate = sqlDate.toLocalDate();
+                } else if (value instanceof LocalDate localDate) {
+                    closeDate = localDate;
+                } else if (value instanceof String strDate) {
+                    closeDate = LocalDate.parse(strDate);
+                }
+
+                // 今日と一致した場合
+                if (today.equals(closeDate)) {
+                    result = (String) map.get("close_type");
+                    break; // 見つかったらループを抜ける
+                }
+            }
+        }
+
+        return  result;
+    }
 }
