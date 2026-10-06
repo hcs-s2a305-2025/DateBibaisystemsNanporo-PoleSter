@@ -42,6 +42,10 @@
             <h2>にログインする</h2>
         </div>
         <form class="login-input" th:action="@{/login}" method="POST">
+            <!-- ★ ログイン失敗時のエラーメッセージ表示部分 -->
+            <div th:if="${param.error}" class="alert alert-danger w-100 text-center mb-4 py-2" role="alert" style="font-size: 0.88rem;">
+                認証に失敗しました。<br>メールアドレスとパスワードをご確認のうえ、もう一度お試しください。
+            </div>
             
             <div class="input-group mb-4 w-100">
                 <input type="email" class="form-control" id="mail" name="mail" placeholder="メールアドレス" aria-label="メールアドレス" autocomplete="mail" required>
@@ -96,29 +100,45 @@
     <script th:inline="javascript">
         window.addEventListener('DOMContentLoaded', () => {
             const splash = document.getElementById('splash-screen');
-            // 1.5秒（1500ms）後にフェードアウトを開始
-            setTimeout(() => {
-            if (splash) {
-                splash.classList.add('fade-out');
-                
-                // アニメーション完了後（さらに0.5秒後）に要素自体を非表示にする
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                }, 500);
+            if (!splash) return;
+            // URLのクエリパラメータを取得
+            const urlParams = new URLSearchParams(window.location.search);
+            const isError = urlParams.has('error'); // ログイン失敗時 (?error=true)
+            const isLogout = urlParams.has('logout'); // ログアウト時 (?logout=true)
+            // ブラウザのセッション情報から「再生済みフラグ」を取得
+            const hasShownSplash = sessionStorage.getItem('splashShown');
+            // ログアウト時は再生済みフラグをリセットして、再度の表示を許可する
+            if (isLogout) {
+                sessionStorage.removeItem('splashShown');
             }
-        }, 1500);
-    });
+            // 以下の条件のいずれかに当てはまる場合はアニメーションをスキップ（即非表示）
+            // 1. ログインエラー時 (?error=true)
+            // 2. ログアウト時ではなく、かつ既に同タブで再生済みの場合（リロード時）
+            if (isError || (!isLogout && hasShownSplash)) {
+                splash.style.display = 'none';
+            } else {
+                // 初回アクセス時 または ログアウト直後の場合のみアニメーション実行
+                sessionStorage.setItem('splashShown', 'true'); // 再生済みフラグを記録
+
+                setTimeout(() => {
+                    splash.classList.add('fade-out');
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 500);
+                }, 1500);
+            }
+        });
 
         function showClosedModal() {
-        // スプラッシュ画面が消え終わったタイミング（2.0秒後）でモーダル表示
-        setTimeout(() => {
-            const modalEl = document.getElementById('closedModal');
-            if (modalEl) {
-                const closedModal = new bootstrap.Modal(modalEl);
-                closedModal.show();
-            }
-        }, 2000);
-    }
+            // スプラッシュ画面が消え終わったタイミング（2.0秒後）でモーダル表示
+            setTimeout(() => {
+                const modalEl = document.getElementById('closedModal');
+                if (modalEl) {
+                    const closedModal = new bootstrap.Modal(modalEl);
+                    closedModal.show();
+                }
+            }, 2000);
+        }
     </script>
     <script th:if="${closedMessage != null}">
         showClosedModal();

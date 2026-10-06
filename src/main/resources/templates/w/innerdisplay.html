@@ -71,8 +71,9 @@
                 </form>
 
                 <div class="time-info">
-                    <span>受付 <span th:text="${#dates.format(activeOrder.order.registerTime, 'HH : mm')}">13 : 50</span></span>
-                    <span>経過 <span class="elapsed-time">00 : 00</span></span>
+                    <span>受付 <br><span th:text="${#dates.format(activeOrder.order.registerTime, 'HH : mm')}">13 : 50</span></span>
+                    <span>受取 <br><span th:text="${#dates.format(activeOrder.order.getTime, 'HH : mm')}">14 : 20</span></span>
+                    <span>経過 <br><span class="elapsed-time">00 : 00</span></br>
                 </div>
             </div>
         </div>
