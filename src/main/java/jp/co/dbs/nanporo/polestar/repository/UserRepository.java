@@ -452,4 +452,44 @@ public class UserRepository {
 
         jdbc.update(sql, params);
     }
+
+    /**
+     * 休業日一覧を取得します。
+     *
+     * @return 休業日一覧
+     */
+        public List<Map<String, Object>> getCloseDay() {
+        String sql = """
+                SELECT *
+                FROM close_t
+                """;
+
+        Map<String, Object> params = new HashMap<>();
+
+        return jdbc.queryForList(sql, params);
+    }
+
+    /**
+     * 指定された日付の予約を「キャンセル」に更新します。
+     *
+     * @param today 当日の日付
+     */
+    public void cancelUpdate(LocalDate today) {
+        String sql = """
+            UPDATE order_t
+            SET status = 'キャンセル'
+            WHERE get_time >= :startTime 
+                AND get_time < :endTime
+            """;
+
+        // 当日の 00:00:00 と 翌日の 00:00:00 を作成
+        LocalDateTime startTime = today.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("startTime", startTime);
+        params.put("endTime", endTime);
+
+        jdbc.update(sql, params);
+    }
 }
