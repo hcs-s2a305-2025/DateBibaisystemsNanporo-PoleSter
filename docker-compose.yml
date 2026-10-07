@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # --------------------------------------------------
+  # 1. データベースコンテナ (PostgreSQL 15)
+  # --------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: polestar-db
+    environment:
+      POSTGRES_DB: portallink          # application.properties に合わせる
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: portallink    # application.properties に合わせる
+    ports:
+      - "5432:5432"                    # 外部のDBツール(DBeaver等)から接続したい場合用
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d portallink"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --------------------------------------------------
+  # 2. Webアプリケーションコンテナ (Spring Boot)
+  # --------------------------------------------------
+  app:
+    build: .                           # ルートの Dockerfile を使ってビルド
+    container_name: polestar-app
+    ports:
+      - "8080:8080"                    # http://localhost:8080 でアクセス
+    depends_on:
+      db:
+        condition: service_healthy      # DBの起動完了を待ってからアプリを立ち上げる
+
+# データ永続化用のボリューム定義 (コンテナを消してもDBデータが残る)
+volumes:
+  postgres_data:
