@@ -19,8 +19,7 @@ public class OuterdisplayRepository {
             + "FROM order_t o "
             + "LEFT JOIN order_detail_t od ON o.order_id = od.order_id " // ★注文明細テーブルを結合
             + "LEFT JOIN goods_m g ON od.goods_id = g.goods_id "         // ★商品マスタと結合
-            + "WHERE o.status != '受取済' "
-            + "AND CAST(o.get_time AS DATE) = CURRENT_DATE "
+            + "WHERE CAST(o.get_time AS DATE) = CURRENT_DATE "
             + "ORDER BY o.get_time ASC";
 
     public List<Map<String, Object>> getAllActiveOrders() {

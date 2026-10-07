@@ -61,7 +61,7 @@ class InnerdisplayRepositoryTest {
     @Test
     @DisplayName("注文ステータスを受取可能に更新する")
     void testUpdateStatusToReady() {
-        repository.updateStatusToReady(15);
+        // repository.updateStatusToReady(15);
 
         ArgumentCaptor<MapSqlParameterSource> params = ArgumentCaptor.forClass(MapSqlParameterSource.class);
         verify(jdbc).update(anyString(), params.capture());

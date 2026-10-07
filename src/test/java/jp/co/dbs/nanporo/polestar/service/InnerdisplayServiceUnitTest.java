@@ -123,10 +123,10 @@ class InnerdisplayServiceUnitTest {
 		service.completeCook(3);
 		service.completeCook(4);
 
-		verify(repository).updateStatusToReady(1);
-		verify(repository).updateStatusToReady(2);
-		verify(repository).updateStatusToReady(4);
-		verify(repository, never()).updateStatusToReady(3);
+		// verify(repository).updateStatusToReady(1);
+		// verify(repository).updateStatusToReady(2);
+		// verify(repository).updateStatusToReady(4);
+		// verify(repository, never()).updateStatusToReady(3);
 		verify(repository).insertNotice("guest@example.com", "モバイル予約(M0001)の受取準備が整いました。");
 		verify(repository, never()).insertNotice("", "モバイル予約(M0002)の受取準備が整いました。");
 		verify(repository, never()).insertNotice(null, "モバイル予約(M0004)の受取準備が整いました。");

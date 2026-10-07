@@ -180,7 +180,7 @@ public class NotificationService {
             }
 
             userRepository.insertNoticeWithId(
-                    nextId,
+                    // nextId,
                     email,
                     now,
                     content
@@ -211,10 +211,9 @@ public class NotificationService {
      */
     private void insertNotice(String mail, String content) {
 
-        int nextId = userRepository.getMaxNoticeId() + 1;
+        // int nextId = userRepository.getMaxNoticeId() + 1;
 
         userRepository.insertNoticeWithId(
-                nextId,
                 mail,
                 LocalDateTime.now(),
                 content

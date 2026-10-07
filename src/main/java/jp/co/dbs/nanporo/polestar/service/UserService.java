@@ -331,7 +331,7 @@ public class UserService {
 
         // 顧客の人数分ループ
         for (String email : customerEmails) {
-            repository.insertNoticeWithId(nextId, email, now, content);
+            repository.insertNoticeWithId(email, now, content);
             nextId++; // ID+1
         }
     }
