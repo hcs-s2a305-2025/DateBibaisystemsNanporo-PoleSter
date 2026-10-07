@@ -4,27 +4,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jp.co.dbs.nanporo.polestar.entity.CustomEntity;
+import jp.co.dbs.nanporo.polestar.data.CasherHistoryDto;
 import jp.co.dbs.nanporo.polestar.entity.GoodsEntity;
 import jp.co.dbs.nanporo.polestar.entity.OrderDetailEntity;
 import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
@@ -36,6 +44,7 @@ import jp.co.dbs.nanporo.polestar.repository.OrderTRepository;
 import jp.co.dbs.nanporo.polestar.repository.StoreRepository;
 import jp.co.dbs.nanporo.polestar.repository.TransactionDetailRepository;
 import jp.co.dbs.nanporo.polestar.repository.TransactionRepository;
+import jp.co.dbs.nanporo.polestar.repository.UserRepository;
 import jp.co.dbs.nanporo.polestar.request.MobileOrderRequest;
 import jp.co.dbs.nanporo.polestar.request.PaymentRequest;
 
@@ -57,6 +66,9 @@ class PosServiceImpleUnitTest {
 
 	@Mock
 	private TransactionDetailRepository transactionDetailRepository;
+
+	@Mock
+	private UserRepository userRepository;
 
 	@InjectMocks
 	private PosServiceImple service;
@@ -278,13 +290,13 @@ class PosServiceImpleUnitTest {
 		var response = service.processPayment(request);
 
 		assertThat(response.getTransactionId()).isEqualTo(89);
-		assertThat(service.processPayment(payment(null, null, 0, null)).getTransactionId()).isEqualTo(89);
+		assertThat(service.processPayment(payment(null, "   ", 0, null)).getTransactionId()).isEqualTo(89);
 		ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
 		verify(orderTRepository, times(2)).save(orderCaptor.capture());
 		assertThat(orderCaptor.getAllValues()).extracting(OrderEntity::getOrderNumber)
 				.containsExactly("0043", "0001");
 		assertThat(orderCaptor.getValue().getMail()).isEqualTo("店頭注文");
-		assertThat(orderCaptor.getValue().getStatus()).isEqualTo("会計済");
+		assertThat(orderCaptor.getValue().getStatus()).isEqualTo("調理中");
 		ArgumentCaptor<TransactionEntity> transactionCaptor = ArgumentCaptor.forClass(TransactionEntity.class);
 		verify(transactionRepository, times(2)).save(transactionCaptor.capture());
 		assertThat(transactionCaptor.getAllValues()).extracting(TransactionEntity::getOrderId)
@@ -436,6 +448,319 @@ class PosServiceImpleUnitTest {
 		when(storeRepository.updateSoldOut("B001", false)).thenReturn(1);
 		service.updateGoodsSoldOut("B001", false);
 		verify(storeRepository).updateSoldOut("B001", false);
+	}
+
+	@ParameterizedTest
+	@CsvSource({
+			"19, 4, ゴールド, 0, 5",
+			"19, 2, シルバー, 0, 3",
+			"19, 0, ブロンズ, 0, 1",
+			"0, 0, 一般, 1, 0"
+	})
+	@DisplayName("会計でポイントカードを繰り越し、獲得数に応じて会員ランクを更新する")
+	void processPaymentUpdatesMemberPoints(int currentPoint, int currentCards, String expectedRank,
+			int expectedPoint, int expectedCards) {
+		prepareMemberSale(currentPoint, currentCards, "一般");
+
+		service.processPayment(payment(null, "{\"mail\":\"member@example.com\"}", 0,
+				List.of(paymentItem("B001", 1, 100))));
+
+		verify(userRepository).updateMemberPointAndRank("member@example.com", expectedPoint, expectedCards, expectedRank);
+	}
+
+	@Test
+	@DisplayName("ポイント対象の会員が存在しない場合はポイント更新を行わない")
+	void processPaymentSkipsMissingMember() {
+		prepareMemberSale(0, 0, "一般");
+		when(userRepository.findByMail("member@example.com"))
+				.thenThrow(new org.springframework.dao.EmptyResultDataAccessException(1));
+
+		service.processPayment(payment(null, "{\"mail\":\"member@example.com\"}", 0,
+				List.of(paymentItem("B001", 1, 100))));
+
+		verify(userRepository, never()).updateMemberPointAndRank(any(), any(Integer.class), any(Integer.class), any());
+	}
+
+	@Test
+	@DisplayName("顧客情報が空ならポイント計算を行わない")
+	void processPaymentSkipsEmptyMember() {
+		when(userRepository.findByMail("empty@example.com")).thenReturn(Map.of());
+		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
+			TransactionEntity transaction = invocation.getArgument(0);
+			transaction.setTransactionId(96);
+			return transaction;
+		});
+
+		service.processPayment(payment("M0998", "empty@example.com", 0, List.of()));
+
+		verify(userRepository, never()).updateMemberPointAndRank(any(), any(Integer.class), any(Integer.class), any());
+		verify(orderDetailRepository, times(1)).findByOrderId(0);
+	}
+
+	@Test
+	@DisplayName("会員検索結果がnullの場合はポイント計算を行わない")
+	void processPaymentSkipsNullMember() {
+		prepareStoreSale();
+		when(userRepository.findByMail("null@example.com")).thenReturn(null);
+
+		service.processPayment(payment(null, "null@example.com", 0, List.of()));
+
+		verify(userRepository, never()).updateMemberPointAndRank(any(), any(Integer.class), any(Integer.class), any());
+	}
+
+	@Test
+	@DisplayName("ザンギの追加数と欠落値を考慮してポイントを計算する")
+	void processPaymentCountsZangiWithMissingValues() {
+		when(orderTRepository.findMaxOrderNumberToday(any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.empty());
+		when(orderTRepository.save(any(OrderEntity.class))).thenAnswer(invocation -> {
+			OrderEntity order = invocation.getArgument(0);
+			order.setOrderId(56);
+			return order;
+		});
+		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
+			TransactionEntity transaction = invocation.getArgument(0);
+			transaction.setTransactionId(97);
+			return transaction;
+		});
+		GoodsEntity noZangiCount = new GoodsEntity();
+		noZangiCount.setGoodsName("個数未設定");
+		noZangiCount.setPrice(100);
+		when(storeRepository.getGoodsEntityById("B001")).thenReturn(Optional.of(noZangiCount));
+		when(storeRepository.getGoodsEntityById("B002")).thenReturn(Optional.empty());
+		OrderDetailEntity additionalZangi = detail("B001", null, 0, null);
+		additionalZangi.setPlusZangiCount(3);
+		OrderDetailEntity missingGoods = detail("B002", null, null, null);
+		when(orderDetailRepository.findByOrderId(56)).thenReturn(List.of(additionalZangi, missingGoods));
+		Map<String, Object> member = new HashMap<>();
+		member.put("point", null);
+		member.put("point_card_complete", null);
+		member.put("member_rank", "一般");
+		when(userRepository.findByMail("member@example.com")).thenReturn(member);
+
+		service.processPayment(payment(null, "{\"mail\":\"member@example.com\"}", 0, List.of()));
+
+		verify(userRepository).updateMemberPointAndRank("member@example.com", 3, 0, "一般");
+	}
+
+	@Test
+	@DisplayName("ザンギ加算が0なら既存会員のポイントを変更しない")
+	void processPaymentDoesNotUpdatePointsWithoutZangi() {
+		OrderEntity order = order(91, "M0091", "member@example.com");
+		when(orderTRepository.findTodayOrderByNumber(eq("M0091"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order));
+		when(orderDetailRepository.findByOrderId(91)).thenReturn(List.of(detail("B404", null, 1, null)));
+		when(storeRepository.getGoodsEntityById("B404")).thenReturn(Optional.empty());
+		when(userRepository.findByMail("member@example.com")).thenReturn(Map.of(
+				"point", 10, "point_card_complete", 2, "member_rank", "ブロンズ"));
+		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
+			TransactionEntity transaction = invocation.getArgument(0);
+			transaction.setTransactionId(98);
+			return transaction;
+		});
+
+		service.processPayment(payment("M0091", null, 0, List.of()));
+
+		verify(userRepository, never()).updateMemberPointAndRank(any(), any(Integer.class), any(Integer.class), any());
+	}
+
+	@Test
+	@DisplayName("予約ユーザーのメールアドレスがnullまたは空白の場合はポイント照会を省略する")
+	void processPaymentSkipsBlankOrderMail() {
+		OrderEntity blankMailOrder = order(92, "M0092", "  ");
+		OrderEntity nullMailOrder = order(93, "M0093", null);
+		when(orderTRepository.findTodayOrderByNumber(any(), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(blankMailOrder), Optional.of(nullMailOrder));
+		when(orderDetailRepository.findByOrderId(92)).thenReturn(List.of());
+		when(orderDetailRepository.findByOrderId(93)).thenReturn(List.of());
+		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
+			TransactionEntity transaction = invocation.getArgument(0);
+			transaction.setTransactionId(100);
+			return transaction;
+		});
+
+		service.processPayment(payment("M0092", null, 0, List.of()));
+		service.processPayment(payment("M0093", null, 0, List.of()));
+
+		verify(userRepository, never()).findByMail(anyString());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"{\"mail\": }", "{\"user\":\"member@example.com\"}"})
+	@DisplayName("不完全なQR JSONはメール形式に変換せずそのまま検索する")
+	void processPaymentWithUnparseableQrJson(String qrId) {
+		prepareStoreSale();
+
+		service.processPayment(payment(null, qrId, 0, List.of()));
+
+		verify(userRepository).findByMail(qrId);
+	}
+
+	@Test
+	@DisplayName("会計履歴の明細・合計を生成し、null値とオプションの欠落を処理する")
+	void getCasherHistory() {
+		LocalDate date = LocalDate.now();
+		TransactionEntity withValues = new TransactionEntity();
+		withValues.setTransactionId(1);
+		withValues.setTransactionDate(date.atTime(12, 34, 56));
+		withValues.setSumMoney(1200);
+		withValues.setReceivedMoney(1500);
+		withValues.setChangeMoney(300);
+		withValues.setUseCoupon("  クーポン  ");
+		TransactionEntity withNullValues = new TransactionEntity();
+		withNullValues.setTransactionId(2);
+		withNullValues.setUseCoupon("  ");
+		TransactionEntity withNullCoupon = new TransactionEntity();
+		withNullCoupon.setTransactionId(3);
+
+		TransactionDetailEntity detailWithOptions = new TransactionDetailEntity();
+		detailWithOptions.setGoodsName("弁当");
+		detailWithOptions.setCount(2);
+		detailWithOptions.setSetGoodsName("サラダ");
+		detailWithOptions.setCustomId(50);
+		TransactionDetailEntity detailWithoutOptions = new TransactionDetailEntity();
+		detailWithoutOptions.setGoodsName("お茶");
+		detailWithoutOptions.setCount(1);
+		detailWithoutOptions.setSetGoodsName("");
+		detailWithoutOptions.setCustomId(51);
+		TransactionDetailEntity detailWithNullValues = new TransactionDetailEntity();
+		detailWithNullValues.setGoodsName("不明数");
+		detailWithNullValues.setSetGoodsName(null);
+		detailWithNullValues.setCustomId(null);
+		TransactionDetailEntity detailWithNullCustomName = new TransactionDetailEntity();
+		detailWithNullCustomName.setGoodsName("名前なし");
+		detailWithNullCustomName.setCount(null);
+		detailWithNullCustomName.setSetGoodsName("");
+		detailWithNullCustomName.setCustomId(52);
+		when(transactionRepository.findByTransactionDateBetweenOrderByTransactionDateDesc(
+				any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(List.of(withValues, withNullValues, withNullCoupon));
+		when(transactionDetailRepository.findByTransactionId(1))
+				.thenReturn(List.of(detailWithOptions, detailWithoutOptions,
+						detailWithNullValues, detailWithNullCustomName));
+		when(transactionDetailRepository.findByTransactionId(2)).thenReturn(List.of());
+		when(transactionDetailRepository.findByTransactionId(3)).thenReturn(List.of());
+		CustomEntity custom = new CustomEntity();
+		custom.setGoodsName("ソース");
+		when(storeRepository.getCustomEntityById(50)).thenReturn(Optional.of(custom));
+		when(storeRepository.getCustomEntityById(51)).thenReturn(Optional.empty());
+		CustomEntity customWithoutName = new CustomEntity();
+		when(storeRepository.getCustomEntityById(52)).thenReturn(Optional.of(customWithoutName));
+
+		Map<String, Object> result = service.getCasherHistory(null);
+
+		assertThat(result).containsEntry("selectedDate", date.toString())
+				.containsEntry("totalSales", 1200)
+				.containsEntry("totalCustomers", 3);
+		List<?> history = (List<?>) result.get("historyList");
+		assertThat(history).hasSize(3);
+		CasherHistoryDto first = (CasherHistoryDto) history.get(0);
+		assertThat(first.getTime()).isEqualTo("12:34:56");
+		assertThat(first.getGoodsName()).isEqualTo("弁当 ×2, お茶, 不明数, 名前なし");
+		assertThat(first.getDetail()).isEqualTo("セット:サラダ / ソース / 利用:  クーポン  ");
+		assertThat(first.getSumMoney()).isEqualTo(1200);
+		assertThat(first.getReceivedMoney()).isEqualTo(1500);
+		assertThat(first.getChangeMoney()).isEqualTo(300);
+		CasherHistoryDto second = (CasherHistoryDto) history.get(1);
+		assertThat(second.getTime()).isEmpty();
+		assertThat(second.getSumMoney()).isZero();
+		assertThat(second.getReceivedMoney()).isZero();
+		assertThat(second.getChangeMoney()).isZero();
+		assertThat(second.getDetail()).isEmpty();
+		assertThat(((CasherHistoryDto) history.get(2)).getDetail()).isEmpty();
+		verify(transactionRepository).findByTransactionDateBetweenOrderByTransactionDateDesc(
+				date.atStartOfDay(), date.atTime(java.time.LocalTime.MAX));
+	}
+
+	@Test
+	@DisplayName("指定日の会計履歴が空の場合は0件の集計を返す")
+	void getCasherHistoryForDateWithoutTransactions() {
+		LocalDate date = LocalDate.of(2026, 10, 1);
+		when(transactionRepository.findByTransactionDateBetweenOrderByTransactionDateDesc(
+				any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
+
+		Map<String, Object> result = service.getCasherHistory(date);
+
+		assertThat(result).containsEntry("selectedDate", date.toString())
+				.containsEntry("historyList", List.of())
+				.containsEntry("totalSales", 0)
+				.containsEntry("totalCustomers", 0);
+	}
+
+	@Test
+	@DisplayName("会計金額の必須IDを検証し、null金額を0にして保存する")
+	void updateTransactionMoney() {
+		assertThatThrownBy(() -> service.updateTransactionMoney(null, 100, 100, 0))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("取引IDが指定されていません。");
+		assertThatThrownBy(() -> service.updateTransactionMoney(99, 100, 100, 0))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("指定された取引が見つかりません。ID: 99");
+
+		TransactionEntity transaction = new TransactionEntity();
+		when(transactionRepository.findById(3)).thenReturn(Optional.of(transaction));
+		service.updateTransactionMoney(3, null, null, null);
+
+		assertThat(transaction.getSumMoney()).isZero();
+		assertThat(transaction.getReceivedMoney()).isZero();
+		assertThat(transaction.getChangeMoney()).isZero();
+		verify(transactionRepository).save(transaction);
+	}
+
+	@Test
+	@DisplayName("会計金額に指定された値を保存する")
+	void updateTransactionMoneyWithValues() {
+		TransactionEntity transaction = new TransactionEntity();
+		when(transactionRepository.findById(4)).thenReturn(Optional.of(transaction));
+
+		service.updateTransactionMoney(4, 1000, 1500, 500);
+
+		assertThat(transaction.getSumMoney()).isEqualTo(1000);
+		assertThat(transaction.getReceivedMoney()).isEqualTo(1500);
+		assertThat(transaction.getChangeMoney()).isEqualTo(500);
+		verify(transactionRepository).save(transaction);
+	}
+
+	private void prepareMemberSale(int currentPoint, int currentCards, String currentRank) {
+		when(orderTRepository.findMaxOrderNumberToday(any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.empty());
+		when(orderTRepository.save(any(OrderEntity.class))).thenAnswer(invocation -> {
+			OrderEntity order = invocation.getArgument(0);
+			order.setOrderId(55);
+			return order;
+		});
+		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
+			TransactionEntity transaction = invocation.getArgument(0);
+			transaction.setTransactionId(95);
+			return transaction;
+		});
+		GoodsEntity goods = new GoodsEntity();
+		goods.setGoodsName("商品");
+		goods.setPrice(100);
+		goods.setZangiCount(1);
+		when(storeRepository.getGoodsEntityById("B001")).thenReturn(Optional.of(goods));
+		when(orderDetailRepository.findByOrderId(55)).thenReturn(List.of(detail("B001", null, 1, null)));
+		Map<String, Object> member = new HashMap<>();
+		member.put("point", currentPoint);
+		member.put("point_card_complete", currentCards);
+		member.put("member_rank", currentRank);
+		when(userRepository.findByMail("member@example.com")).thenReturn(member);
+	}
+
+	private void prepareStoreSale() {
+		when(orderTRepository.findMaxOrderNumberToday(any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.empty());
+		when(orderTRepository.save(any(OrderEntity.class))).thenAnswer(invocation -> {
+			OrderEntity order = invocation.getArgument(0);
+			order.setOrderId(57);
+			return order;
+		});
+		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
+			TransactionEntity transaction = invocation.getArgument(0);
+			transaction.setTransactionId(99);
+			return transaction;
+		});
+		when(orderDetailRepository.findByOrderId(57)).thenReturn(List.of());
 	}
 
 	private PaymentRequest.PaymentItemRequest paymentItem(String productId, Integer quantity, Integer total,

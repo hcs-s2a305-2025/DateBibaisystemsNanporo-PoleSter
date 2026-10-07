@@ -268,6 +268,35 @@ class UserServiceUnitTest {
         assertThat(service.getCloseDay()).isEqualTo("臨時休業");
     }
 
+    @Test
+    @DisplayName("休業日はLocalDateまたはISO文字列でも照合する")
+    void getCloseDaySupportsLocalDateAndString() {
+        when(repository.getCloseDay())
+                .thenReturn(List.of(closeDayRow(LocalDate.now(), "定休日")))
+                .thenReturn(List.of(closeDayRow(LocalDate.now().toString(), "臨時休業")));
+
+        assertThat(service.getCloseDay()).isEqualTo("定休日");
+        assertThat(service.getCloseDay()).isEqualTo("臨時休業");
+    }
+
+    @Test
+    @DisplayName("null・未対応形式・別日の休業情報は一致しない")
+    void getCloseDayWithoutMatchingDate() {
+        when(repository.getCloseDay()).thenReturn(List.of(
+                closeDayRow(null, "未設定"),
+                closeDayRow(LocalDateTime.now(), "未対応"),
+                closeDayRow(LocalDate.now().plusDays(1).toString(), "翌日休業")));
+
+        assertThat(service.getCloseDay()).isNull();
+    }
+
+    private Map<String, Object> closeDayRow(Object date, String closeType) {
+        Map<String, Object> row = new HashMap<>();
+        row.put("close_day", date);
+        row.put("close_type", closeType);
+        return row;
+    }
+
     private HttpEntity captureAiRequest(MockedConstruction<RestTemplate> restTemplates) {
         ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplates.constructed().get(0)).postForEntity(

@@ -7,16 +7,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
+import java.util.Arrays;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.ui.ExtendedModelMap;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jp.co.dbs.nanporo.polestar.service.UserService;
@@ -30,13 +34,42 @@ class LoginControllerTest {
     @Mock
     private RedirectAttributes redirectAttributes;
 
-    @InjectMocks
     private LoginController controller;
 
+    @BeforeEach
+    void setUp() {
+        controller = new LoginController(mock(AuthenticationManager.class));
+        controller.service = service;
+    }
+
     @Test
-    @DisplayName("ログイン画面を返す")
+    @DisplayName("ログイン画面を返し、画面表示時に休業日を通知する")
     void testGetLogin() {
-        assertThat(controller.getLogin(null)).isEqualTo("login");
+        ExtendedModelMap model = new ExtendedModelMap();
+        when(service.getCloseDay()).thenReturn("定休日");
+
+        assertThat(controller.getLogin(model)).isEqualTo("login");
+        assertThat(model.get("closedMessage")).isEqualTo("本日は「定休日」のため、店長のみログイン可能です。");
+    }
+
+    @Test
+    @DisplayName("営業日はログイン画面に休業日メッセージを表示しない")
+    void testGetLoginOnOpenDay() {
+        ExtendedModelMap model = new ExtendedModelMap();
+        when(service.getCloseDay()).thenReturn(null);
+
+        assertThat(controller.getLogin(model)).isEqualTo("login");
+        assertThat(model.containsAttribute("closedMessage")).isFalse();
+    }
+
+    @Test
+    @DisplayName("ログイン画面に既存の休業日メッセージがあれば再取得しない")
+    void testGetLoginWithExistingMessage() {
+        ExtendedModelMap model = new ExtendedModelMap();
+        model.addAttribute("closedMessage", "通知済み");
+
+        assertThat(controller.getLogin(model)).isEqualTo("login");
+        verifyNoInteractions(service);
     }
 
     @Test
@@ -50,10 +83,7 @@ class LoginControllerTest {
     @Test
     @DisplayName("休業日：店長権限は休業日であってもログインできスタッフ画面へ遷移する")
     void testLoginSuccessForManagerOnClosedDay() {
-        // 休業日（「臨時休業」）が設定されていても、店長はスルーされる
-        when(service.getCloseDay()).thenReturn("臨時休業");
-
-        assertThat(controller.loginSuccess(authentication("店長"), null, redirectAttributes))
+        assertThat(controller.loginSuccess(authentication("店長"), request(), redirectAttributes))
                 .isEqualTo("redirect:/w/home");
 
         // redirectAttributes にメッセージが設定されていないことを検証
@@ -65,7 +95,7 @@ class LoginControllerTest {
     void testLoginSuccessForStaffOnOpenDay() {
         when(service.getCloseDay()).thenReturn(null);
 
-        assertThat(controller.loginSuccess(authentication("ROLE_店員"), null, redirectAttributes))
+        assertThat(controller.loginSuccess(authentication("ROLE_店員"), request(), redirectAttributes))
                 .isEqualTo("redirect:/w/home");
     }
 
@@ -74,12 +104,14 @@ class LoginControllerTest {
     void testLoginSuccessForStaffOnClosedDay() {
         when(service.getCloseDay()).thenReturn("定休日");
 
-        String result = controller.loginSuccess(authentication("ROLE_店員"), null, redirectAttributes);
+        HttpServletRequest request = requestWithSession();
+        String result = controller.loginSuccess(authentication("ROLE_店員"), request, redirectAttributes);
 
         assertThat(result).isEqualTo("redirect:/login");
+        verify(request.getSession(false)).invalidate();
         verify(redirectAttributes).addFlashAttribute(
             "closedMessage", 
-            "本日は「定休日」のため、システムを休止しております。"
+            "本日は「定休日」のため、店長以外のログインを制限しております。"
         );
     }
 
@@ -88,9 +120,9 @@ class LoginControllerTest {
     void testLoginSuccessForCustomerOrAnonymousOnOpenDay() {
         when(service.getCloseDay()).thenReturn(null);
 
-        assertThat(controller.loginSuccess(authentication("ROLE_顧客"), null, redirectAttributes))
+        assertThat(controller.loginSuccess(authentication("ROLE_顧客"), request(), redirectAttributes))
                 .isEqualTo("redirect:/");
-        assertThat(controller.loginSuccess(null, null, redirectAttributes))
+        assertThat(controller.loginSuccess(null, request(), redirectAttributes))
                 .isEqualTo("redirect:/");
     }
 
@@ -99,19 +131,39 @@ class LoginControllerTest {
     void testLoginSuccessForCustomerOrAnonymousOnClosedDay() {
         when(service.getCloseDay()).thenReturn("臨時休業");
 
-        String resultCustomer = controller.loginSuccess(authentication("ROLE_顧客"), null, redirectAttributes);
+        String resultCustomer = controller.loginSuccess(authentication("ROLE_顧客"), request(), redirectAttributes);
 
         assertThat(resultCustomer).isEqualTo("redirect:/login");
         verify(redirectAttributes).addFlashAttribute(
             "closedMessage", 
-            "本日は「臨時休業」のため、システムを休止しております。"
+            "本日は「臨時休業」のため、店長以外のログインを制限しております。"
         );
     }
 
-    private Authentication authentication(String authority) {
+    @Test
+    @DisplayName("休業日でセッションがない場合も顧客をログイン画面へ戻す")
+    void testLoginSuccessForAnonymousOnClosedDayWithoutSession() {
+        when(service.getCloseDay()).thenReturn("臨時休業");
+
+        assertThat(controller.loginSuccess(null, request(), redirectAttributes)).isEqualTo("redirect:/login");
+        verify(redirectAttributes).addFlashAttribute(
+                "closedMessage", "本日は「臨時休業」のため、店長以外のログインを制限しております。");
+    }
+
+    private Authentication authentication(String... authorities) {
         Authentication authentication = mock(Authentication.class);
-        doReturn(List.of(new SimpleGrantedAuthority(authority)))
+        doReturn(Arrays.stream(authorities).map(SimpleGrantedAuthority::new).toList())
                 .when(authentication).getAuthorities();
         return authentication;
+    }
+
+    private HttpServletRequest request() {
+        return mock(HttpServletRequest.class);
+    }
+
+    private HttpServletRequest requestWithSession() {
+        HttpServletRequest request = request();
+        when(request.getSession(false)).thenReturn(mock(HttpSession.class));
+        return request;
     }
 }
