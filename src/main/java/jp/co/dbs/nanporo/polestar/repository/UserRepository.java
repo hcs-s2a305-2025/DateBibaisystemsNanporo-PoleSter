@@ -322,14 +322,13 @@ public class UserRepository {
      * @param registerTime 登録日時
      * @param content 通知内容
      */
-    public void insertNoticeWithId(int noticeId, String mail, LocalDateTime registerTime, String content) {
+    public void insertNoticeWithId(String mail, LocalDateTime registerTime, String content) {
         String sql = """
-            INSERT INTO notice_t (notice_id, mail, register_time, content)
-            VALUES (:noticeId, :mail, :registerTime, :content)
+            INSERT INTO notice_t (mail, register_time, content)
+            VALUES (:mail, :registerTime, :content)
             """;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("noticeId", noticeId);
         params.put("mail", mail);
         params.put("registerTime", registerTime);
         params.put("content", content);

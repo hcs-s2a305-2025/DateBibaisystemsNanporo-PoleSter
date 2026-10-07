@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,9 @@ public class OuterdisplayService {
 
     @Autowired
     private OuterdisplayRepository outerdisplayRepository;
+
+    // お呼び出し開始時刻を保持するスレッドセーフなマップ（注文ID -> お呼び出し開始日時）
+    private final Map<Integer, LocalDateTime> callingStartTimeMap = new ConcurrentHashMap<>();
 
     // 数値型・文字列型を安全に Integer へ変換するメソッド
     private Integer toInteger(Object value) {
@@ -46,11 +52,27 @@ public class OuterdisplayService {
                             ("受付".equals(o.getOrder().getStatus()) || "調理中".equals(o.getOrder().getStatus())))
                 .collect(Collectors.toList());
 
-        // 2. 画像右側: 「お呼び出し中」のリストを抽出（ステータスが '受取可' または '呼び出し中' の注文）
+        // 2. 画像右側: 「お呼び出し中」のリスト（ステータスが '完成' または '受取済' かつ 呼び出し開始から2分以内）
+        LocalDateTime now = LocalDateTime.now();
         List<ActiveOrderResponse> callingList = allActiveOrders.stream()
                 .filter(o -> o.getOrder() != null && 
-                            ("受取可".equals(o.getOrder().getStatus()) || "呼び出し中".equals(o.getOrder().getStatus())))
+                            ("完成".equals(o.getOrder().getStatus()) || "受取済".equals(o.getOrder().getStatus())))
+                .filter(o -> {
+                    Integer orderId = o.getOrder().getOrderId();
+                    // 初めてお呼び出し対象になった注文の時刻を記録（すでに存在する場合は保持）
+                    callingStartTimeMap.putIfAbsent(orderId, now);
+                    
+                    LocalDateTime startTime = callingStartTimeMap.get(orderId);
+                    
+                    // お呼び出し開始から 5分（300秒）以内のみ表示リストに含める
+                    return Duration.between(startTime, now).getSeconds() < 300;
+                })
                 .collect(Collectors.toList());
+
+        // 古いメモリキャッシュの自動クリーンアップ（1時間以上経過した不要なデータを削除）
+        callingStartTimeMap.entrySet().removeIf(entry -> 
+            Duration.between(entry.getValue(), now).toHours() >= 1
+        );
 
         response.setCookingOrders(cookingList);
         response.setCallingOrders(callingList);

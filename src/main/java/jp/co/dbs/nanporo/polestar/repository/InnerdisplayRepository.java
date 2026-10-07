@@ -25,8 +25,11 @@ public class InnerdisplayRepository {
             + "AND CAST(o.get_time AS DATE) = CURRENT_DATE "
             + "ORDER BY o.get_time ASC, o.order_id ASC, od.order_count ASC";
 
-    private static final String UPDATE_STATUS_TO_READY = 
-            "UPDATE order_t SET status = '受取可' WHERE order_id = :orderId";
+    // private static final String UPDATE_STATUS_TO_READY = 
+    //         "UPDATE order_t SET status = '受取可' WHERE order_id = :orderId";
+    // ステータスを動的に更新するSQL
+    private static final String UPDATE_STATUS = 
+            "UPDATE order_t SET status = :status WHERE order_id = :orderId";
 
     // 対象注文の mail と order_number を取得
     private static final String SELECT_ORDER_BY_ID = 
@@ -47,9 +50,16 @@ public class InnerdisplayRepository {
         return list.isEmpty() ? null : list.get(0);
     }
 
-    public void updateStatusToReady(Integer orderId) {
-        MapSqlParameterSource params = new MapSqlParameterSource().addValue("orderId", orderId);
-        jdbc.update(UPDATE_STATUS_TO_READY, params);
+    // public void updateStatusToReady(Integer orderId) {
+    //     MapSqlParameterSource params = new MapSqlParameterSource().addValue("orderId", orderId);
+    //     jdbc.update(UPDATE_STATUS_TO_READY, params);
+    // }
+    // 指定したステータスに更新するメソッド
+    public void updateStatus(Integer orderId, String status) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("orderId", orderId)
+                .addValue("status", status);
+        jdbc.update(UPDATE_STATUS, params);
     }
 
     public void insertNotice(String mail, String content) {
