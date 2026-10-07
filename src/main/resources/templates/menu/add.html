@@ -42,9 +42,11 @@
                     <!-- 例：商品カテゴリを判定するためのhidden値 -->
                     <input type="hidden" id="goodsId" th:value="${goods.goodsId}" value="side" />
                     <input type="hidden" id="basePrice" th:value="${goods.price}" value="780" />
+
+                    <!-- 1. ご飯の量：単品（Sから始まるID）以外のお弁当すべてで表示 -->
                     <div class="add-selector d-flex align-items-center mb-3"
-                        th:if="${#strings.startsWith(goods.goodsId, 'B') || #strings.startsWith(goods.goodsId, 'U')}">
-                        <h2 class="fs-5 me-3 mb-0 col-auto">ご飯の量：</h2>
+                        th:if="${!#strings.startsWith(goods.goodsId, 'S')}">
+                        <h2 class="fs-5 me-3 mb-0 col-auto"> ご飯の量：</h2>
                         <select id="riceSelect" class="form-select form-select-sm col" name="riceAmount">
                             <option value="20" data-price="0" th:selected="${selectedRice == '20'}" selected>普通 (250g)</option>
                             <option value="10" data-price="-30" th:selected="${selectedRice == '10'}">小盛り (150g) (-30円)</option>
@@ -52,9 +54,11 @@
                             <option value="40" data-price="100" th:selected="${selectedRice == '40'}">特盛 (450g) (+100円)</option>
                         </select>
                     </div>
+
+                    <!-- 2. ソース：ザンギ弁当（BまたはUから始まるID）のみ表示 -->
                     <div class="add-selector d-flex align-items-center mb-3"
-                        th:if="${#strings.contains(goods.goodsName, 'ザンギ')}">
-                        <h2 class="fs-5 me-3 mb-0 col-auto">　ソース：</h2>
+                        th:if="${#strings.startsWith(goods.goodsId, 'B') || #strings.startsWith(goods.goodsId, 'U')}">
+                        <h2 class="fs-5 me-3 mb-0 col-auto">  ソース：</h2>
                         <select id="sourceSelect" class="form-select form-select-sm col" name="sourceType">
                             <option value="0" data-price="0" th:selected="${selectedSource == '0'}">なし</option>
                             <option value="50" data-price="80" th:selected="${selectedSource == '50'}">おろしポン酢ソース (+80円)</option>
@@ -69,6 +73,26 @@
                             <option value="80" data-price="100" th:selected="${selectedSource == '80'}">皆辣麻婆ソース (+100円)</option>
                             <option value="81" data-price="140" th:selected="${selectedSource == '81'}">皆辣麻婆ソースだく (+140円)</option>
                             <option value="82" data-price="180" th:selected="${selectedSource == '82'}">皆辣麻婆ソースだくだく (+180円)</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. セット商品：単品（Sから始まるID）以外のお弁当すべてで表示 -->
+                    <div class="add-selector d-flex align-items-center mb-3"
+                        th:if="${!#strings.startsWith(goods.goodsId, 'S')}">
+                        <h2 class="fs-5 me-3 mb-0 col-auto">セット商品：</h2>
+                        <select id="setSelect" class="form-select form-select-sm col" name="setGoodsId">
+                            <!-- 「なし」は全ての弁当で表示 -->
+                            <option value="0" data-price="0" th:selected="${selectedSet == '0'}">なし</option>
+                            
+                            <!-- 満腹ザンギセット（3種）：ザンギ弁当（BまたはUで始まるID）のみ表示 -->
+                            <th:block th:if="${#strings.startsWith(goods.goodsId, 'B') || #strings.startsWith(goods.goodsId, 'U')}">
+                                <option value="11" data-price="200" th:selected="${selectedSet == '11'}">満腹ザンギセット (味噌汁＋ポテトサラダ) (+200円)</option>
+                                <option value="12" data-price="200" th:selected="${selectedSet == '12'}">満腹ザンギセット (味噌汁＋大根サラダ) (+200円)</option>
+                                <option value="13" data-price="200" th:selected="${selectedSet == '13'}">満腹ザンギセット (味噌汁＋マカロニたまご) (+200円)</option>
+                            </th:block>
+
+                            <!-- 定番コンビセット：すべての弁当で表示 -->
+                            <option value="20" data-price="200" th:selected="${selectedSet == '20'}">定番コンビセット (味噌汁＋緑茶) (+200円)</option>
                         </select>
                     </div>
 

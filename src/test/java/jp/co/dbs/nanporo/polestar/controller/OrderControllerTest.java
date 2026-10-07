@@ -211,7 +211,7 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("missing")).thenReturn(null);
         MockHttpSession session = new MockHttpSession();
 
-        assertThat(controller.addToCart("missing", 0, "20", "0", null, session)).isEqualTo("redirect:/menu");
+        assertThat(controller.addToCart("missing", 0, "20", "0", "0", null, session)).isEqualTo("redirect:/menu");
         assertThat(session.getAttribute("cart")).isNull();
     }
 
@@ -221,7 +221,7 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         MockHttpSession session = new MockHttpSession();
 
-        assertThat(controller.addToCart("G1", 5, "20", "0", null, session)).isEqualTo("redirect:/cart");
+        assertThat(controller.addToCart("G1", 5, "20", "0", "0", null, session)).isEqualTo("redirect:/cart");
 
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getGoodsId()).isEqualTo("G1");
@@ -237,7 +237,7 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         MockHttpSession session = new MockHttpSession();
 
-        controller.addToCart("G1", 5, "20", "0", "  ", session);
+        controller.addToCart("G1", 5, "20", "0", "0", "  ", session);
 
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getCartItemId()).isNotBlank().isNotEqualTo("  ");
@@ -249,7 +249,7 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         MockHttpSession session = new MockHttpSession();
 
-        controller.addToCart("G1", 6, riceCode, "0", null, session);
+        controller.addToCart("G1", 6, riceCode, "0", "0", null, session);
 
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getRicePrice()).isEqualTo(expectedPrice);
@@ -263,7 +263,7 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         MockHttpSession session = new MockHttpSession();
 
-        controller.addToCart("G1", 0, "0", "0", null, session);
+        controller.addToCart("G1", 0, "0", "0", "0", null, session);
 
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getRiceAmount()).isEqualTo("なし");
@@ -283,7 +283,7 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         MockHttpSession session = new MockHttpSession();
 
-        controller.addToCart("G1", 0, "20", sourceCode, null, session);
+        controller.addToCart("G1", 0, "20", sourceCode, "0", null, session);
 
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getSourcePrice()).isEqualTo(expectedPrice);
@@ -297,7 +297,7 @@ class OrderControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("cart", new ArrayList<>(List.of(cartItem("edit-1", "OLD", 10, "0"))));
 
-        controller.addToCart("G1", 5, "20", "0", "edit-1", session);
+        controller.addToCart("G1", 5, "20", "0", "0", "edit-1", session);
 
         List<CartData> cart = (List<CartData>) session.getAttribute("cart");
         assertThat(cart).hasSize(1);

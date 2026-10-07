@@ -22,6 +22,18 @@ public class CartData {
     private String sourceCode;  // （例: "0", "50", "51"）
     private String sourceType; // ソース名（例: "おろしポン酢ソース"）
     private Integer sourcePrice; // ソースの加算料金
+
+    private String setGoodsId; // セット商品ID（nullの場合はセット商品ではない）
+    private String setGoodsName; // セット商品名（nullの場合はセット商品ではない
+    private Integer setPrice; // セット商品の加算料金（nullの場合はセット商品ではない）
     
     private Integer totalPrice; // 1個当たりの小計（基本価格 + オプション料金）
+
+
+    public String getSetGoodsId() {
+        return setGoodsId;
+    }
+    public void setSetGoodsId(String setGoodsId) {
+        this.setGoodsId = setGoodsId;
+    }
 }

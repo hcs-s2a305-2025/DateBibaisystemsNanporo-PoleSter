@@ -79,32 +79,41 @@ public class OrderService {
             for (OrderDetailRequest detailRequest : detailList) {
                 OrderDetailData detail = new OrderDetailData();
                 detail.setOrderId(orderId);
-                detail.setOrderCount(Integer.valueOf(orderCount++));
+                detail.setOrderCount(orderCount++);
                 
                 String goodsId = detailRequest.getGoodsId();
                 detail.setGoodsId(goodsId);
+                
+                // --- ★1. setGoodsId の設定（0やnull対策） ---
+                Integer setGoodsId = detailRequest.getSetGoodsId();
+                if (setGoodsId != null && setGoodsId > 0) {
+                    detail.setSetGoodsId(setGoodsId);
+                } else {
+                    detail.setSetGoodsId(null); // 0やnullの場合はDBにNULLで登録
+                }
 
-                // --- ここから修正：サイドメニューとお弁当のライスコード分岐 ---
-                // --- 修正：ご飯の量（setGoodsId）の設定 ---
-                // --- 修正：OrderService の明細設定部分 ---
+                // --- ★2. customId (ご飯の量・ソース) の設定 ---
                 boolean isSideMenu = goodsId != null && goodsId.toUpperCase().startsWith("S");
-
-                // setGoodsId はマスタにない場合エラーになるため、今回はそのままか null
-                detail.setSetGoodsId(detailRequest.getSetGoodsId());
-
-                // customId (ご飯の量やソース) をそのまま設定
                 if (isSideMenu) {
                     detail.setCustomId(0); // サイドメニューはカスタムなし(0)
                 } else {
-                    // 届いた customId が null の場合は 20(普通) にする
                     Integer cId = detailRequest.getCustomId();
+                    // 届いた customId が null または 0 の場合は 20(普通) にする
                     detail.setCustomId((cId == null || cId == 0) ? 20 : cId);
                 }
 
-                detail.setCount(detailRequest.getCount());
-                detail.setPlusZangiCount(detailRequest.getPlusZangiCount());
-                detail.setCustomId(detailRequest.getCustomId());
+                // --- ★3. setSetGoodsId の設定（0やnull対策） ---
+                detail.setSetGoodsId(detailRequest.getSetGoodsId());
 
+                detail.setCount(detailRequest.getCount());
+                
+                // プラスザンギ数の設定 (null対策)
+                Integer plusZangi = detailRequest.getPlusZangiCount();
+                detail.setPlusZangiCount(plusZangi != null ? plusZangi : 0);
+
+                // ✕ 不要な重複行（108行目の detail.setCustomId(detailRequest.getCustomId()); は削除します）
+
+                // DBへのインサート実行
                 int insertedDetail = orderRepository.insertOrderDetail(detail);
                 if (insertedDetail != 1) {
                     throw new RuntimeException("注文明細の登録に失敗しました。");

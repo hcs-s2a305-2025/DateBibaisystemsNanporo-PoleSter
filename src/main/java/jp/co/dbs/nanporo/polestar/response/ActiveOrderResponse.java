@@ -21,8 +21,12 @@ public class ActiveOrderResponse {
         private String riceAmount;
         private Integer ricePrice;
 
-        // ★ ソース関係（ここを追加します）
+        // ソース関係
         private String sourceName;
         private Integer sourcePrice;
+
+        // セット商品関係
+        private String setName;
+        private Integer setPrice;
     }
 }

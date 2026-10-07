@@ -155,6 +155,7 @@ public class OrderController {
             @RequestParam(value = "zangiCount", defaultValue = "0") Integer zangiCount,
             @RequestParam(value = "riceAmount", defaultValue = "standard") String riceAmount,
             @RequestParam(value = "sourceType", defaultValue = "none") String sourceType,
+            @RequestParam (value = "setGoodsId", defaultValue = "0") String setGoodsName,
             @RequestParam(value = "editCartItemId", required = false) String editCartItemId,
             HttpSession session) {
 
@@ -183,6 +184,7 @@ public class OrderController {
         int zPrice = getZangiPrice(zangiCount);
         int rPrice = getRicePrice(riceAmount);
         int sPrice = getSourcePrice(sourceType);
+        int setPrice = getSetGoodsPrice(setGoodsName);
 
         item.setGoodsId(goods.getGoodsId());
         item.setGoodsName(goods.getGoodsName());
@@ -201,7 +203,11 @@ public class OrderController {
         item.setSourceCode(sourceType);
         item.setSourceType(getSourceName(sourceType));
         item.setSourcePrice(sPrice);
-        
+
+        item.setSetGoodsId(setGoodsName);
+        item.setSetGoodsName(getSetName(setGoodsName));
+        item.setSetPrice(setPrice);
+
         item.setTotalPrice(goods.getPrice() + zPrice + rPrice + sPrice);
 
         cart.add(item);
@@ -279,7 +285,7 @@ public class OrderController {
             }
 
             // 2. 時間チェック（閉店時間 15:00 超過チェック）
-            if (pickupDateTime.toLocalTime().isAfter(java.time.LocalTime.of(15, 0))) {
+            if (pickupDateTime.toLocalTime().isAfter(java.time.LocalTime.of(18, 0))) {
                 return "redirect:/cart";
             }
 
@@ -329,16 +335,28 @@ public class OrderController {
                 }
             }
 
+            int setGoodsId = 0;
+            if (item.getSetGoodsId() != null && !item.getSetGoodsId().trim().isEmpty()) {
+                try {
+                    setGoodsId = Integer.parseInt(item.getSetGoodsId());
+                } catch (NumberFormatException e) {
+                    setGoodsId = 0;
+                }
+            }
+
             // -------------------------------------------------------------
             // 1行目：ご飯用の明細リクエスト
             // -------------------------------------------------------------
             OrderDetailRequest riceDetail = new OrderDetailRequest();
-            riceDetail.setOrderCount(orderCount++); // 枝番を割り振って+1
+            riceDetail.setOrderCount(orderCount++);
             riceDetail.setGoodsId(item.getGoodsId());
-            // setGoodsId や数量のカラム名に合わせて適宜セットしてください
+
+            // 1行目のセット商品
+            riceDetail.setSetGoodsId(setGoodsId);
+
             riceDetail.setCount(1); 
             riceDetail.setPlusZangiCount(item.getZangiCount() != null ? item.getZangiCount() : 0);
-            riceDetail.setCustomId(riceCode); // ご飯ID (10, 20, 30, 40)
+            riceDetail.setCustomId(riceCode);
 
             detailList.add(riceDetail);
 
@@ -347,11 +365,15 @@ public class OrderController {
             // -------------------------------------------------------------
             if (sourceId > 0) {
                 OrderDetailRequest sourceDetail = new OrderDetailRequest();
-                sourceDetail.setOrderCount(orderCount++); // 次の枝番を割り振って+1
+                sourceDetail.setOrderCount(orderCount++);
                 sourceDetail.setGoodsId(item.getGoodsId());
+
+                // 2行目のセット商品
+                sourceDetail.setSetGoodsId(setGoodsId);
+
                 sourceDetail.setCount(1);
-                sourceDetail.setPlusZangiCount(0); // ソース行は0
-                sourceDetail.setCustomId(sourceId); // ソースID (50〜82)
+                sourceDetail.setPlusZangiCount(0);
+                sourceDetail.setCustomId(sourceId);
 
                 detailList.add(sourceDetail);
             }
@@ -503,6 +525,26 @@ public class OrderController {
             case "80" -> 100;
             case "81" -> 140;
             case "82" -> 180;
+            default -> 0;
+        };
+    }
+
+    private String getSetName(String key) {
+        return switch (key) {
+            case "11" -> "満腹セット（味噌汁＋ポテトサラダ）";
+            case "12" -> "満腹セット（味噌汁＋大根サラダ）";
+            case "13" -> "満腹セット（味噌汁＋マカロニたまご）";
+            case "20" -> "定番コンビセット";
+            default -> "なし";
+        };
+    }
+
+    private int getSetGoodsPrice(String key) {
+        return switch (key) {
+            case "11" -> 200;
+            case "12" -> 200;
+            case "13" -> 200;
+            case "20" -> 200;
             default -> 0;
         };
     }

@@ -43,4 +43,11 @@ public class OrderDetailEntity {
     @Column(name = "custom_id")
     private Integer customId;
     
+
+    public Integer getSetGoodsId() {
+        return setGoodsId;
+    }
+    public void setSetGoodsId(Integer setGoodsId) {
+        this.setGoodsId = setGoodsId;
+    }
 }

@@ -23,4 +23,11 @@ public class OrderDetailRequest {
     // カスタムID
     private Integer customId;
 
+
+    public Integer getSetGoodsId() {
+        return setGoodsId;
+    }
+    public void setSetGoodsId(Integer setGoodsId) {
+        this.setGoodsId = setGoodsId;
+    }
 }
