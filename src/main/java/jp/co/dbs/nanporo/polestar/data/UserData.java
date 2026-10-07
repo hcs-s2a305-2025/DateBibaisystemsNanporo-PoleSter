@@ -39,4 +39,7 @@ public class UserData {
 
     // ポイントカード達成枚数
     private int pointCardComplete;
+
+    // アイコン
+    private String icon;
 }

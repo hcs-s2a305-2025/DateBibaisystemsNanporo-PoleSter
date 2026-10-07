@@ -61,11 +61,15 @@
                 <!-- 右側のアクションボタン -->
                 <div class="action-group">
                     <form th:action="@{/w/dashboard/close}" method="post" style="width: 100%;">
-                        <button type="button" class="card card-action" onclick="closeSystem()">
+                        <button type="button" class="card card-action" onclick="closeSystem()"
+                                th:disabled="${!#authorization.expression('hasAnyAuthority(''店長'', ''ROLE_店長'')')}"
+                                th:style="${!#authorization.expression('hasAnyAuthority(''店長'', ''ROLE_店長'')')} ? 'opacity: 0.5; cursor: not-allowed;' : ''">
                             システムを<br>休止する
                         </button>
                     </form>
-                    <button type="button" class="card card-action" data-bs-toggle="modal" data-bs-target="#noticeModal">
+                    <button type="button" class="card card-action" data-bs-toggle="modal" data-bs-target="#noticeModal"
+                            th:disabled="${!#authorization.expression('hasAnyAuthority(''店長'', ''ROLE_店長'')')}"
+                            th:style="${!#authorization.expression('hasAnyAuthority(''店長'', ''ROLE_店長'')')} ? 'opacity: 0.5; cursor: not-allowed;' : ''">
                         一斉通知<br>を送信する
                     </button>
                 </div>

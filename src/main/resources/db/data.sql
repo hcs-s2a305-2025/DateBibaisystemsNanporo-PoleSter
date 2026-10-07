@@ -14,7 +14,7 @@ DELETE FROM user_m;
 /* --------------------------------------------------
 1. ユーザマスタ (user_m)
 -------------------------------------------------- */
-INSERT INTO user_m(mail, name, password, role, member_rank, gender, birthday, cancel_count, alive, point, point_card_complete) 
+INSERT INTO user_m(mail, name, password, role, member_rank, gender, birthday, cancel_count, alive, point, point_card_complete, icon) 
 VALUES
 -- パスワード password BCrypt使用
 
@@ -30,7 +30,8 @@ VALUES
     0,
     FALSE,
     10,
-    5
+    5,
+    'sibainu1.png'
 ),
 (
     'murokishoon@example.com',
@@ -43,7 +44,8 @@ VALUES
     0,
     FALSE,
     0,
-    0
+    0,
+    'sibainu2.png'
 ),
 -- 店長と店員
 (
@@ -57,7 +59,8 @@ VALUES
     0,
     FALSE,
     0,
-    0
+    0,
+    'sibainu3.png'
 ),
 (
     'koserayuuki@example.com',
@@ -70,7 +73,8 @@ VALUES
     0,
     FALSE,
     0,
-    0
+    0,
+    'sibainu4.png'
 ),
 (
     '店頭注文',
@@ -83,7 +87,8 @@ VALUES
     0,
     FALSE,
     0,
-    0
+    0,
+    'agetate!zangitti.png'
 );
 
 
@@ -542,9 +547,9 @@ VALUES
 (
     2,
     'M0001',
-    '2026-10-05 12:00:00',
+    '2026-10-07 11:12:00',
     'isidaharu@example.com',
-    '2026-10-05 10:00:00',
+    '2026-10-07 10:00:00',
     2780,
     '無地袋希望',
     '受付'
@@ -552,9 +557,9 @@ VALUES
 (
     3,
     'M0002',
-    '2026-10-05 12:30:00',
+    '2026-10-07 12:30:00',
     'murokishoon@example.com',
-    '2026-10-05 11:00:00',
+    '2026-10-07 11:00:00',
     860,
     'なし',
     '受付'

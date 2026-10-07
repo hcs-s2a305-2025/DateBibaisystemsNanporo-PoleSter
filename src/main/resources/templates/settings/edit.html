@@ -33,17 +33,46 @@
                         <form th:action="@{/settings/edit/update}" action="/update-profile" method="POST" enctype="multipart/form-data">
                             <div class="row g-4">
                                 
-                                <!-- プロフィール画像エリア（上部中央寄せ） -->
-                                <div class="col-12 text-center">
-                                    <!-- 画像プレビュー -->
-                                    <div class="mb-3 d-flex justify-content-center">
-                                        <img src="../../static/img/sibainu1.jpg" id="avatarPreview" class="rounded-circle img-thumbnail shadow-sm" style="width: 150px; height: 150px; object-fit: cover;" alt="プロフィール画像">
-                                    </div>
+                                <!-- プロフィール画像選択エリア -->
+                                <div class="col-12 text-center mb-2">
+                                    <label class="form-label fw-bold d-block mb-3">アイコン画像を選択</label>
                                     
-                                    <!-- 画像アップロード -->
-                                    <div class="col-md-6 mx-auto mb-3">
-                                        <input class="form-control form-control-sm" type="file" id="referenceBtn" name="referenceBtn" accept="image/*">
-                                        <div class="form-text">JPG, PNG（最大5MB）</div>
+                                    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                                        <!-- sibainu1.jpg -->
+                                        <div>
+                                            <input type="radio" class="btn-check" name="icon" id="icon1" value="sibainu1.jpg" 
+                                                th:checked="${user.icon == 'sibainu1.jpg' or user.icon == null}">
+                                            <label for="icon1">
+                                                <img th:src="@{/img/sibainu1.jpg}" src="../../static/img/sibainu1.jpg" class="icon-option" alt="柴犬1">
+                                            </label>
+                                        </div>
+
+                                        <!-- sibainu2.png -->
+                                        <div>
+                                            <input type="radio" class="btn-check" name="icon" id="icon2" value="sibainu2.png" 
+                                                th:checked="${user.icon == 'sibainu2.png'}">
+                                            <label for="icon2">
+                                                <img th:src="@{/img/sibainu2.png}" src="../../static/img/sibainu2.png" class="icon-option" alt="柴犬2">
+                                            </label>
+                                        </div>
+
+                                        <!-- sibainu3.png -->
+                                        <div>
+                                            <input type="radio" class="btn-check" name="icon" id="icon3" value="sibainu3.png" 
+                                                th:checked="${user.icon == 'sibainu3.png'}">
+                                            <label for="icon3">
+                                                <img th:src="@{/img/sibainu3.png}" src="../../static/img/sibainu3.png" class="icon-option" alt="柴犬3">
+                                            </label>
+                                        </div>
+
+                                        <!-- sibainu4.png -->
+                                        <div>
+                                            <input type="radio" class="btn-check" name="icon" id="icon4" value="sibainu4.png" 
+                                                th:checked="${user.icon == 'sibainu4.png'}">
+                                            <label for="icon4">
+                                                <img th:src="@{/img/sibainu4.png}" src="../../static/img/sibainu4.png" class="icon-option" alt="柴犬4">
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 

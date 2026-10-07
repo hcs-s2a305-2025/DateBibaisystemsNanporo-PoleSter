@@ -31,7 +31,7 @@
     </main>
 
     <!-- 1.5秒後にログイン画面へ自動遷移 -->
-    <script>
+    <script th:inline="javascript">
         setTimeout(() => {
             window.location.href = /*[[@{/login}]]*/ '/login';
         }, 1500);

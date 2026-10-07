@@ -82,6 +82,36 @@ class StoreServiceUnitTest {
 	}
 
 	@Test
+	@DisplayName("会員ランクごとに閲覧可能な商品の範囲を判定する")
+	void getMenuListByMemberRank() {
+		Map<String, Object> bronze = goodsRow("B001", 100, 100, false);
+		bronze.put("watch_rank", "ブロンズ");
+		Map<String, Object> silver = goodsRow("B002", 100, 100, false);
+		silver.put("watch_rank", "シルバー");
+		Map<String, Object> gold = goodsRow("B003", 100, 100, false);
+		gold.put("watch_rank", "ゴールド");
+		Map<String, Object> general = goodsRow("B004", 100, 100, false);
+		Map<String, Object> unknown = goodsRow("B005", 100, 100, false);
+		unknown.put("watch_rank", "不明");
+		Map<String, Object> withoutRank = goodsRow("B006", 100, 100, false);
+		withoutRank.put("watch_rank", null);
+		when(repository.getAllGoods()).thenReturn(List.of(bronze, silver, gold, general, unknown, withoutRank));
+
+		assertThat(service.getMenuList(null, "一般")).extracting(GoodsData::getGoodsId)
+		        .containsExactly("B004", "B006");
+		assertThat(service.getMenuList(null, "ブロンズ")).extracting(GoodsData::getGoodsId)
+		        .containsExactly("B001", "B004", "B006");
+		assertThat(service.getMenuList(null, "シルバー")).extracting(GoodsData::getGoodsId)
+		        .containsExactly("B001", "B002", "B004", "B006");
+		assertThat(service.getMenuList(null, "ゴールド")).extracting(GoodsData::getGoodsId)
+		        .containsExactly("B001", "B002", "B003", "B004", "B006");
+		assertThat(service.getMenuList(null, null)).extracting(GoodsData::getGoodsId)
+		        .containsExactly("B004", "B006");
+		assertThat(service.getMenuList(null, "不明")).extracting(GoodsData::getGoodsId)
+		        .containsExactly("B001", "B002", "B003", "B004", "B005", "B006");
+	}
+
+	@Test
 	@DisplayName("商品詳細の未入力・未登録と売切値の各形式を処理する")
 	void getGoodsDetail() {
 		assertThat(service.getGoodsDetail(null)).isNull();

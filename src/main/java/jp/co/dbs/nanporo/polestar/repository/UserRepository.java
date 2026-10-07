@@ -322,14 +322,13 @@ public class UserRepository {
      * @param registerTime 登録日時
      * @param content 通知内容
      */
-    public void insertNoticeWithId(int noticeId, String mail, LocalDateTime registerTime, String content) {
+    public void insertNoticeWithId(String mail, LocalDateTime registerTime, String content) {
         String sql = """
-            INSERT INTO notice_t (notice_id, mail, register_time, content)
-            VALUES (:noticeId, :mail, :registerTime, :content)
+            INSERT INTO notice_t (mail, register_time, content)
+            VALUES (:mail, :registerTime, :content)
             """;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("noticeId", noticeId);
         params.put("mail", mail);
         params.put("registerTime", registerTime);
         params.put("content", content);
@@ -356,17 +355,19 @@ public class UserRepository {
 
     
     /**
-     * ユーザの基本情報（メールアドレスおよび名前）を更新します（パスワード更新なし）。
+     * ユーザの基本情報（メールアドレス・名前・アイコン）を更新します（パスワード更新なし）。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
+     * @param icon 新しいアイコン
      */
-    public  void updateNoPassword(String mail, String nowMail, String name) {
+    public  void updateNoPassword(String mail, String nowMail, String name, String icon) {
         String sql ="""
                 UPDATE user_m
                 SET mail = :mail,
-                    name = :name
+                    name = :name,
+                    icon = :icon
                 WHERE mail = :nowMail
                 """;
 
@@ -374,24 +375,27 @@ public class UserRepository {
         params.put("mail", mail);
         params.put("nowMail", nowMail);
         params.put("name", name);
+        params.put("icon", icon);
 
         jdbc.update(sql, params);
     }
 
     /**
-     * ユーザの基本情報（メールアドレス、名前）およびパスワードを更新します。
+     * ユーザの基本情報（メールアドレス・名前・アイコン）およびパスワードを更新します。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
      * @param password 新しいパスワード
+     * @param icon 新しいアイコン
      */
-    public  void updateYesPassword(String mail, String nowMail, String name, String password) {
+    public  void updateYesPassword(String mail, String nowMail, String name, String password, String icon) {
         String sql ="""
                 UPDATE user_m
                 SET mail = :mail,
                     name = :name,
-                    password = :password
+                    password = :password,
+                    icon = :icon
                 WHERE mail = :nowMail
                 """;
 
@@ -400,6 +404,7 @@ public class UserRepository {
         params.put("nowMail", nowMail);
         params.put("name", name);
         params.put("password", password);
+        params.put("icon", icon);
 
         jdbc.update(sql, params);
     }
@@ -449,6 +454,46 @@ public class UserRepository {
         params.put("point", point);
         params.put("pointCardComplete", pointCardComplete);
         params.put("memberRank", memberRank);
+
+        jdbc.update(sql, params);
+    }
+
+    /**
+     * 休業日一覧を取得します。
+     *
+     * @return 休業日一覧
+     */
+        public List<Map<String, Object>> getCloseDay() {
+        String sql = """
+                SELECT *
+                FROM close_t
+                """;
+
+        Map<String, Object> params = new HashMap<>();
+
+        return jdbc.queryForList(sql, params);
+    }
+
+    /**
+     * 指定された日付の予約を「キャンセル」に更新します。
+     *
+     * @param today 当日の日付
+     */
+    public void cancelUpdate(LocalDate today) {
+        String sql = """
+            UPDATE order_t
+            SET status = 'キャンセル'
+            WHERE get_time >= :startTime 
+                AND get_time < :endTime
+            """;
+
+        // 当日の 00:00:00 と 翌日の 00:00:00 を作成
+        LocalDateTime startTime = today.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("startTime", startTime);
+        params.put("endTime", endTime);
 
         jdbc.update(sql, params);
     }

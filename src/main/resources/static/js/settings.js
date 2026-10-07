@@ -11,6 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const toggle = document.getElementById('toggleSchedule');
+
+    // 要素が存在しない場合（店長以外のユーザーなど）は処理をスキップ
+    if (!toggle) {
+        return;
+    }
+
     // 対象の入力要素・ボタンをまとめて取得
     const controls = document.querySelectorAll('.schedule-control');
 

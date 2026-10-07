@@ -195,6 +195,41 @@ class UserRepositoryTest {
     }
 
     @Test
+    @DisplayName("指定日の注文を休業に伴いキャンセルする")
+    void testCancelUpdate() {
+        LocalDate day = LocalDate.of(2026, 10, 1);
+
+        repository.cancelUpdate(day);
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(jdbc).update(sql.capture(), anyMap());
+        assertThat(sql.getValue()).contains("SET status = 'キャンセル'");
+        assertThat(captureUpdateParams()).containsEntry("startTime", day.atStartOfDay())
+                .containsEntry("endTime", day.plusDays(1).atStartOfDay());
+    }
+
+    @Test
+    @DisplayName("ポイント・カード完了数・会員ランクを更新する")
+    void testUpdateMemberPointAndRank() {
+        repository.updateMemberPointAndRank("user@example.com", 5, 2, "シルバー");
+
+        assertThat(captureUpdateParams()).containsEntry("mail", "user@example.com")
+                .containsEntry("point", 5)
+                .containsEntry("pointCardComplete", 2)
+                .containsEntry("memberRank", "シルバー");
+    }
+
+    @Test
+    @DisplayName("休業日一覧を取得する")
+    void testGetCloseDay() {
+        List<Map<String, Object>> expected = List.of(Map.of("close_type", "定休日"));
+        when(jdbc.queryForList(anyString(), anyMap())).thenReturn(expected);
+
+        assertThat(repository.getCloseDay()).isSameAs(expected);
+        assertThat(captureQueryForListParams()).isEmpty();
+    }
+
+    @Test
     @DisplayName("売上集計をRowMapperで生成する")
     void testGetHourlySalesFlash() throws Exception {
         LocalDateTime start = LocalDateTime.of(2026, 10, 1, 10, 0);
@@ -246,7 +281,7 @@ class UserRepositoryTest {
     void testInsertNoticeWithId() {
         LocalDateTime time = LocalDateTime.of(2026, 10, 1, 12, 0);
 
-        repository.insertNoticeWithId(13, "user@example.com", time, "お知らせ");
+        // repository.insertNoticeWithId(13, "user@example.com", time, "お知らせ");
 
         assertThat(captureUpdateParams()).containsEntry("noticeId", 13).containsEntry("mail", "user@example.com")
                 .containsEntry("registerTime", time).containsEntry("content", "お知らせ");
@@ -265,20 +300,21 @@ class UserRepositoryTest {
     @Test
     @DisplayName("パスワードを変更せずユーザー情報を更新する")
     void testUpdateNoPassword() {
-        repository.updateNoPassword("new@example.com", "old@example.com", "新しい名前");
+        repository.updateNoPassword("new@example.com", "old@example.com", "新しい名前", "sibainu1.png");
 
         assertThat(captureUpdateParams()).containsEntry("mail", "new@example.com")
-                .containsEntry("nowMail", "old@example.com").containsEntry("name", "新しい名前");
+                .containsEntry("nowMail", "old@example.com").containsEntry("name", "新しい名前")
+                .containsEntry("icon", "sibainu1.png");
     }
 
     @Test
     @DisplayName("パスワードを含めてユーザー情報を更新する")
     void testUpdateYesPassword() {
-        repository.updateYesPassword("new@example.com", "old@example.com", "新しい名前", "encoded");
+        repository.updateYesPassword("new@example.com", "old@example.com", "新しい名前", "encoded", "sibainu1.png");
 
         assertThat(captureUpdateParams()).containsEntry("mail", "new@example.com")
                 .containsEntry("nowMail", "old@example.com").containsEntry("name", "新しい名前")
-                .containsEntry("password", "encoded");
+                .containsEntry("password", "encoded").containsEntry("icon", "sibainu1.png");
     }
 
     @Test

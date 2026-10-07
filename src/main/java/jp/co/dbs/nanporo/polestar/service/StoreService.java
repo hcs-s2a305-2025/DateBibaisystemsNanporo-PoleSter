@@ -70,8 +70,9 @@ public class StoreService{
             case "ゴールド":
                 return 4;
             case "一般":
-            default:
                 return 1;
+            default:
+                return 10;
         }
     }
 

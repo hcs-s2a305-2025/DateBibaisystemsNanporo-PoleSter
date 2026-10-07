@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS user_m(
     cancel_count INT NOT NULL,
     alive BOOLEAN NOT NULL DEFAULT FALSE,
     point INT NOT NULL DEFAULT 0,
-    point_card_complete INT NOT NULL DEFAULT 0
+    point_card_complete INT NOT NULL DEFAULT 0,
+    icon VARCHAR(50) NOT NULL DEFAULT 'agetate!zangitti.png'
 );
 
 /* 商品マスタの定義 */

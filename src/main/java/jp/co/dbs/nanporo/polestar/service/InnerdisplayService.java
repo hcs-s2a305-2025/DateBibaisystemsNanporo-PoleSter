@@ -157,15 +157,26 @@ public class InnerdisplayService {
         if (order != null) {
             String mail = (String) order.get("mail");
             String orderNumber = (String) order.get("order_number");
+            // 注文番号の先頭が "M" で始まるか判定（モバイル予約）
+            boolean isMobileOrder = orderNumber != null && orderNumber.toUpperCase().startsWith("M");
 
-            innerdisplayRepository.updateStatusToReady(orderId);
-
-            if (mail != null && !mail.isEmpty()) {
-                String noticeContent = "モバイル予約(" + orderNumber + ")の受取準備が整いました。";
-                innerdisplayRepository.insertNotice(mail, noticeContent);
+            if (isMobileOrder) {
+                // モバイル予約：ステータスを「完成」にし、通知を送信
+                innerdisplayRepository.updateStatus(orderId, "完成");
+                notificationService.sendOrderCompleteNotification(orderId);
+            } else {
+                // 店頭注文：ステータスを「受取済」にし、通知は送らない
+                innerdisplayRepository.updateStatus(orderId, "受取済");
             }
         }
-        notificationService.sendOrderCompleteNotification(orderId);
+        //     innerdisplayRepository.updateStatusToReady(orderId);
+
+        //     if (mail != null && !mail.isEmpty()) {
+        //         String noticeContent = "モバイル予約(" + orderNumber + ")の受取準備が整いました。";
+        //         innerdisplayRepository.insertNotice(mail, noticeContent);
+        //     }
+        // }
+        // notificationService.sendOrderCompleteNotification(orderId);
     }
 
     public @Nullable Object getKitchenOrdersGrouped() {

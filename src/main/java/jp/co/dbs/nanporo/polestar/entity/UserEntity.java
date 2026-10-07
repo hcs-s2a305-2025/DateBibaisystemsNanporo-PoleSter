@@ -39,4 +39,7 @@ public class UserEntity {
 
     // ポイントカード達成枚数　INTEGER型
     private  Integer pointCardComplete;
+
+    // アイコン　VARCHAR型
+    private String icon;
 }

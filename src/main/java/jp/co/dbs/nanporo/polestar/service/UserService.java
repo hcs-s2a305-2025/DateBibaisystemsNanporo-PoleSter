@@ -195,6 +195,7 @@ public class UserService {
         user.setPointCardComplete((int) row.get("point_card_complete"));
         user.setGender((String) row.get("gender"));
         user.setBirthday((Date)row.get("birthday"));
+        user.setIcon((String) row.get("icon"));
 
         return user;
     }
@@ -281,12 +282,15 @@ public class UserService {
 
 
     /**
-     * 当日（本日）付で「臨時休業」を登録します。
+     * 当日（本日）付で「臨時休業」を登録し、予約を「キャンセル」にします。
      */
     public void insertClose() {
         // 今日の日付
         LocalDate today = LocalDate.now();
         repository.insertClose(today, "臨時休業");
+
+        // 今日の予約をキャンセルに
+        repository.cancelUpdate(today);
     }
 
 
@@ -327,7 +331,7 @@ public class UserService {
 
         // 顧客の人数分ループ
         for (String email : customerEmails) {
-            repository.insertNoticeWithId(nextId, email, now, content);
+            repository.insertNoticeWithId(email, now, content);
             nextId++; // ID+1
         }
     }
@@ -400,29 +404,31 @@ public class UserService {
 
 
     /**
-     * パスワード変更を伴わない形でユーザの基本情報（メールアドレス・名前）を更新します。
+     * パスワード変更を伴わない形でユーザの基本情報（メールアドレス・名前・アイコン）を更新します。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
+     * @param icon 新しいアイコン
      */
-    public void updateNoPassword(String mail, String nowMail, String name) {
-        repository.updateNoPassword(mail, nowMail, name);
+    public void updateNoPassword(String mail, String nowMail, String name, String icon) {
+        repository.updateNoPassword(mail, nowMail, name, icon);
     } 
 
 
     /**
-     * パスワード変更を含めてユーザ情報（メールアドレス・名前・パスワード）を更新します。
+     * パスワード変更を含めてユーザ情報（メールアドレス・名前・パスワード・アイコン）を更新します。
      *
      * @param mail 新しいメールアドレス
      * @param nowMail 現在（変更前）のメールアドレス
      * @param name 新しい名前
      * @param password 新しいパスワード（ハッシュ化されて保存されます）
+     * @param icon 新しいアイコン
      */
-    public void updateYesPassword(String mail, String nowMail, String name, String password) {
+    public void updateYesPassword(String mail, String nowMail, String name, String password, String icon) {
 
         password = passwordEncoder.encode(password);
-        repository.updateYesPassword(mail, nowMail, name, password);
+        repository.updateYesPassword(mail, nowMail, name, password, icon);
     }
 
 
@@ -536,4 +542,38 @@ public class UserService {
         }
     }
 
+    public String getCloseDay() {
+
+        // 今日の日付
+        LocalDate today = LocalDate.now();
+        // 休業日リスト
+        List<Map<String, Object>> list = repository.getCloseDay();
+
+        String result = null;
+
+        for(Map<String, Object> map : list) {
+            Object value = map.get("close_day");
+
+            if (value != null) {
+                LocalDate closeDate = null;
+
+                // DBからの型に応じて LocalDate に変換
+                if (value instanceof java.sql.Date sqlDate) {
+                    closeDate = sqlDate.toLocalDate();
+                } else if (value instanceof LocalDate localDate) {
+                    closeDate = localDate;
+                } else if (value instanceof String strDate) {
+                    closeDate = LocalDate.parse(strDate);
+                }
+
+                // 今日と一致した場合
+                if (today.equals(closeDate)) {
+                    result = (String) map.get("close_type");
+                    break; // 見つかったらループを抜ける
+                }
+            }
+        }
+
+        return  result;
+    }
 }

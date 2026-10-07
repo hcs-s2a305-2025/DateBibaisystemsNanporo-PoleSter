@@ -33,6 +33,8 @@ class SettingControllerTest {
     @InjectMocks
     private SettingController controller;
 
+    private static final String DEFAULT_ICON = "sibainu1.png";
+
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
@@ -87,10 +89,10 @@ class SettingControllerTest {
         String mail = "customer@example.com";
         var attributes = new RedirectAttributesModelMap();
 
-        String view = controller.updateProfile("新しい名前", mail, "", "", "", attributes, () -> mail);
+        String view = controller.updateProfile(DEFAULT_ICON, "新しい名前", mail, "", "", "", attributes, () -> mail);
 
         assertThat(view).isEqualTo("redirect:/settings");
-        verify(userService).updateNoPassword(mail, mail, "新しい名前");
+        verify(userService).updateNoPassword(mail, mail, "新しい名前", DEFAULT_ICON);
     }
 
     @Test
@@ -100,7 +102,7 @@ class SettingControllerTest {
         when(userService.passwordCheck(mail, "wrong")).thenReturn(false);
         var attributes = new RedirectAttributesModelMap();
 
-        String view = controller.updateProfile("名前", mail, "wrong", "new", "new", attributes, () -> mail);
+        String view = controller.updateProfile(DEFAULT_ICON, "名前", mail, "wrong", "new", "new", attributes, () -> mail);
 
         assertThat(view).isEqualTo("redirect:/settings/edit");
         assertThat(attributes.getAttribute("oldPasswordError")).isEqualTo("true");
@@ -113,7 +115,7 @@ class SettingControllerTest {
         when(userService.passwordCheck(mail, "old")).thenReturn(true);
         var attributes = new RedirectAttributesModelMap();
 
-        String view = controller.updateProfile("名前", mail, "old", "new", "different", attributes, () -> mail);
+        String view = controller.updateProfile(DEFAULT_ICON, "名前", mail, "old", "new", "different", attributes, () -> mail);
 
         assertThat(view).isEqualTo("redirect:/settings/edit");
         assertThat(attributes.getAttribute("newPasswordError")).isEqualTo("true");
@@ -126,10 +128,10 @@ class SettingControllerTest {
         when(userService.passwordCheck(mail, "")).thenReturn(true);
         var attributes = new RedirectAttributesModelMap();
 
-        controller.updateProfile("名前", mail, "", "new", "new", attributes, () -> mail);
+        controller.updateProfile(DEFAULT_ICON, "名前", mail, "", "new", "new", attributes, () -> mail);
 
         assertThat(attributes.getAttribute("passwordNullError")).isEqualTo("true");
-        verify(userService).updateYesPassword(mail, mail, "名前", "new");
+        verify(userService).updateYesPassword(mail, mail, "名前", "new", DEFAULT_ICON);
     }
 
     @Test
@@ -139,10 +141,10 @@ class SettingControllerTest {
         when(userService.passwordCheck(mail, "old")).thenReturn(true);
         var attributes = new RedirectAttributesModelMap();
 
-        controller.updateProfile("名前", mail, "old", "", "", attributes, () -> mail);
+        controller.updateProfile(DEFAULT_ICON, "名前", mail, "old", "", "", attributes, () -> mail);
 
         assertThat(attributes.getAttribute("passwordNullError")).isEqualTo("true");
-        verify(userService).updateYesPassword(mail, mail, "名前", "");
+        verify(userService).updateYesPassword(mail, mail, "名前", "", DEFAULT_ICON);
     }
 
     @Test
@@ -152,7 +154,7 @@ class SettingControllerTest {
         when(userService.passwordCheck(mail, "old")).thenReturn(true);
         var attributes = new RedirectAttributesModelMap();
 
-        controller.updateProfile("名前", mail, "old", "new", "", attributes, () -> mail);
+        controller.updateProfile(DEFAULT_ICON, "名前", mail, "old", "new", "", attributes, () -> mail);
 
         assertThat(attributes.getAttribute("passwordNullError")).isEqualTo("true");
         assertThat(attributes.getAttribute("newPasswordError")).isEqualTo("true");
@@ -165,7 +167,7 @@ class SettingControllerTest {
         when(userService.passwordCheck(mail, "")).thenReturn(true);
         var attributes = new RedirectAttributesModelMap();
 
-        controller.updateProfile("名前", mail, "", "", "confirmation", attributes, () -> mail);
+        controller.updateProfile(DEFAULT_ICON, "名前", mail, "", "", "confirmation", attributes, () -> mail);
 
         assertThat(attributes.getAttribute("passwordNullError")).isEqualTo("true");
         assertThat(attributes.getAttribute("newPasswordError")).isEqualTo("true");
@@ -182,10 +184,10 @@ class SettingControllerTest {
                         List.of(new SimpleGrantedAuthority("ROLE_顧客"))));
         var attributes = new RedirectAttributesModelMap();
 
-        String view = controller.updateProfile("名前", newMail, "old", "new", "new", attributes, () -> oldMail);
+        String view = controller.updateProfile(DEFAULT_ICON, "名前", newMail, "old", "new", "new", attributes, () -> oldMail);
 
         assertThat(view).isEqualTo("redirect:/settings");
-        verify(userService).updateYesPassword(newMail, oldMail, "名前", "new");
+        verify(userService).updateYesPassword(newMail, oldMail, "名前", "new", DEFAULT_ICON);
         assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo(newMail);
     }
 
@@ -194,10 +196,10 @@ class SettingControllerTest {
     void testUpdateProfileFailure() {
         String mail = "customer@example.com";
         doThrow(new IllegalStateException("failure"))
-                .when(userService).updateNoPassword(mail, mail, "名前");
+                .when(userService).updateNoPassword(mail, mail, "名前", DEFAULT_ICON);
         var attributes = new RedirectAttributesModelMap();
 
-        String view = controller.updateProfile("名前", mail, "", "", "", attributes, () -> mail);
+        String view = controller.updateProfile(DEFAULT_ICON, "名前", mail, "", "", "", attributes, () -> mail);
 
         assertThat(view).isEqualTo("redirect:/settings/edit");
         assertThat(attributes.getAttribute("error")).isEqualTo("true");
