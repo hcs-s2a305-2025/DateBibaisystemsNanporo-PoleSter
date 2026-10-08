@@ -211,6 +211,24 @@
     width: auto !important;
 }
 
+/* QR読み取りモーダル: 幅を絞って中身を中央に配置 */
+#qrModal.modal-window {
+    width: min(90%, 420px);
+}
+
+#qrModal .modal-dialog {
+    justify-content: center;
+}
+
+#qrModal .modal-content {
+    width: 100% !important;
+}
+
+#qrModal #qrReader {
+    width: 100%;
+    text-align: center;
+}
+
 
 /* =========================================================
    スマホ・タブレット対応
