@@ -31,7 +31,7 @@
 <body>
 
     <!-- ヘッダー部分 (共通レイアウト) -->
-    <div th:replace="~{common/Layout :: common-w-header}"></div>
+    <div th:replace="~{common/Layout :: common-header}"></div>
 
     <main class="container my-4 edit-container">
         
@@ -465,6 +465,18 @@
                 goodsAllergenModalEl.addEventListener('show.bs.modal', function () {
                     var currentVal = document.getElementById('allergyInput').value;
                     syncCheckboxes(currentVal, '.goods-allergen-checkbox');
+                });
+            }
+            var btnApplyGoodsAllergen = document.getElementById('btnApplyGoodsAllergen');
+            if (btnApplyGoodsAllergen) {
+                btnApplyGoodsAllergen.addEventListener('click', function() {
+                    var checkboxes = document.querySelectorAll('.goods-allergen-checkbox:checked');
+                    var selectedNames = Array.from(checkboxes).map(function(cb) {
+                        return cb.getAttribute('data-name') || cb.value;
+                    });
+                    var resultStr = selectedNames.length > 0 ? selectedNames.join(',') : '';
+                    document.getElementById('allergyInput').value = resultStr;
+                    renderBadges(resultStr, document.getElementById('allergenDisplayArea'));
                 });
             }
 
