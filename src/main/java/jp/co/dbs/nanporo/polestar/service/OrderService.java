@@ -102,9 +102,6 @@ public class OrderService {
                     detail.setCustomId((cId == null || cId == 0) ? 20 : cId);
                 }
 
-                // --- ★3. setSetGoodsId の設定（0やnull対策） ---
-                detail.setSetGoodsId(detailRequest.getSetGoodsId());
-
                 detail.setCount(detailRequest.getCount());
                 
                 // プラスザンギ数の設定 (null対策)

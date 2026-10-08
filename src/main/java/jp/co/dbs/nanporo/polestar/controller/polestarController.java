@@ -68,10 +68,5 @@ public class PolestarController {
     public String workerHome() {
         return "w/home"; // templates/w/home.html を表示
     }
-
-    @GetMapping("/menu/cart")
-    public String getcart() {
-        return "/menu/cart";
-    }
     
 }
