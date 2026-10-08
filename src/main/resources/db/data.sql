@@ -31,7 +31,7 @@ VALUES
     FALSE,
     10,
     5,
-    'sibainu1.png'
+    'sibainu1.jpg'
 ),
 (
     'murokishoon@example.com',
@@ -104,7 +104,7 @@ VALUES
     FALSE,
     0,
     5,
-    'sibainu1.png'
+    'sibainu1.jpg'
 ),
 -- 店員（受入用）
 (
