@@ -537,6 +537,121 @@ class PosServiceImpleUnitTest {
 	}
 
 	@Test
+	@DisplayName("提示中のスタンプカード割引は会計時に消し込まれ、カード達成で割引券が付与される")
+	void processPaymentConsumesStampCoupon() {
+		prepareMemberSale(19, 0, "一般");
+		when(userRepository.useActiveStampCoupon("member@example.com")).thenReturn(true);
+		PaymentRequest request = payment(null, "{\"mail\":\"member@example.com\"}", -100,
+				List.of(paymentItem("B001", 1, 100)));
+		request.setUseCoupon("学生割引,スタンプカード割引");
+
+		service.processPayment(request);
+
+		verify(userRepository).useActiveStampCoupon("member@example.com");
+		verify(userRepository).addStampCoupon("member@example.com", 1);
+	}
+
+	@Test
+	@DisplayName("カードが完成しなければ割引券は付与しない")
+	void processPaymentDoesNotGrantCouponWithoutCompletedCard() {
+		prepareMemberSale(0, 0, "一般");
+
+		service.processPayment(payment(null, "{\"mail\":\"member@example.com\"}", 0,
+				List.of(paymentItem("B001", 1, 100))));
+
+		verify(userRepository, never()).addStampCoupon(any(), any(Integer.class));
+		verify(userRepository, never()).useActiveStampCoupon(any());
+	}
+
+	@Test
+	@DisplayName("店頭注文で会員QR未読取のスタンプカード割引は拒否する")
+	void processPaymentRejectsStampCouponWithoutMember() {
+		when(orderTRepository.findMaxOrderNumberToday(any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.empty());
+		when(orderTRepository.save(any(OrderEntity.class))).thenAnswer(invocation -> {
+			OrderEntity order = invocation.getArgument(0);
+			order.setOrderId(58);
+			return order;
+		});
+		PaymentRequest request = payment(null, null, -100, List.of());
+		request.setUseCoupon("スタンプカード割引");
+
+		assertThatThrownBy(() -> service.processPayment(request))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("スタンプカード割引");
+		verify(userRepository, never()).useActiveStampCoupon(any());
+		verify(transactionRepository, never()).save(any(TransactionEntity.class));
+	}
+
+	@Test
+	@DisplayName("顧客が割引券を提示していない場合は会計を拒否する")
+	void processPaymentRejectsStampCouponNotPresented() {
+		when(orderTRepository.findMaxOrderNumberToday(any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.empty());
+		when(orderTRepository.save(any(OrderEntity.class))).thenAnswer(invocation -> {
+			OrderEntity order = invocation.getArgument(0);
+			order.setOrderId(59);
+			return order;
+		});
+		when(userRepository.useActiveStampCoupon("member@example.com")).thenReturn(false);
+		PaymentRequest request = payment(null, "member@example.com", -100, List.of());
+		request.setUseCoupon("スタンプカード割引");
+
+		assertThatThrownBy(() -> service.processPayment(request))
+				.isInstanceOf(IllegalArgumentException.class);
+		verify(transactionRepository, never()).save(any(TransactionEntity.class));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "", "  " })
+	@DisplayName("予約注文の会員メールが空ならスタンプカード割引を拒否する")
+	void processPaymentRejectsStampCouponForReservationWithoutMail(String orderMail) {
+		OrderEntity order = order(92, "M0092", orderMail);
+		when(orderTRepository.findTodayOrderByNumber(eq("M0092"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order));
+		PaymentRequest request = payment("M0092", null, -100, List.of());
+		request.setUseCoupon("スタンプカード割引");
+
+		assertThatThrownBy(() -> service.processPayment(request))
+				.isInstanceOf(IllegalArgumentException.class);
+		verify(userRepository, never()).useActiveStampCoupon(any());
+	}
+
+	@Test
+	@DisplayName("予約注文の会員メールがnullならスタンプカード割引を拒否する")
+	void processPaymentRejectsStampCouponForReservationWithNullMail() {
+		OrderEntity order = order(93, "M0093", null);
+		when(orderTRepository.findTodayOrderByNumber(eq("M0093"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order));
+		PaymentRequest request = payment("M0093", null, -100, List.of());
+		request.setUseCoupon("スタンプカード割引");
+
+		assertThatThrownBy(() -> service.processPayment(request))
+				.isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
+	@DisplayName("予約注文はQRなしでも注文の会員情報でスタンプカード割引を消し込める")
+	void processPaymentConsumesStampCouponForReservation() {
+		OrderEntity order = order(94, "M0094", "member@example.com");
+		when(orderTRepository.findTodayOrderByNumber(eq("M0094"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order));
+		when(orderDetailRepository.findByOrderId(94)).thenReturn(List.of());
+		when(userRepository.useActiveStampCoupon("member@example.com")).thenReturn(true);
+		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
+			TransactionEntity transaction = invocation.getArgument(0);
+			transaction.setTransactionId(100);
+			return transaction;
+		});
+		PaymentRequest request = payment("M0094", null, -100, List.of());
+		request.setUseCoupon("スタンプカード割引");
+
+		service.processPayment(request);
+
+		verify(userRepository).useActiveStampCoupon("member@example.com");
+	}
+
+	@Test
 	@DisplayName("販売状態の更新は必須値を検証し、未登録商品を通知する")
 	void updateGoodsSoldOut() {
 		assertThatThrownBy(() -> service.updateGoodsSoldOut(null, true))

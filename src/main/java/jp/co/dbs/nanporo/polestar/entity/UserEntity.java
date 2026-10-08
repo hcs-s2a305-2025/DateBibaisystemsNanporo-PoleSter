@@ -40,6 +40,12 @@ public class UserEntity {
     // ポイントカード達成枚数　INTEGER型
     private  Integer pointCardComplete;
 
+    // 未使用のスタンプカード割引券枚数　INTEGER型
+    private Integer stampCoupon;
+
+    // スタンプカード割引の提示中フラグ　BOOLEAN型
+    private Boolean stampCouponActive;
+
     // アイコン　VARCHAR型
     private String icon;
 }

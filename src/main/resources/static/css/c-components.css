@@ -151,6 +151,114 @@
 .member-silver  { color: #fff; background: linear-gradient(to bottom, #C0C0C0, #D3D3D3 50%, #C0C0C0); }
 .member-gold    { color: #fff; background: linear-gradient(to bottom, #FFD700, #FFA500 50%, #FFD700); }
 
+/* スタンプカード割引券（チケット風） */
+.coupon-ticket {
+    --coupon-color: #e8473f;
+    --coupon-dark: #b82f29;
+    display: flex;
+    width: 100%;
+    max-width: 585px;
+    min-height: 130px;
+    margin: 15px auto 0;
+    color: #fff;
+    background: linear-gradient(135deg, var(--coupon-color), var(--coupon-dark));
+    border-radius: 12px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+    -webkit-mask: radial-gradient(circle 10px at 68% 0, transparent 98%, #000) top / 100% 51% no-repeat,
+                  radial-gradient(circle 10px at 68% 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+    mask: radial-gradient(circle 10px at 68% 0, transparent 98%, #000) top / 100% 51% no-repeat,
+          radial-gradient(circle 10px at 68% 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+}
+
+.coupon-main {
+    flex: 68;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    text-align: center;
+}
+
+.coupon-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    opacity: 0.85;
+}
+
+.coupon-amount {
+    font-size: 52px;
+    font-weight: bold;
+    line-height: 1.1;
+}
+
+.coupon-minus,
+.coupon-yen {
+    font-size: 24px;
+    margin: 0 2px;
+}
+
+.coupon-title {
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 12px;
+    border-radius: 999px;
+}
+
+.coupon-divider {
+    width: 0;
+    margin: 12px 0;
+    border-left: 2px dashed rgba(255, 255, 255, 0.7);
+}
+
+.coupon-side {
+    flex: 32;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    text-align: center;
+}
+
+.coupon-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.coupon-count { font-size: 13px; }
+.coupon-count b { font-size: 26px; }
+.coupon-status { font-size: 20px; font-weight: bold; }
+.coupon-note { font-size: 11px; line-height: 1.3; }
+.coupon-action form { margin: 0; }
+
+.coupon-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--coupon-dark);
+    background: #fff;
+}
+
+.coupon-btn-sub {
+    color: #fff;
+    background: transparent;
+    border: 1px solid #fff;
+    font-size: 12px;
+    padding: 3px 12px;
+}
+
+.coupon-empty { --coupon-color: #b5b5b5; --coupon-dark: #8d8d8d; }
+.coupon-active { --coupon-color: #2fb36b; --coupon-dark: #1d8a50; }
+
+@media (max-width: 480px) {
+    .coupon-amount { font-size: 40px; }
+    .coupon-minus, .coupon-yen { font-size: 18px; }
+}
+
 /* 会員カード内のコンテンツ配置 */
 .member-card-content {
     display: flex;

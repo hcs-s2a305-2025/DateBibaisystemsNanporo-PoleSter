@@ -1,6 +1,7 @@
 package jp.co.dbs.nanporo.polestar.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
@@ -13,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import jp.co.dbs.nanporo.polestar.entity.UserEntity;
 import jp.co.dbs.nanporo.polestar.service.UserService;
@@ -48,6 +51,33 @@ class StampcardControllerTest {
     @DisplayName("その他の会員ランクは進捗0を表示する")
     void testGetStampcardForOtherRank() {
         assertProgress("ゴールド", 5, 0);
+    }
+
+    @Test
+    @DisplayName("割引券を使用できた場合はスタンプカード画面へ戻る")
+    void testUseCoupon() {
+        when(userService.activateStampCoupon("customer@example.com")).thenReturn(true);
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        assertThat(controller.useCoupon(() -> "customer@example.com", redirect)).isEqualTo("redirect:/stampcard");
+        assertThat(redirect.getFlashAttributes().containsKey("couponError")).isFalse();
+    }
+
+    @Test
+    @DisplayName("使用できる割引券がない場合はエラーメッセージを渡す")
+    void testUseCouponWithoutCoupon() {
+        when(userService.activateStampCoupon("customer@example.com")).thenReturn(false);
+        RedirectAttributes redirect = new RedirectAttributesModelMap();
+
+        assertThat(controller.useCoupon(() -> "customer@example.com", redirect)).isEqualTo("redirect:/stampcard");
+        assertThat(redirect.getFlashAttributes().get("couponError")).isEqualTo("使用できる割引カードがありません。");
+    }
+
+    @Test
+    @DisplayName("割引券の使用を取り消してスタンプカード画面へ戻る")
+    void testCancelCoupon() {
+        assertThat(controller.cancelCoupon(() -> "customer@example.com")).isEqualTo("redirect:/stampcard");
+        verify(userService).cancelStampCoupon("customer@example.com");
     }
 
     private void assertProgress(String rank, int completedCards, int expectedProgress) {

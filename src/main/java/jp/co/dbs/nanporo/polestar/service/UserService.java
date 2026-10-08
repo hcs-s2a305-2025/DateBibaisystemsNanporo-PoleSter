@@ -197,11 +197,27 @@ public class UserService {
         user.setAlive((Boolean) row.get("alive"));
         user.setPoint((int) row.get("point"));
         user.setPointCardComplete((int) row.get("point_card_complete"));
+        user.setStampCoupon(row.get("stamp_coupon") != null ? ((Number) row.get("stamp_coupon")).intValue() : 0);
+        user.setStampCouponActive(row.get("stamp_coupon_active") != null && (Boolean) row.get("stamp_coupon_active"));
         user.setGender((String) row.get("gender"));
         user.setBirthday((Date)row.get("birthday"));
         user.setIcon((String) row.get("icon"));
 
         return user;
+    }
+
+    /**
+     * スタンプカード割引券を1枚使用して提示状態にします。
+     */
+    public boolean activateStampCoupon(String mail) {
+        return repository.activateStampCoupon(mail);
+    }
+
+    /**
+     * 提示中のスタンプカード割引を取り消し、割引券を戻します。
+     */
+    public boolean cancelStampCoupon(String mail) {
+        return repository.cancelStampCoupon(mail);
     }
 
     /**

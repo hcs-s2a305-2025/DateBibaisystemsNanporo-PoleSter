@@ -182,6 +182,8 @@ public class PosServiceImple implements PosService {
         Integer orderId = 0;
         String mail = parseMailAddress(request.getQrId());
 
+        boolean useStampDiscount = request.getUseCoupon() != null
+                && request.getUseCoupon().contains("スタンプカード割引");
         // 1. 注文番号の頭文字が 'M' の場合：予約注文の受取会計処理
         if (request.isMobileOrder()) {
             LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
@@ -244,6 +246,15 @@ public class PosServiceImple implements PosService {
                         orderDetailRepository.save(detail);
                     }
                 }
+            }
+        }
+
+        // スタンプカード割引は、顧客が提示中にした割引券を会計時に消し込む
+        if (useStampDiscount) {
+            if (mail == null || mail.isBlank() || "店頭注文".equals(mail)
+                    || !userRepository.useActiveStampCoupon(mail)) {
+                throw new IllegalArgumentException(
+                        "スタンプカード割引は、会員QRを読み取り、顧客が割引カードを提示している場合のみ利用できます。");
             }
         }
 
@@ -387,6 +398,9 @@ public class PosServiceImple implements PosService {
 
         // 6. UserRepository の UPDATE メソッドでDBを更新
         userRepository.updateMemberPointAndRank(mailOrQrId, remainingPoint, newCardComplete, newRank);
+        if (completedCardsToAdd > 0) {
+            userRepository.addStampCoupon(mailOrQrId, completedCardsToAdd);
+        }
     }
 
     /**

@@ -459,6 +459,50 @@ public class UserRepository {
     }
 
     /**
+     * 割引券を1枚追加します（スタンプカード達成時）。
+     */
+    public void addStampCoupon(String mail, int count) {
+        jdbc.update("UPDATE user_m SET stamp_coupon = stamp_coupon + :count WHERE mail = :mail",
+                Map.of("mail", mail, "count", count));
+    }
+
+    /**
+     * 割引券を1枚消費して提示状態にします。券がない・既に提示中の場合は更新されません。
+     *
+     * @return 更新できた場合 true
+     */
+    public boolean activateStampCoupon(String mail) {
+        return jdbc.update("""
+                UPDATE user_m SET stamp_coupon = stamp_coupon - 1, stamp_coupon_active = TRUE
+                WHERE mail = :mail AND stamp_coupon > 0 AND stamp_coupon_active = FALSE
+                """, Map.of("mail", mail)) > 0;
+    }
+
+    /**
+     * 提示中の割引を取り消し、割引券を1枚戻します。
+     *
+     * @return 更新できた場合 true
+     */
+    public boolean cancelStampCoupon(String mail) {
+        return jdbc.update("""
+                UPDATE user_m SET stamp_coupon = stamp_coupon + 1, stamp_coupon_active = FALSE
+                WHERE mail = :mail AND stamp_coupon_active = TRUE
+                """, Map.of("mail", mail)) > 0;
+    }
+
+    /**
+     * 会計時に提示中フラグを確認して解除します。
+     *
+     * @return 提示中だった場合 true
+     */
+    public boolean useActiveStampCoupon(String mail) {
+        return jdbc.update("""
+                UPDATE user_m SET stamp_coupon_active = FALSE
+                WHERE mail = :mail AND stamp_coupon_active = TRUE
+                """, Map.of("mail", mail)) > 0;
+    }
+
+    /**
      * 休業日一覧を取得します。
      *
      * @return 休業日一覧

@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS user_m(
     alive BOOLEAN NOT NULL DEFAULT FALSE,
     point INT NOT NULL DEFAULT 0,
     point_card_complete INT NOT NULL DEFAULT 0,
+    stamp_coupon INT NOT NULL DEFAULT 0,
+    stamp_coupon_active BOOLEAN NOT NULL DEFAULT FALSE,
     icon VARCHAR(50) NOT NULL DEFAULT 'agetate!zangitti.png'
 );
 

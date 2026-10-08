@@ -48,6 +48,34 @@
                     </div>
                 </div>
             </div>
+            <!-- 割引カード -->
+            <div class="coupon-ticket zenmarugothic"
+                 th:classappend="${user.stampCouponActive} ? 'coupon-active' : (${user.stampCoupon == 0} ? 'coupon-empty')">
+                <div class="coupon-main">
+                    <span class="coupon-label">STAMP CARD COUPON</span>
+                    <div class="coupon-amount"><span class="coupon-minus">-</span>100<span class="coupon-yen">円</span></div>
+                    <span class="coupon-title">スタンプカード割引券</span>
+                </div>
+                <div class="coupon-divider"></div>
+                <div class="coupon-side">
+                    <div th:if="${user.stampCouponActive}" class="coupon-action">
+                        <span class="coupon-status">使用中</span>
+                        <span class="coupon-note">この画面を会計時に店員へお見せください</span>
+                        <form th:action="@{/stampcard/cancel}" method="post">
+                            <button type="submit" class="coupon-btn coupon-btn-sub">取り消す</button>
+                        </form>
+                    </div>
+                    <div th:unless="${user.stampCouponActive}" class="coupon-action">
+                        <span class="coupon-count">所持 <b th:text="${user.stampCoupon}">0</b> 枚</span>
+                        <span th:if="${couponError}" th:text="${couponError}" class="coupon-note"></span>
+                        <form th:if="${user.stampCoupon > 0}" th:action="@{/stampcard/use}" method="post"
+                              onsubmit="return confirm('割引券を使用します。会計時に店員さんの前で押してください。よろしいですか？');">
+                            <button type="submit" class="coupon-btn">使用する</button>
+                        </form>
+                        <span th:if="${user.stampCoupon == 0}" class="coupon-note">スタンプ20個で1枚獲得！</span>
+                    </div>
+                </div>
+            </div>
             <!-- 会員カード -->
             <div th:class="|member-card ${
             user.memberRank == '一般' ? 'member-general' : 

@@ -101,6 +101,41 @@ class UserServiceUnitTest {
     }
 
     @Test
+    @DisplayName("スタンプカード割引券の所持数と提示状態を変換する")
+    void findByMailWithStampCoupon() {
+        Map<String, Object> row = userRow("user@example.com");
+        row.put("stamp_coupon", 2L);
+        row.put("stamp_coupon_active", true);
+        when(repository.findByMail("user@example.com")).thenReturn(row);
+
+        UserEntity user = service.findByMail("user@example.com");
+
+        assertThat(user.getStampCoupon()).isEqualTo(2);
+        assertThat(user.getStampCouponActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("割引券の項目がない場合は0枚・未提示として扱う")
+    void findByMailWithoutStampCoupon() {
+        when(repository.findByMail("user@example.com")).thenReturn(userRow("user@example.com"));
+
+        UserEntity user = service.findByMail("user@example.com");
+
+        assertThat(user.getStampCoupon()).isZero();
+        assertThat(user.getStampCouponActive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("割引券の使用と取消をリポジトリへ委譲する")
+    void delegatesStampCouponOperations() {
+        when(repository.activateStampCoupon("user@example.com")).thenReturn(true);
+        when(repository.cancelStampCoupon("user@example.com")).thenReturn(false);
+
+        assertThat(service.activateStampCoupon("user@example.com")).isTrue();
+        assertThat(service.cancelStampCoupon("user@example.com")).isFalse();
+    }
+
+    @Test
     @DisplayName("通知一覧の取得とユーザー更新系をリポジトリへ委譲する")
     void delegatesUserOperations() {
         List<Map<String, Object>> notices = List.of(Map.of("content", "お知らせ"));

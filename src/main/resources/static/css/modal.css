@@ -89,6 +89,15 @@
     background-color: #fff;
 }
 
+.modal-nomal.topping-unavailable{
+    color: #aaa;
+    background-color: #e4e4e4;
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+    pointer-events: none;
+}
+
 .modal-warning{
     color: #fff;
     background-color: #e27070;

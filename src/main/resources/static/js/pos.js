@@ -368,6 +368,7 @@ function getCurrentProductTotal() {
 }
 
 function updateModalProductDisplay() {
+    applyToppingAvailability();
     const nameElem = document.getElementById('modal-product-name');
     const descriptionElem = document.getElementById('modal-product-description');
     const totalElem = document.getElementById('modal-item-total');
@@ -452,9 +453,43 @@ function openProductModal(button) {
     }
 }
 
+// 商品名から選択可能なトッピングIDを判定する。
+// ザンギ弁当: すべて / 弁当・特上: ご飯＋定番コンビセット / 単品ザンギ: ソースのみ / その他: なし
+function getAllowedToppingIds(productName) {
+    const name = productName || '';
+    const rice = ['T001', 'T002', 'T003', 'T004'];
+    const sauce = ['T005', 'T006', 'T007', 'T008'];
+
+    if (name.includes('ザンギ弁当')) {
+        return new Set([...rice, ...sauce, 'T009', 'T010', 'T011', 'T012', 'T013']);
+    }
+    if (name.includes('弁当') || name.includes('特上')) {
+        return new Set([...rice, 'T013']);
+    }
+    if (name.includes('単品ザンギ')) {
+        return new Set(sauce);
+    }
+    return new Set();
+}
+
+// 選択できないトッピングは非表示にせず、レイアウトを保ったまま非活性（グレーアウト）にする。
+function applyToppingAvailability() {
+    const allowed = currentProduct ? getAllowedToppingIds(currentProduct.name) : null;
+
+    document.querySelectorAll('.topping-button').forEach(button => {
+        const isAllowed = !allowed || allowed.has(button.dataset.toppingId);
+        button.disabled = !isAllowed;
+        button.classList.toggle('topping-unavailable', !isAllowed);
+    });
+}
+
 function setToppingQuantity(toppingId, delta) {
     if (!currentProduct) {
         alert('先に商品を選択してください。');
+        return;
+    }
+
+    if (delta > 0 && !getAllowedToppingIds(currentProduct.name).has(toppingId)) {
         return;
     }
 
@@ -873,6 +908,10 @@ function toggleDiscount(button) {
     const alreadyApplied = button.dataset.applied === 'true';
     const couponName = getDiscountName(button);
 
+    if (!alreadyApplied && couponName === 'スタンプカード割引' &&     !qrMemberId && !mobileOrderNumber) {
+            alert('店頭注文でスタンプカード割引を使うには、先に会員QRを読み取ってください。');
+        return;
+    }
     if (alreadyApplied) {
         discountAmount += discount;
         button.dataset.applied = 'false';

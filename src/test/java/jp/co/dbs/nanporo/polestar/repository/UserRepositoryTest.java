@@ -220,6 +220,42 @@ class UserRepositoryTest {
     }
 
     @Test
+    @DisplayName("割引券を加算する")
+    void testAddStampCoupon() {
+        repository.addStampCoupon("user@example.com", 2);
+
+        assertThat(captureUpdateParams()).containsEntry("mail", "user@example.com")
+                .containsEntry("count", 2);
+    }
+
+    @Test
+    @DisplayName("割引券の使用は更新できた場合のみtrueを返す")
+    void testActivateStampCoupon() {
+        when(jdbc.update(anyString(), anyMap())).thenReturn(1, 0);
+
+        assertThat(repository.activateStampCoupon("user@example.com")).isTrue();
+        assertThat(repository.activateStampCoupon("user@example.com")).isFalse();
+    }
+
+    @Test
+    @DisplayName("割引券の取消は更新できた場合のみtrueを返す")
+    void testCancelStampCoupon() {
+        when(jdbc.update(anyString(), anyMap())).thenReturn(1, 0);
+
+        assertThat(repository.cancelStampCoupon("user@example.com")).isTrue();
+        assertThat(repository.cancelStampCoupon("user@example.com")).isFalse();
+    }
+
+    @Test
+    @DisplayName("会計時の割引券消し込みは提示中の場合のみtrueを返す")
+    void testUseActiveStampCoupon() {
+        when(jdbc.update(anyString(), anyMap())).thenReturn(1, 0);
+
+        assertThat(repository.useActiveStampCoupon("user@example.com")).isTrue();
+        assertThat(repository.useActiveStampCoupon("user@example.com")).isFalse();
+    }
+
+    @Test
     @DisplayName("休業日一覧を取得する")
     void testGetCloseDay() {
         List<Map<String, Object>> expected = List.of(Map.of("close_type", "定休日"));
