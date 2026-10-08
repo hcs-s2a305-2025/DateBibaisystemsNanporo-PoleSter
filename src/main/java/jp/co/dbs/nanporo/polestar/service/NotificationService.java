@@ -198,11 +198,16 @@ public class NotificationService {
                 continue;
             }
 
-            sendMail(
-                    email,
-                    "【ORDER ZANGI】お知らせ",
-                    content
-            );
+            // 不正なアドレスが1件あっても他の顧客への送信を続ける
+            try {
+                sendMail(
+                        email,
+                        "【ORDER ZANGI】お知らせ",
+                        content
+                );
+            } catch (RuntimeException e) {
+                System.err.println("メール送信失敗: " + email + " : " + e.getMessage());
+            }
         }
     }
 

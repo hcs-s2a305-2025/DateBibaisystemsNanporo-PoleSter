@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
@@ -292,6 +293,7 @@ class UserRepositoryTest {
         when(plainJdbc.queryForList(anyString(), eq(String.class))).thenReturn(List.of("user@example.com"));
 
         assertThat(repository.findCustomerEmails()).containsExactly("user@example.com");
+        verify(plainJdbc).queryForList(contains("mail <> '店頭注文'"), eq(String.class));
     }
 
     @Test

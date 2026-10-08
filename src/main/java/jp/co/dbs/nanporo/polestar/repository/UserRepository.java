@@ -299,7 +299,7 @@ public class UserRepository {
      * @return 顧客のメールアドレスのリスト
      */
     public List<String> findCustomerEmails() {
-        String sql = "SELECT mail FROM user_m WHERE role = '顧客'";
+        String sql = "SELECT mail FROM user_m WHERE role = '顧客' AND mail <> '店頭注文'";
         return jdbc.getJdbcTemplate().queryForList(sql, String.class);
     }
 

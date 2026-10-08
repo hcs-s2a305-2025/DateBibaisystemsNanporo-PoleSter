@@ -234,6 +234,21 @@ public class NotificationServiceTest {
 		});
 	}
 
+	@Test
+	@DisplayName("一斉通知でメール送信に失敗した宛先があっても残りの顧客へ送信を続ける")
+	void testSendBroadcastNotificationContinuesWhenMailFails() {
+		String badMail = "bad";
+		String goodMail = "good@example.com";
+		when(userRepository.findCustomerEmails()).thenReturn(List.of(badMail, goodMail));
+		when(userRepository.getMaxNoticeId()).thenReturn(0);
+		when(mailComponent.send(org.mockito.ArgumentMatchers.argThat(m -> badMail.equals(m.getTo()))))
+				.thenThrow(new RuntimeException("invalid address"));
+
+		service.sendBroadcastNotification("お知らせ");
+
+		verify(mailComponent, org.mockito.Mockito.times(2)).send(any(MailData.class));
+	}
+
 	private Map<String, Object> order(String mail, String orderNumber, Object getTime) {
 		Map<String, Object> order = new HashMap<>();
 		order.put("mail", mail);
