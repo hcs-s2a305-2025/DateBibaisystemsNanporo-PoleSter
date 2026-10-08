@@ -1,10 +1,114 @@
+@charset "UTF-8";
+
+/* 共通アイテムブロック */
+.item-block{
+    position: relative;
+    background-color: #fffce9;
+    min-height: 100px;
+    min-width: 300px;
+    margin: 20px;
+    padding: 15px;
+    border-radius: 20px;
+    /* box-shadow: inset [横方向] [縦方向] [ぼかし] [広がり] [色]; */
+    box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.item-block:hover{
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.item-block-text{
+    color: gray;
+    margin-right: 60px;
+}
+
+.item-block-info {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 15px;   
+    margin-bottom: 8px;
+}
+
+.item-block-info p {
+    margin: 0;      /* pタグのデフォルト余白をクリア */
+}
+
+/* 拡大ボタン */
+.expansion-btn{
+    cursor: pointer;
+    position: absolute; 
+    top: 0;
+    right: 0;
+    margin: 10px;
+}
+
+
+/* フッター */
+.footer-content{
+    flex-shrink: 0;
+    background-color: #fffce9;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 100px;
+    padding-right: 100px;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.footer-btn{
+    cursor: pointer;
+}
+
+/* メインコンテンツ上部ボタン部 */
+.img-button{
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.userEditBtn{
+    height: 40px;
+}
+
+.upper-item{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lowwer-item{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lowwer-item img {
+    border-radius: 100%;
+    margin-top: 30px;
+    width: 15%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+.username{
+    margin-top: 10px;
+}
+
+/* スタンプカードスタイル */
 /* 全体でサイズ計算を正確にする設定 */
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
 /* =========================================================
-  共通カードサイズ設定（幅・アスペクト比を完全に統一）
+    共通カードサイズ設定（幅・アスペクト比を完全に統一）
    ========================================================= */
 
 /* 1. 上のスタンプカード（画像・3D親要素） */
@@ -17,6 +121,10 @@
     display: block;
     margin: 0 auto;
     border-radius: 10px;
+    -webkit-user-select: none; /* Safari, Chrome, Operaなど */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE, Edge（古いバージョン用） */
+    user-select: none;         /* 標準プロパティ */
 }
 
 /* 2. 下の会員カード */
@@ -45,7 +153,7 @@
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    height: 100%;                 /* カード全体に引き伸ばす */
+    height: 100%;
 }
 
 .member-card-content h1 {
@@ -64,7 +172,7 @@
 }
 
 /* =========================================================
-   3Dカード反転（フリップ）アニメーション
+    3Dカード反転（フリップ）アニメーション
    ========================================================= */
 
 .flip-card {
@@ -111,31 +219,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-/* =========================================================
-   スマホ・レスポンシブ対応（幅800px以下）
-   ========================================================= */
-
-@media (max-width: 800px) {
-    .member-card {
-        padding: 4vw;
-    }
-
-    .member-card-content h1 {
-        font-size: 7vw;
-        margin: 4vw 0;
-    }
-
-    .member-card-content h3 {
-        font-size: 3.5vw;
-        margin-top: 2vw;
-    }
-    
-    .member-card-content h5 {
-        font-size: 2.5vw;
-        margin: 1vw 0;
-    }
 }
 
 /* カード裏面を絶対配置の基準にする */

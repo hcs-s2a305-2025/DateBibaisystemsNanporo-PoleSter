@@ -60,21 +60,6 @@ p, h1{
     margin: 0;
 }
 
-.orbitron {
-    font-family: 'Orbitron', sans-serif;
-
-    font-weight: 200;
-    letter-spacing: 0.05em;
-    cursor: default;
-}
-
-.saira {
-    font-family: 'Saira', sans-serif;
-    font-style: italic; 
-    font-weight: 200;
-    cursor: default;
-}
-
 .login-do{
     display: flex;
     flex-direction: column;
@@ -107,15 +92,6 @@ p, h1{
 .login-input {
     position: relative;
     z-index: 5;
-}
-
-/* 3. 背景の見出し（Polestar）がクリックを遮断しないように設定 */
-.orbitron {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 200;
-    letter-spacing: 0.05em;
-    cursor: default;
-    pointer-events: none;
 }
 
 @media screen and (max-width: 800px) {
