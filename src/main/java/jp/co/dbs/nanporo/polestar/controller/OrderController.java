@@ -65,6 +65,8 @@ public class OrderController {
         // 初期値（新規追加時）
         String selectedRice = "20";
         String selectedSource = "0";
+        Integer selectedZangiCount = 0;
+        String selectedSet = "0";
 
         // 変更処理（編集時）の場合は、カート内から以前の選択値を復元
         if (editCartItemId != null && !editCartItemId.trim().isEmpty()) {
@@ -79,6 +81,8 @@ public class OrderController {
                 if (target != null) {
                     if (target.getRiceCode() != null) selectedRice = target.getRiceCode();
                     if (target.getSourceCode() != null) selectedSource = target.getSourceCode();
+                    if (target.getZangiCount() != null) selectedZangiCount = target.getZangiCount();
+                    if (target.getSetGoodsId() != null) selectedSet = target.getSetGoodsId();
                 }
             }
         }
@@ -88,6 +92,8 @@ public class OrderController {
         model.addAttribute("editCartItemId", editCartItemId);
         model.addAttribute("selectedRice", selectedRice);
         model.addAttribute("selectedSource", selectedSource);
+        model.addAttribute("selectedZangiCount", selectedZangiCount);
+        model.addAttribute("selectedSet", selectedSet);
         return "menu/add"; // templates/menu/add.html を呼び出す
     }
 
@@ -208,7 +214,7 @@ public class OrderController {
         item.setSetGoodsName(getSetName(setGoodsName));
         item.setSetPrice(setPrice);
 
-        item.setTotalPrice(goods.getPrice() + zPrice + rPrice + sPrice);
+        item.setTotalPrice(goods.getPrice() + zPrice + rPrice + sPrice + setPrice);
 
         cart.add(item);
         session.setAttribute("cart", cart);
@@ -309,7 +315,7 @@ public class OrderController {
         
         String registerTimeStr = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-        // 4. カートアイテムを OrderDetailRequest のリストへ変換（1商品につきご飯とソースの最大2行）
+        // 4. カートアイテムを1商品につき1行の明細へ変換
         List<OrderDetailRequest> detailList = new ArrayList<>();
         int orderCount = 1; // 明細の枝番カウンタ
 
@@ -344,39 +350,15 @@ public class OrderController {
                 }
             }
 
-            // -------------------------------------------------------------
-            // 1行目：ご飯用の明細リクエスト
-            // -------------------------------------------------------------
-            OrderDetailRequest riceDetail = new OrderDetailRequest();
-            riceDetail.setOrderCount(orderCount++);
-            riceDetail.setGoodsId(item.getGoodsId());
-
-            // 1行目のセット商品
-            riceDetail.setSetGoodsId(setGoodsId);
-
-            riceDetail.setCount(1); 
-            riceDetail.setPlusZangiCount(item.getZangiCount() != null ? item.getZangiCount() : 0);
-            riceDetail.setCustomId(riceCode);
-
-            detailList.add(riceDetail);
-
-            // -------------------------------------------------------------
-            // 2行目：ソース用の明細リクエスト（ソースが選択されている場合のみ）
-            // -------------------------------------------------------------
-            if (sourceId > 0) {
-                OrderDetailRequest sourceDetail = new OrderDetailRequest();
-                sourceDetail.setOrderCount(orderCount++);
-                sourceDetail.setGoodsId(item.getGoodsId());
-
-                // 2行目のセット商品
-                sourceDetail.setSetGoodsId(setGoodsId);
-
-                sourceDetail.setCount(1);
-                sourceDetail.setPlusZangiCount(0);
-                sourceDetail.setCustomId(sourceId);
-
-                detailList.add(sourceDetail);
-            }
+            OrderDetailRequest detail = new OrderDetailRequest();
+            detail.setOrderCount(orderCount++);
+            detail.setGoodsId(item.getGoodsId());
+            detail.setSetGoodsId(setGoodsId);
+            detail.setCount(1);
+            detail.setPlusZangiCount(item.getZangiCount() != null ? item.getZangiCount() : 0);
+            detail.setCustomId(riceCode);
+            detail.setSourceCustomId(sourceId > 0 ? sourceId : null);
+            detailList.add(detail);
         }
 
         // 5. 注文登録リクエストオブジェクトの生成
@@ -467,13 +449,9 @@ public class OrderController {
 
     // --- 加算料金・名称変換ユーティリティ ---
     
-    // ザンギの加算料金計算（例: 標準5個、1個追加ごとに+100円）
+    // ザンギは追加1個につき100円
     private int getZangiPrice(int count) {
-        int baseCount = 5; // 基本個数
-        if (count > baseCount) {
-            return (count - baseCount) * 100; // 5個を超える分1個につき100円加算
-        }
-        return 0;
+        return count * 100;
     }
 
     private String getRiceName(String key) {
@@ -531,9 +509,9 @@ public class OrderController {
 
     private String getSetName(String key) {
         return switch (key) {
-            case "11" -> "満腹セット（味噌汁＋ポテトサラダ）";
-            case "12" -> "満腹セット（味噌汁＋大根サラダ）";
-            case "13" -> "満腹セット（味噌汁＋マカロニたまご）";
+            case "11" -> "満腹ザンギセット（味噌汁＋ポテトサラダ）";
+            case "12" -> "満腹ザンギセット（味噌汁＋大根サラダ）";
+            case "13" -> "満腹ザンギセット（味噌汁＋マカロニたまご）";
             case "20" -> "定番コンビセット";
             default -> "なし";
         };

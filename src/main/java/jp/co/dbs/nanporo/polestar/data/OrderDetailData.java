@@ -25,4 +25,7 @@ public class OrderDetailData {
 
     // カスタムID
     private Integer customId;
+
+    // ソースカスタムID
+    private Integer sourceCustomId;
 }

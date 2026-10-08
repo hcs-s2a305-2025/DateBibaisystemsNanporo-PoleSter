@@ -101,6 +101,8 @@ public class OrderService {
                     // 届いた customId が null または 0 の場合は 20(普通) にする
                     detail.setCustomId((cId == null || cId == 0) ? 20 : cId);
                 }
+                Integer sourceCustomId = detailRequest.getSourceCustomId();
+                detail.setSourceCustomId(sourceCustomId != null && sourceCustomId > 0 ? sourceCustomId : null);
 
                 detail.setCount(detailRequest.getCount());
                 
@@ -161,6 +163,7 @@ public List<ActiveOrderResponse> getActiveOrders(String mail) {
         if (row.get("goods_id") != null) {
             String goodsId = (String) row.get("goods_id");
             Integer customId = toInteger(row.get("custom_id"));
+            Integer sourceCustomId = toInteger(row.get("source_custom_id"));
 
             // 既に同じ商品がグループに追加されているかチェック
             // （必要に応じて goods_id だけでなく order_count / カートID 単位で判別）
@@ -169,17 +172,29 @@ public List<ActiveOrderResponse> getActiveOrders(String mail) {
                     .findFirst()
                     .orElse(null);
 
-            if (existingItem != null) {
+            boolean legacySourceDetail = sourceCustomId == null && customId != null && customId >= 50;
+            if (existingItem != null && legacySourceDetail) {
                 // 2行目（ソースなど）の場合：既存のアイテムにソース名を追加・上書き
-                if (customId != null && customId >= 50) { // 50以上はソース
-                    existingItem.setSourceName(getSourceName(String.valueOf(customId)));
-                }
+                existingItem.setSourceName(getSourceName(String.valueOf(customId)));
+                existingItem.setSourcePrice(getSourcePrice(String.valueOf(customId)));
             } else {
                 // 1行目（ご飯など）の場合：新規アイテムを作成
                 ActiveOrderResponse.OrderDetailItem item = new ActiveOrderResponse.OrderDetailItem();
                 item.setGoodsId(goodsId);
                 item.setGoodsName((String) row.get("goods_name"));
                 item.setCount(toInteger(row.get("count")));
+                Integer zangiCount = toInteger(row.get("plus_zangi_count"));
+                item.setZangiCount(zangiCount != null ? zangiCount : 0);
+
+                Integer setGoodsId = toInteger(row.get("set_goods_id"));
+                if (setGoodsId != null && setGoodsId > 0) {
+                    String setGoodsName = (String) row.get("set_goods_name");
+                    item.setSetName(setGoodsName != null
+                            ? setGoodsName : getSetName(String.valueOf(setGoodsId)));
+                    Integer setGoodsPrice = toInteger(row.get("set_goods_price"));
+                    item.setSetPrice(setGoodsPrice != null
+                            ? setGoodsPrice : 0);
+                }
 
                 // ご飯の量の判定
                 boolean isSideMenu = goodsId != null && goodsId.toUpperCase().startsWith("S");
@@ -194,9 +209,15 @@ public List<ActiveOrderResponse> getActiveOrders(String mail) {
                 item.setRiceAmount(getRiceName(riceCode));
                 item.setRicePrice(getRicePrice(riceCode));
 
+                if (sourceCustomId != null && sourceCustomId > 0) {
+                    item.setSourceName(getSourceName(String.valueOf(sourceCustomId)));
+                    item.setSourcePrice(getSourcePrice(String.valueOf(sourceCustomId)));
+                }
+
                 // もし1行目にソースコードが入っている場合への対応
                 if (customId != null && customId >= 50) {
                     item.setSourceName(getSourceName(String.valueOf(customId)));
+                    item.setSourcePrice(getSourcePrice(String.valueOf(customId)));
                 }
 
                 response.getDetails().add(item);
@@ -255,11 +276,34 @@ public List<ActiveOrderResponse> getActiveOrders(String mail) {
                 item.setPhoto(photo != null && !photo.isEmpty() ? photo : "img/ザンギ弁当.jpg");
                 
                 item.setCount(toInteger(row.get("count")));
+
+                Integer zangiCount = toInteger(row.get("plus_zangi_count"));
+                item.setZangiCount(zangiCount != null ? zangiCount : 0);
+
+                Integer setGoodsId = toInteger(row.get("set_goods_id"));
+                if (setGoodsId != null && setGoodsId > 0) {
+                    String setGoodsName = (String) row.get("set_goods_name");
+                    item.setSetGoodsName(setGoodsName != null
+                            ? setGoodsName : getSetName(String.valueOf(setGoodsId)));
+                    Integer setGoodsPrice = toInteger(row.get("set_goods_price"));
+                    item.setSetGoodsPrice(setGoodsPrice != null
+                            ? setGoodsPrice : 0);
+                }
                 
                 // トッピング・ソース情報のセット
-                Integer customId = toInteger(row.get("custom_id"));
-                if (customId != null && customId > 0) {
-                    String sourceCode = String.valueOf(customId);
+                Integer riceCustomId = toInteger(row.get("custom_id"));
+                if (riceCustomId != null && riceCustomId > 0 && riceCustomId < 50) {
+                    item.setRiceName(getRiceName(String.valueOf(riceCustomId)));
+                    item.setRicePrice(getRicePrice(String.valueOf(riceCustomId)));
+                }
+                Integer sourceCustomId = toInteger(row.get("source_custom_id"));
+                if (sourceCustomId != null && sourceCustomId > 0) {
+                    String sourceCode = String.valueOf(sourceCustomId);
+                    item.setCustomName(getSourceName(sourceCode));
+                    item.setCustomPrice(getSourcePrice(sourceCode));
+                } else if (riceCustomId != null && riceCustomId >= 50) {
+                    // 旧形式の注文ではソースが custom_id に保存されている
+                    String sourceCode = String.valueOf(riceCustomId);
                     item.setCustomName(getSourceName(sourceCode));
                     item.setCustomPrice(getSourcePrice(sourceCode));
                 }
@@ -355,32 +399,39 @@ public List<ActiveOrderResponse> getActiveOrders(String mail) {
 
             // ソースコードと加算額
             Integer customIdObj = toInteger(row.get("custom_id"));
-            String sourceCode = customIdObj != null ? String.valueOf(customIdObj) : "0";
+            Integer sourceCustomIdObj = toInteger(row.get("source_custom_id"));
+            String sourceCode = sourceCustomIdObj != null ? String.valueOf(sourceCustomIdObj)
+                    : (customIdObj != null && customIdObj >= 50 ? String.valueOf(customIdObj) : "0");
             item.setSourceCode(sourceCode);
             item.setSourceType(getSourceName(sourceCode));
             int sPrice = getSourcePrice(sourceCode);
             item.setSourcePrice(sPrice);
 
-            // ライスコード（初期値: 標準 "20"）
+            // ライスコード（旧形式のソース明細は標準 "20" として復元）
             boolean isSideMenu = goodsId != null && goodsId.toUpperCase().startsWith("S");
-            
-            // DB（row）からライスコードを取得（カラム名が set_goods_id や rice_code などにある場合）
-            Integer setGoodsId = toInteger(row.get("set_goods_id"));
-            String riceCode;
-
-            if (setGoodsId != null && setGoodsId > 0) {
-                riceCode = String.valueOf(setGoodsId);
-            } else {
-                riceCode = isSideMenu ? "0" : "20";
-            }
+            String riceCode = isSideMenu ? "0"
+                    : (customIdObj != null && customIdObj < 50 ? String.valueOf(customIdObj) : "20");
 
             item.setRiceCode(riceCode);
             item.setRiceAmount(getRiceName(riceCode));
             int rPrice = getRicePrice(riceCode);
             item.setRicePrice(rPrice);
 
+            Integer setGoodsId = toInteger(row.get("set_goods_id"));
+            if (setGoodsId != null && setGoodsId > 0) {
+                item.setSetGoodsId(String.valueOf(setGoodsId));
+                String setGoodsName = (String) row.get("set_goods_name");
+                item.setSetGoodsName(setGoodsName != null ? setGoodsName : getSetName(String.valueOf(setGoodsId)));
+                Integer setPrice = toInteger(row.get("set_price"));
+                item.setSetPrice(setPrice != null ? setPrice : 0);
+            } else {
+                item.setSetGoodsId("0");
+                item.setSetGoodsName("なし");
+                item.setSetPrice(0);
+            }
+
             // 合計金額の算出
-            item.setTotalPrice(item.getPrice() + zPrice + rPrice + sPrice);
+            item.setTotalPrice(item.getPrice() + zPrice + rPrice + sPrice + item.getSetPrice());
 
             cartList.add(item);
         }
@@ -391,11 +442,7 @@ public List<ActiveOrderResponse> getActiveOrders(String mail) {
     // --- 加算料金・名称計算ヘルパーメソッド ---
 
     private int getZangiPrice(int count) {
-        int baseCount = 5;
-        if (count > baseCount) {
-            return (count - baseCount) * 100;
-        }
-        return 0;
+        return count * 100;
     }
 
     private String getRiceName(String key) {
@@ -415,6 +462,16 @@ public List<ActiveOrderResponse> getActiveOrders(String mail) {
             case "30" -> 50;
             case "40" -> 100;
             default -> 0;
+        };
+    }
+
+    private String getSetName(String key) {
+        return switch (key) {
+            case "11" -> "満腹ザンギセット（味噌汁＋ポテトサラダ）";
+            case "12" -> "満腹ザンギセット（味噌汁＋大根サラダ）";
+            case "13" -> "満腹ザンギセット（味噌汁＋マカロニたまご）";
+            case "20" -> "定番コンビセット";
+            default -> "なし";
         };
     }
 

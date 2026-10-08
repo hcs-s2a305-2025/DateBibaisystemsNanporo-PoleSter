@@ -23,6 +23,9 @@ public class OrderDetailRequest {
     // カスタムID
     private Integer customId;
 
+    // ソースカスタムID
+    private Integer sourceCustomId;
+
 
     public Integer getSetGoodsId() {
         return setGoodsId;

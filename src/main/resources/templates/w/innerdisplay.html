@@ -59,6 +59,18 @@
                             th:text="'・ ' + ${item.sourceName}">
                             油淋鶏風ネギダレだくだく
                         </li>
+
+                        <!-- 追加ザンギ -->
+                        <li th:if="${item.zangiCount != null and item.zangiCount > 0}"
+                            th:text="'・ 追加ザンギ: ' + ${item.zangiCount} + '個'">
+                            追加ザンギ: 2個
+                        </li>
+
+                        <!-- セット商品 -->
+                        <li th:if="${item.setName != null and item.setName != ''}"
+                            th:text="'・ セット: ' + ${item.setName}">
+                            セット: 満腹セット
+                        </li>
                     </ul>
 
                 </div>

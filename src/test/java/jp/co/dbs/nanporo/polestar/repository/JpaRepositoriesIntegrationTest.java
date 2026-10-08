@@ -23,7 +23,7 @@ import jp.co.dbs.nanporo.polestar.entity.OrderEntity;
 import jp.co.dbs.nanporo.polestar.entity.TransactionDetailEntity;
 import jp.co.dbs.nanporo.polestar.entity.TransactionEntity;
 
-@SpringBootTest(properties = "spring.sql.init.mode=never")
+@SpringBootTest
 @Transactional
 @Tag("integration")
 @ActiveProfiles("test")
@@ -69,6 +69,8 @@ class JpaRepositoriesIntegrationTest {
 		LocalDateTime now = LocalDateTime.now();
 		insertUser(mail);
 		insertGoods(goodsId);
+		insertCustom(50);
+		insertCustom(60);
 
 		OrderEntity order = new OrderEntity();
 		order.setOrderNumber(orderNumber);
@@ -87,9 +89,15 @@ class JpaRepositoriesIntegrationTest {
 		orderDetail.setGoodsId(goodsId);
 		orderDetail.setCount(1);
 		orderDetail.setPlusZangiCount(0);
+		orderDetail.setCustomId(50);
+		orderDetail.setSourceCustomId(60);
 		orderDetailRepository.saveAndFlush(orderDetail);
 
-		assertThat(orderDetailRepository.findByOrderId(order.getOrderId())).hasSize(1);
+		assertThat(orderDetailRepository.findByOrderId(order.getOrderId())).singleElement()
+				.satisfies(savedDetail -> {
+					assertThat(savedDetail.getCustomId()).isEqualTo(50);
+					assertThat(savedDetail.getSourceCustomId()).isEqualTo(60);
+				});
 		assertThat(orderTRepository.findTodayOrderByNumber(orderNumber, LocalDate.now().atStartOfDay(),
 				LocalDate.now().atTime(23, 59, 59, 999999999))).contains(order);
 		assertThat(userRepository.findByMail(mail)).containsEntry("mail", mail);
@@ -117,13 +125,18 @@ class JpaRepositoriesIntegrationTest {
 		transactionDetail.setGoodsName("integration-item");
 		transactionDetail.setCount(1);
 		transactionDetail.setPlusZangiCount(0);
+		transactionDetail.setCustomId(50);
+		transactionDetail.setSourceCustomId(60);
 		transactionDetail.setPrice(850);
 		transactionDetailRepository.saveAndFlush(transactionDetail);
 
 		assertThat(transactionRepository.findById(transaction.getTransactionId())).isPresent();
 		assertThat(transactionDetailRepository.findById(
 				new jp.co.dbs.nanporo.polestar.entity.TransactionDetailKey(transaction.getTransactionId(), 1)))
-				.isPresent();
+				.get().satisfies(savedDetail -> {
+					assertThat(savedDetail.getCustomId()).isEqualTo(50);
+					assertThat(savedDetail.getSourceCustomId()).isEqualTo(60);
+				});
 	}
 
 	private void insertUser(String mail) {
@@ -143,5 +156,11 @@ class JpaRepositoriesIntegrationTest {
 		jdbc.update("INSERT INTO goods_m (goods_id, goods_name, price, calorie, allergy, zangi_count, sold_out, detail, watch_rank) "
 				+ "VALUES (:goodsId, 'integration-item', 850, 500, 'なし', 5, false, 'test', '一般')",
 				new MapSqlParameterSource("goodsId", goodsId));
+	}
+
+	private void insertCustom(int customId) {
+		jdbc.update("INSERT INTO custom_m (custom_id, goods_name, price, calorie, allergy, sold_out) "
+				+ "VALUES (:customId, 'integration-custom', 100, 0, 'なし', false)",
+				new MapSqlParameterSource("customId", customId));
 	}
 }

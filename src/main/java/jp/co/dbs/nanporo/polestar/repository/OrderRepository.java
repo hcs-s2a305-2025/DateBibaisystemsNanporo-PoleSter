@@ -99,9 +99,9 @@ public class OrderRepository {
     // 注文明細データを追加するSQL
     private static final String INSERT_ORDER_DETAIL = 
             "INSERT INTO order_detail_t ("
-            + "order_id, order_count, goods_id, set_goods_id, count, plus_zangi_count, custom_id"
+            + "order_id, order_count, goods_id, set_goods_id, count, plus_zangi_count, custom_id, source_custom_id"
             + ") VALUES ("
-            + ":orderId, :orderCount, :goodsId, :setGoodsId, :count, :plusZangiCount, :customId"
+            + ":orderId, :orderCount, :goodsId, :setGoodsId, :count, :plusZangiCount, :customId, :sourceCustomId"
             + ")";
 
     /**
@@ -116,6 +116,7 @@ public class OrderRepository {
         params.put("count", detail.getCount());
         params.put("plusZangiCount", detail.getPlusZangiCount());
         params.put("customId", detail.getCustomId());
+        params.put("sourceCustomId", detail.getSourceCustomId());
 
         return jdbc.update(INSERT_ORDER_DETAIL, params);
     }
@@ -164,7 +165,7 @@ public class OrderRepository {
     //         + "ORDER BY get_time ASC";
     private static final String SELECT_ACTIVE_ORDERS_WITH_DETAILS = 
             "SELECT o.order_id, o.order_number, o.get_time, o.mail, o.sum_money, o.memo, o.status, "
-            + "       d.order_count, d.goods_id, d.count, g.goods_name "
+            + "       d.order_count, d.goods_id, d.count, d.custom_id, d.source_custom_id, g.goods_name "
             + "FROM order_t o "
             + "LEFT JOIN order_detail_t d ON o.order_id = d.order_id "
             + "LEFT JOIN goods_m g ON d.goods_id = g.goods_id "
@@ -184,11 +185,13 @@ public class OrderRepository {
     // ユーザーの予約履歴一覧（降順）を取得するSQL（商品マスタ goods_m を結合）
     private static final String SELECT_ORDER_HISTORY_BY_MAIL = 
             "SELECT o.order_id, o.order_number, o.get_time, o.sum_money, "
-            + "       d.order_count, d.goods_id, d.count, d.plus_zangi_count, d.custom_id, "
+            + "       d.order_count, d.goods_id, d.count, d.plus_zangi_count, d.custom_id, d.source_custom_id, "
+            + "       d.set_goods_id, sg.goods_name AS set_goods_name, sg.price AS set_goods_price, "
             + "       g.goods_name, g.price, g.photo "
             + "FROM order_t o "
             + "LEFT JOIN order_detail_t d ON o.order_id = d.order_id "
             + "LEFT JOIN goods_m g ON d.goods_id = g.goods_id "
+            + "LEFT JOIN set_goods_m sg ON d.set_goods_id = sg.set_goods_id "
             + "WHERE o.mail = :mail "
             + "ORDER BY o.get_time DESC, d.order_count ASC";
 
@@ -226,9 +229,11 @@ public class OrderRepository {
 
     private static final String SELECT_ORDER_DETAILS_WITH_GOODS_BY_ORDER_ID = 
             "SELECT d.order_id, d.order_count, d.goods_id, d.count, d.plus_zangi_count, d.custom_id, "
+            + "       d.source_custom_id, d.set_goods_id, s.goods_name AS set_goods_name, s.price AS set_price, "
             + "       g.goods_name, g.price, g.photo "
             + "FROM order_detail_t d "
             + "LEFT JOIN goods_m g ON d.goods_id = g.goods_id "
+            + "LEFT JOIN set_goods_m s ON d.set_goods_id = s.set_goods_id "
             + "WHERE d.order_id = :orderId "
             + "ORDER BY d.order_count ASC";
 

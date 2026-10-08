@@ -40,6 +40,21 @@ public class OrderHistoryResponse {
         // カスタムトッピング価格
         private Integer customPrice;
 
+        // ご飯の量
+        private String riceName;
+
+        // ご飯の加算料金
+        private Integer ricePrice;
+
+        // 追加ザンギ個数
+        private Integer zangiCount;
+
+        // セット商品名
+        private String setGoodsName;
+
+        // セット商品の加算料金
+        private Integer setGoodsPrice;
+
         // 個数
         private Integer count;
 

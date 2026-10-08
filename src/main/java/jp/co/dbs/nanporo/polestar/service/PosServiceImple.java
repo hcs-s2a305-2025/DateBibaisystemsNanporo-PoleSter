@@ -71,6 +71,9 @@ public class PosServiceImple implements PosService {
         if (transactionRepository.existsByOrderId(order.getOrderId())) {
             throw new IllegalArgumentException("注文番号（" + targetOrderNo + "）は既に会計が完了しています。");
         }
+        if (!"完成".equals(order.getStatus())) {
+            throw new IllegalArgumentException("予約注文は完成状態の場合のみ会計できます。");
+        }
 
         List<OrderDetailEntity> details = orderDetailRepository.findByOrderId(order.getOrderId());
         List<MobileOrderResponse.MobileOrderItemDto> itemDtos = new ArrayList<>();
@@ -118,8 +121,35 @@ public class PosServiceImple implements PosService {
                 }
             }
 
+            int sourcePrice = 0;
+            if (detail.getSourceCustomId() != null) {
+                CustomEntity source = storeRepository.getCustomEntityById(detail.getSourceCustomId()).orElse(null);
+                if (source != null) {
+                    sourcePrice = source.getPrice() != null ? source.getPrice() : 0;
+                    String sourceName = source.getGoodsName();
+                    if (sourceName != null && !sourceName.isEmpty()) {
+                        toppingList.add(MobileOrderResponse.MobileToppingDto.builder()
+                                .id("CUSTOM_" + detail.getSourceCustomId())
+                                .name(sourceName)
+                                .price(sourcePrice)
+                                .quantity(1)
+                                .build());
+                    }
+                }
+            }
+
+            int zangiPrice = (detail.getPlusZangiCount() != null ? detail.getPlusZangiCount() : 0) * 100;
+            if (zangiPrice > 0) {
+                toppingList.add(MobileOrderResponse.MobileToppingDto.builder()
+                        .id("ZANGI")
+                        .name("追加ザンギ")
+                        .price(zangiPrice)
+                        .quantity(1)
+                        .build());
+            }
+
             // 1個あたりの合計単価（本体 + セット + カスタム）
-            int unitPrice = goodsPrice + setPrice + customPrice;
+            int unitPrice = goodsPrice + setPrice + customPrice + sourcePrice + zangiPrice;
             int quantity = (detail.getCount() != null && detail.getCount() > 0) ? detail.getCount() : 1;
 
             itemDtos.add(MobileOrderResponse.MobileOrderItemDto.builder()
@@ -158,20 +188,22 @@ public class PosServiceImple implements PosService {
             LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
             
             OrderEntity order = orderTRepository.findTodayOrderByNumber(request.getMobileOrderNo().trim(), startOfDay, endOfDay)
-                    .orElse(null);
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "当日の予約注文が見つかりません: " + request.getMobileOrderNo().trim()));
 
-            if (order != null) {
-                // 【二重会計防止】既に取引トランに同一order_idが存在する場合は弾く
-                if (transactionRepository.existsByOrderId(order.getOrderId())) {
-                    throw new IllegalArgumentException("この予約注文は既に会計が完了しています。");
-                }
-                orderId = order.getOrderId();
-                mail = order.getMail();
-                
-                // 予約注文のステータスを「受取済」に更新
-                order.setStatus("受取済");
-                orderTRepository.save(order);
+            // 【二重会計防止】既に取引トランに同一order_idが存在する場合は弾く
+            if (transactionRepository.existsByOrderId(order.getOrderId())) {
+                throw new IllegalArgumentException("この予約注文は既に会計が完了しています。");
             }
+            if (!"完成".equals(order.getStatus())) {
+                throw new IllegalArgumentException("予約注文は完成状態の場合のみ会計できます。");
+            }
+            orderId = order.getOrderId();
+            mail = order.getMail();
+
+            // 予約注文のステータスを「受取済」に更新
+            order.setStatus("受取済");
+            orderTRepository.save(order);
         } else {
             // --- B. 店頭直接注文の場合 ---
             OrderEntity newOrder = new OrderEntity();
@@ -259,6 +291,7 @@ public class PosServiceImple implements PosService {
             detail.setCount(od.getCount() != null ? od.getCount() : 1);
             detail.setPlusZangiCount(od.getPlusZangiCount() != null ? od.getPlusZangiCount() : 0);
             detail.setCustomId(od.getCustomId());
+            detail.setSourceCustomId(od.getSourceCustomId());
 
             // 1行あたりの小計価格を計算
             int gPrice = (goods != null && goods.getPrice() != null) ? goods.getPrice() : 0;
@@ -272,7 +305,13 @@ public class PosServiceImple implements PosService {
                 CustomEntity custom = storeRepository.getCustomEntityById(od.getCustomId()).orElse(null);
                 if (custom != null && custom.getPrice() != null) cPrice = custom.getPrice();
             }
-            detail.setPrice((gPrice + sPrice + cPrice) * detail.getCount());
+            int sourcePrice = 0;
+            if (od.getSourceCustomId() != null) {
+                CustomEntity source = storeRepository.getCustomEntityById(od.getSourceCustomId()).orElse(null);
+                if (source != null && source.getPrice() != null) sourcePrice = source.getPrice();
+            }
+            int zangiPrice = (od.getPlusZangiCount() != null ? od.getPlusZangiCount() : 0) * 100;
+            detail.setPrice((gPrice + sPrice + cPrice + sourcePrice + zangiPrice) * detail.getCount());
 
             transactionDetailRepository.save(detail);
         }
@@ -387,8 +426,18 @@ public class PosServiceImple implements PosService {
         // リクエストの toppings 配列からカスタムID・セット商品ID等を正確に分類
         if (item.getToppings() != null) {
             for (PaymentRequest.ToppingRequest t : item.getToppings()) {
+                if (t.getPlusZangiCount() != null) {
+                    plusZangiCount += Math.max(0, t.getPlusZangiCount());
+                    continue;
+                }
+
                 String name = t.getName();
                 if (name == null || name.isEmpty()) continue;
+
+                if (name.contains("追加ザンギ") || name.contains("ザンギ追加")) {
+                    plusZangiCount += Math.max(0, t.getQuantity() != null ? t.getQuantity() : 0);
+                    continue;
+                }
 
                 // 1. ごはんの量の判定 (custom_m)
                 if (name.contains("小盛り")) {
@@ -444,10 +493,6 @@ public class PosServiceImple implements PosService {
                 } else if (name.contains("緑茶")) {
                     setGoodsId = 20;
                 }
-                // 4. 追加ザンギ等のカウント
-                else if (t.getPlusZangiCount() != null) {
-                    plusZangiCount += t.getPlusZangiCount();
-                }
             }
         }
 
@@ -458,20 +503,10 @@ public class PosServiceImple implements PosService {
         detail1.setCount(item.getQuantity() != null ? item.getQuantity() : 1);
         detail1.setSetGoodsId(setGoodsId);
         detail1.setPlusZangiCount(plusZangiCount);
-        detail1.setCustomId(riceCustomId != null ? riceCustomId : sauceCustomId);
+        detail1.setCustomId(riceCustomId != null ? riceCustomId
+                : (item.getProductId() != null && item.getProductId().toUpperCase().startsWith("S") ? 0 : 20));
+        detail1.setSourceCustomId(sauceCustomId);
         details.add(detail1);
-
-        // --- 2行目の作成 (ご飯の量とソースの両方がある場合、ソース用の2行目を追加) ---
-        // if (riceCustomId != null && sauceCustomId != null) {
-        //     OrderDetailEntity detail2 = new OrderDetailEntity();
-        //     detail2.setOrderId(orderId);
-        //     detail2.setGoodsId(item.getProductId());
-        //     detail2.setCount(item.getQuantity() != null ? item.getQuantity() : 1);
-        //     detail2.setSetGoodsId(null);
-        //     detail2.setPlusZangiCount(0);
-        //     detail2.setCustomId(sauceCustomId); // ソースのcustom_idを設定
-        //     details.add(detail2);
-        // }
 
         return details;
     }
@@ -540,6 +575,12 @@ public class PosServiceImple implements PosService {
                     CustomEntity custom = storeRepository.getCustomEntityById(d.getCustomId()).orElse(null);
                     if (custom != null && custom.getGoodsName() != null) {
                         detailList.add(custom.getGoodsName());
+                    }
+                }
+                if (d.getSourceCustomId() != null) {
+                    CustomEntity source = storeRepository.getCustomEntityById(d.getSourceCustomId()).orElse(null);
+                    if (source != null && source.getGoodsName() != null) {
+                        detailList.add(source.getGoodsName());
                     }
                 }
             }

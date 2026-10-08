@@ -80,6 +80,27 @@ class PosServiceImpleUnitTest {
 	}
 
 	@Test
+	@DisplayName("店頭明細はサイド商品と商品IDなしでもご飯コードを決める")
+	void processStorePaymentWithSideAndMissingProductIds() {
+		prepareStoreSale();
+		List<OrderDetailEntity> savedDetails = new ArrayList<>();
+		doAnswer(invocation -> {
+			OrderDetailEntity detail = invocation.getArgument(0);
+			savedDetails.add(detail);
+			return detail;
+		}).when(orderDetailRepository).save(any(OrderDetailEntity.class));
+		when(orderDetailRepository.findByOrderId(57)).thenAnswer(invocation -> savedDetails);
+		PaymentRequest.PaymentItemRequest side = paymentItem("サイド", 1, 100);
+		side.setProductId("S001");
+
+		service.processPayment(payment(null, null, null, List.of(
+				side,
+				paymentItem(null, 1, 100))));
+
+		assertThat(savedDetails).extracting(OrderDetailEntity::getCustomId).containsExactly(0, 20);
+	}
+
+	@Test
 	@DisplayName("当日の予約注文と商品・セット・カスタム価格を取得する")
 	void getTodayMobileOrder() {
 		OrderEntity order = order(12, "M0012", "member@example.com");
@@ -100,7 +121,6 @@ class PosServiceImpleUnitTest {
 		custom.setGoodsName("ソース");
 		custom.setPrice(50);
 		when(storeRepository.getCustomEntityById(50)).thenReturn(Optional.of(custom));
-
 		MobileOrderRequest request = new MobileOrderRequest();
 		request.setOrderNo(" M0012 ");
 		var response = service.getTodayMobileOrder(request);
@@ -138,6 +158,22 @@ class PosServiceImpleUnitTest {
 		assertThatThrownBy(() -> service.getTodayMobileOrder(request))
 				.isInstanceOf(RuntimeException.class)
 				.hasMessage("当日の予約注文が見つかりません: M404");
+	}
+
+	@Test
+	@DisplayName("完成前の予約注文はPOSで参照できない")
+	void getTodayMobileOrderRejectsNotCompletedOrder() {
+		OrderEntity order = order(25, "M0025", "member@example.com");
+		order.setStatus("調理中");
+		when(orderTRepository.findTodayOrderByNumber(eq("M0025"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order));
+		MobileOrderRequest request = new MobileOrderRequest();
+		request.setOrderNo("M0025");
+
+		assertThatThrownBy(() -> service.getTodayMobileOrder(request))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("予約注文は完成状態の場合のみ会計できます。");
+		verify(orderDetailRepository, never()).findByOrderId(25);
 	}
 
 	@Test
@@ -189,6 +225,54 @@ class PosServiceImpleUnitTest {
 	}
 
 	@Test
+	@DisplayName("予約商品取得でソースの有無と追加ザンギを表示する")
+	void getTodayMobileOrderWithSourceAndZangi() {
+		OrderDetailEntity withSource = detail("B001", null, 2, null);
+		withSource.setSourceCustomId(60);
+		withSource.setPlusZangiCount(2);
+		OrderDetailEntity missingSource = detail("B002", null, 1, null);
+		missingSource.setSourceCustomId(61);
+		OrderDetailEntity unnamedSource = detail("B003", null, 1, null);
+		unnamedSource.setSourceCustomId(62);
+		OrderDetailEntity nullNameSource = detail("B004", null, 1, null);
+		nullNameSource.setSourceCustomId(63);
+		when(orderTRepository.findTodayOrderByNumber(eq("M0021"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order(21, "M0021", "member@example.com")));
+		when(orderDetailRepository.findByOrderId(21))
+				.thenReturn(List.of(withSource, missingSource, unnamedSource, nullNameSource));
+		for (String goodsId : List.of("B001", "B002", "B003", "B004")) {
+			GoodsEntity goods = new GoodsEntity();
+			goods.setGoodsName("商品 " + goodsId);
+			goods.setPrice(100);
+			when(storeRepository.getGoodsEntityById(goodsId)).thenReturn(Optional.of(goods));
+		}
+		CustomEntity source = new CustomEntity();
+		source.setGoodsName("ソース");
+		source.setPrice(null);
+		when(storeRepository.getCustomEntityById(60)).thenReturn(Optional.of(source));
+		when(storeRepository.getCustomEntityById(61)).thenReturn(Optional.empty());
+		CustomEntity unnamedSourceEntity = new CustomEntity();
+		unnamedSourceEntity.setGoodsName("");
+		unnamedSourceEntity.setPrice(40);
+		when(storeRepository.getCustomEntityById(62)).thenReturn(Optional.of(unnamedSourceEntity));
+		CustomEntity nullNameSourceEntity = new CustomEntity();
+		nullNameSourceEntity.setGoodsName(null);
+		when(storeRepository.getCustomEntityById(63)).thenReturn(Optional.of(nullNameSourceEntity));
+		MobileOrderRequest request = new MobileOrderRequest();
+		request.setOrderNo("M0021");
+
+		var result = service.getTodayMobileOrder(request);
+
+		assertThat(result.getItems()).hasSize(4);
+		assertThat(result.getItems().get(0).getUnitPrice()).isEqualTo(300);
+		assertThat(result.getItems().get(0).getToppings()).extracting("name")
+				.containsExactly("ソース", "追加ザンギ");
+		assertThat(result.getItems().get(1).getToppings()).isEmpty();
+		assertThat(result.getItems().get(2).getToppings()).isEmpty();
+		assertThat(result.getItems().get(3).getToppings()).isEmpty();
+	}
+
+	@Test
 	@DisplayName("会計済みの予約注文は二重会計を拒否する")
 	void getTodayMobileOrderAlreadyPaid() {
 		OrderEntity order = order(24, "M0024", "member@example.com");
@@ -211,7 +295,9 @@ class PosServiceImpleUnitTest {
 		OrderEntity order = order(31, "M0031", "order@example.com");
 		when(orderTRepository.findTodayOrderByNumber(eq("M0031"), any(LocalDateTime.class), any(LocalDateTime.class)))
 				.thenReturn(Optional.of(order));
-		when(orderDetailRepository.findByOrderId(31)).thenReturn(List.of(detail("B001", 2, 2, 50)));
+		OrderDetailEntity reservationDetail = detail("B001", 2, 2, 50);
+		reservationDetail.setSourceCustomId(60);
+		when(orderDetailRepository.findByOrderId(31)).thenReturn(List.of(reservationDetail));
 		GoodsEntity goods = new GoodsEntity();
 		goods.setGoodsName("弁当");
 		goods.setPrice(800);
@@ -224,6 +310,10 @@ class PosServiceImpleUnitTest {
 		custom.setGoodsName("ソース");
 		custom.setPrice(50);
 		when(storeRepository.getCustomEntityById(50)).thenReturn(Optional.of(custom));
+		CustomEntity source = new CustomEntity();
+		source.setGoodsName("別ソース");
+		source.setPrice(25);
+		when(storeRepository.getCustomEntityById(60)).thenReturn(Optional.of(source));
 		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
 			TransactionEntity transaction = invocation.getArgument(0);
 			transaction.setTransactionId(88);
@@ -250,7 +340,8 @@ class PosServiceImpleUnitTest {
 		assertThat(detailCaptor.getValue().getCount()).isEqualTo(2);
 		assertThat(detailCaptor.getValue().getGoodsName()).isEqualTo("弁当");
 		assertThat(detailCaptor.getValue().getSetGoodsName()).isEqualTo("セット");
-		assertThat(detailCaptor.getValue().getPrice()).isEqualTo(1900);
+		assertThat(detailCaptor.getValue().getPrice()).isEqualTo(1950);
+		assertThat(detailCaptor.getValue().getSourceCustomId()).isEqualTo(60);
 	}
 
 	@Test
@@ -333,7 +424,9 @@ class PosServiceImpleUnitTest {
 				topping("麻婆", null), topping("麻婆だく", null), topping("麻婆だくだく", null),
 				topping("ポテトサラダ", null), topping("大根サラダ", null),
 				topping("マカロニ", null), topping("緑茶", null),
-				topping("ザンギ追加", 2), topping("ザンギ追加", 3), topping("追加トッピング", null));
+				topping("追加ザンギ", 2, 2), 				topping("ザンギ追加", 3, 3), topping("追加ザンギ", null, 3),
+				topping("ザンギ追加", null, 1), topping("追加ザンギ", null, null),
+				topping("追加トッピング", null, null));
 		PaymentRequest request = payment(null, "qr@example.com", 0, List.of(
 				paymentItem("B001", 2, 1000, toppings),
 				paymentItem("B004", null, 500, List.of(topping("麻婆だくだく", null))),
@@ -358,7 +451,7 @@ class PosServiceImpleUnitTest {
 		CustomEntity custom = new CustomEntity();
 		custom.setGoodsName("麻婆");
 		when(storeRepository.getCustomEntityById(40)).thenReturn(Optional.of(custom));
-		when(storeRepository.getCustomEntityById(82)).thenReturn(Optional.empty());
+		when(storeRepository.getCustomEntityById(20)).thenReturn(Optional.empty());
 		when(storeRepository.getCustomEntityById(99)).thenReturn(Optional.empty());
 
 		List<OrderDetailEntity> savedOrderDetails = new ArrayList<>();
@@ -369,6 +462,11 @@ class PosServiceImpleUnitTest {
 		}).when(orderDetailRepository).save(any(OrderDetailEntity.class));
 		OrderDetailEntity missingReferences = detail("B404", 99, null, 99);
 		missingReferences.setPlusZangiCount(null);
+		missingReferences.setSourceCustomId(1000);
+		CustomEntity sourceWithoutPrice = new CustomEntity();
+		sourceWithoutPrice.setGoodsName("ソース価格なし");
+		sourceWithoutPrice.setPrice(null);
+		when(storeRepository.getCustomEntityById(82)).thenReturn(Optional.of(sourceWithoutPrice));
 		when(orderDetailRepository.findByOrderId(42)).thenAnswer(invocation -> {
 			List<OrderDetailEntity> details = new ArrayList<>(savedOrderDetails);
 			details.add(missingReferences);
@@ -386,12 +484,14 @@ class PosServiceImpleUnitTest {
 		assertThat(orderDetailCaptor.getAllValues()).extracting(OrderDetailEntity::getOrderCount)
 				.containsExactly(1, 2, 3, 4);
 		assertThat(orderDetailCaptor.getAllValues().get(0).getSetGoodsId()).isEqualTo(20);
-		assertThat(orderDetailCaptor.getAllValues().get(0).getPlusZangiCount()).isEqualTo(5);
+		assertThat(orderDetailCaptor.getAllValues().get(0).getPlusZangiCount()).isEqualTo(9);
 		assertThat(orderDetailCaptor.getAllValues().get(0).getCustomId()).isEqualTo(40);
-		assertThat(orderDetailCaptor.getAllValues().get(1).getCustomId()).isEqualTo(82);
+		assertThat(orderDetailCaptor.getAllValues().get(0).getSourceCustomId()).isEqualTo(82);
+		assertThat(orderDetailCaptor.getAllValues().get(1).getCustomId()).isEqualTo(20);
+		assertThat(orderDetailCaptor.getAllValues().get(1).getSourceCustomId()).isEqualTo(82);
 		assertThat(orderDetailCaptor.getAllValues().get(1).getCount()).isEqualTo(1);
-		assertThat(orderDetailCaptor.getAllValues().get(2).getCustomId()).isNull();
-		assertThat(orderDetailCaptor.getAllValues().get(3).getCustomId()).isNull();
+		assertThat(orderDetailCaptor.getAllValues().get(2).getCustomId()).isEqualTo(20);
+		assertThat(orderDetailCaptor.getAllValues().get(3).getCustomId()).isEqualTo(20);
 
 		ArgumentCaptor<TransactionEntity> transactionCaptor = ArgumentCaptor.forClass(TransactionEntity.class);
 		verify(transactionRepository).save(transactionCaptor.capture());
@@ -399,35 +499,41 @@ class PosServiceImpleUnitTest {
 		ArgumentCaptor<TransactionDetailEntity> transactionDetailCaptor =
 				ArgumentCaptor.forClass(TransactionDetailEntity.class);
 		verify(transactionDetailRepository, times(5)).save(transactionDetailCaptor.capture());
-		assertThat(transactionDetailCaptor.getAllValues().get(0).getPrice()).isEqualTo(200);
+		assertThat(transactionDetailCaptor.getAllValues().get(0).getPrice()).isEqualTo(2000);
 		assertThat(transactionDetailCaptor.getAllValues().get(0).getSetGoodsName()).isEqualTo("緑茶");
+		assertThat(transactionDetailCaptor.getAllValues().get(0).getPlusZangiCount()).isEqualTo(9);
 		assertThat(transactionDetailCaptor.getAllValues().get(1).getGoodsName()).isEqualTo("商品ID:B004");
 		assertThat(transactionDetailCaptor.getAllValues().get(4).getCount()).isEqualTo(1);
 		assertThat(transactionDetailCaptor.getAllValues().get(4).getPlusZangiCount()).isZero();
 	}
 
 	@Test
-	@DisplayName("予約注文が見つからない会計は注文IDなしの取引として保存する")
+	@DisplayName("予約注文が見つからない会計は拒否する")
 	void processPaymentWhenReservationDoesNotExist() {
 		when(orderTRepository.findTodayOrderByNumber(eq("M0999"), any(LocalDateTime.class), any(LocalDateTime.class)))
 				.thenReturn(Optional.empty());
-		when(orderDetailRepository.findByOrderId(0)).thenReturn(List.of());
-		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
-			TransactionEntity transaction = invocation.getArgument(0);
-			transaction.setTransactionId(90);
-			return transaction;
-		});
-
-		service.processPayment(payment("M0999", "member@example.com", null, List.of()));
-
-		ArgumentCaptor<TransactionEntity> transactionCaptor = ArgumentCaptor.forClass(TransactionEntity.class);
-		verify(transactionRepository).save(transactionCaptor.capture());
-		assertThat(transactionCaptor.getValue().getOrderId()).isZero();
-		assertThat(transactionCaptor.getValue().getMail()).isEqualTo("member@example.com");
-		assertThat(transactionCaptor.getValue().getUseCoupon()).isNull();
+		assertThatThrownBy(() -> service.processPayment(payment("M0999", "member@example.com", null, List.of())))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("当日の予約注文が見つかりません: M0999");
+		verify(transactionRepository, never()).save(any(TransactionEntity.class));
 		verify(orderTRepository, never()).save(any(OrderEntity.class));
 		verify(orderDetailRepository, never()).save(any(OrderDetailEntity.class));
 		verify(transactionDetailRepository, never()).save(any(TransactionDetailEntity.class));
+	}
+
+	@Test
+	@DisplayName("完成前の予約注文はPOS会計できない")
+	void processPaymentRejectsNotCompletedReservation() {
+		OrderEntity order = order(90, "M0090", "member@example.com");
+		order.setStatus("調理中");
+		when(orderTRepository.findTodayOrderByNumber(eq("M0090"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order));
+
+		assertThatThrownBy(() -> service.processPayment(payment("M0090", null, 0, List.of())))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("予約注文は完成状態の場合のみ会計できます。");
+		verify(orderTRepository, never()).save(any(OrderEntity.class));
+		verify(transactionRepository, never()).save(any(TransactionEntity.class));
 	}
 
 	@Test
@@ -484,6 +590,10 @@ class PosServiceImpleUnitTest {
 	@Test
 	@DisplayName("顧客情報が空ならポイント計算を行わない")
 	void processPaymentSkipsEmptyMember() {
+		OrderEntity order = order(998, "M0998", "empty@example.com");
+		when(orderTRepository.findTodayOrderByNumber(eq("M0998"), any(LocalDateTime.class), any(LocalDateTime.class)))
+				.thenReturn(Optional.of(order));
+		when(orderDetailRepository.findByOrderId(998)).thenReturn(List.of());
 		when(userRepository.findByMail("empty@example.com")).thenReturn(Map.of());
 		when(transactionRepository.save(any(TransactionEntity.class))).thenAnswer(invocation -> {
 			TransactionEntity transaction = invocation.getArgument(0);
@@ -494,7 +604,7 @@ class PosServiceImpleUnitTest {
 		service.processPayment(payment("M0998", "empty@example.com", 0, List.of()));
 
 		verify(userRepository, never()).updateMemberPointAndRank(any(), any(Integer.class), any(Integer.class), any());
-		verify(orderDetailRepository, times(1)).findByOrderId(0);
+		verify(orderDetailRepository, times(1)).findByOrderId(998);
 	}
 
 	@Test
@@ -618,11 +728,13 @@ class PosServiceImpleUnitTest {
 		detailWithOptions.setCount(2);
 		detailWithOptions.setSetGoodsName("サラダ");
 		detailWithOptions.setCustomId(50);
+		detailWithOptions.setSourceCustomId(53);
 		TransactionDetailEntity detailWithoutOptions = new TransactionDetailEntity();
 		detailWithoutOptions.setGoodsName("お茶");
 		detailWithoutOptions.setCount(1);
 		detailWithoutOptions.setSetGoodsName("");
 		detailWithoutOptions.setCustomId(51);
+		detailWithoutOptions.setSourceCustomId(51);
 		TransactionDetailEntity detailWithNullValues = new TransactionDetailEntity();
 		detailWithNullValues.setGoodsName("不明数");
 		detailWithNullValues.setSetGoodsName(null);
@@ -632,6 +744,7 @@ class PosServiceImpleUnitTest {
 		detailWithNullCustomName.setCount(null);
 		detailWithNullCustomName.setSetGoodsName("");
 		detailWithNullCustomName.setCustomId(52);
+		detailWithNullCustomName.setSourceCustomId(52);
 		when(transactionRepository.findByTransactionDateBetweenOrderByTransactionDateDesc(
 				any(LocalDateTime.class), any(LocalDateTime.class)))
 				.thenReturn(List.of(withValues, withNullValues, withNullCoupon));
@@ -646,6 +759,9 @@ class PosServiceImpleUnitTest {
 		when(storeRepository.getCustomEntityById(51)).thenReturn(Optional.empty());
 		CustomEntity customWithoutName = new CustomEntity();
 		when(storeRepository.getCustomEntityById(52)).thenReturn(Optional.of(customWithoutName));
+		CustomEntity sourceWithName = new CustomEntity();
+		sourceWithName.setGoodsName("別ソース");
+		when(storeRepository.getCustomEntityById(53)).thenReturn(Optional.of(sourceWithName));
 
 		Map<String, Object> result = service.getCasherHistory(null);
 
@@ -657,7 +773,7 @@ class PosServiceImpleUnitTest {
 		CasherHistoryDto first = (CasherHistoryDto) history.get(0);
 		assertThat(first.getTime()).isEqualTo("12:34:56");
 		assertThat(first.getGoodsName()).isEqualTo("弁当 ×2, お茶, 不明数, 名前なし");
-		assertThat(first.getDetail()).isEqualTo("セット:サラダ / ソース / 利用:  クーポン  ");
+		assertThat(first.getDetail()).isEqualTo("セット:サラダ / ソース / 別ソース / 利用:  クーポン  ");
 		assertThat(first.getSumMoney()).isEqualTo(1200);
 		assertThat(first.getReceivedMoney()).isEqualTo(1500);
 		assertThat(first.getChangeMoney()).isEqualTo(300);
@@ -778,12 +894,18 @@ class PosServiceImpleUnitTest {
 		return topping;
 	}
 
+	private PaymentRequest.ToppingRequest topping(String name, Integer plusZangiCount, Integer quantity) {
+		PaymentRequest.ToppingRequest topping = topping(name, plusZangiCount);
+		topping.setQuantity(quantity);
+		return topping;
+	}
+
 	private OrderEntity order(Integer id, String orderNumber, String mail) {
 		OrderEntity order = new OrderEntity();
 		order.setOrderId(id);
 		order.setOrderNumber(orderNumber);
 		order.setMail(mail);
-		order.setStatus("受付");
+		order.setStatus("完成");
 		return order;
 	}
 

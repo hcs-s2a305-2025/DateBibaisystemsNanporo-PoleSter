@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const basePriceInput = document.getElementById('basePrice');
     const riceSelect = document.getElementById('riceSelect');
     const sourceSelect = document.getElementById('sourceSelect');
+    const zangiSelect = document.getElementById('zangiSelect');
+    const setSelect = document.getElementById('setSelect');
     const totalPriceDisplay = document.getElementById('totalPriceDisplay');
     const goodsIdInput = document.getElementById('goodsId');
     // 商品名を表示している h1 要素を取得
@@ -93,6 +95,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePrice() {
         let ricePrice = 0;
         let sourcePrice = 0;
+        let zangiPrice = 0;
+        let setPrice = 0;
 
         if (riceSelect && riceSelect.selectedIndex >= 0) {
             const selectedRiceOption = riceSelect.options[riceSelect.selectedIndex];
@@ -104,12 +108,23 @@ document.addEventListener('DOMContentLoaded', function() {
             sourcePrice = parseInt(selectedSourceOption.dataset.price || 0);
         }
 
-        const total = basePrice + ricePrice + sourcePrice;
+        if (zangiSelect) {
+            zangiPrice = parseInt(zangiSelect.value || 0, 10) * 100;
+        }
+
+        if (setSelect && setSelect.selectedIndex >= 0) {
+            const selectedSetOption = setSelect.options[setSelect.selectedIndex];
+            setPrice = parseInt(selectedSetOption.dataset.price || 0, 10);
+        }
+
+        const total = basePrice + ricePrice + sourcePrice + zangiPrice + setPrice;
         totalPriceDisplay.textContent = total.toLocaleString();
     }
 
     if (riceSelect) riceSelect.addEventListener('change', updatePrice);
     if (sourceSelect) sourceSelect.addEventListener('change', updatePrice);
+    if (zangiSelect) zangiSelect.addEventListener('change', updatePrice);
+    if (setSelect) setSelect.addEventListener('change', updatePrice);
 
     // 画面読み込み時に表示判定および金額計算を実行
     checkMenuOptions();

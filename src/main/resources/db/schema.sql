@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS order_detail_t(
     count INT NOT NULL,
     plus_zangi_count INT NOT NULL DEFAULT 0,
     custom_id INT REFERENCES custom_m(custom_id),
+    source_custom_id INT REFERENCES custom_m(custom_id),
     PRIMARY KEY (order_id, order_count)
 );
 
@@ -121,6 +122,7 @@ CREATE TABLE IF NOT EXISTS transaction_detail_t(
     count INT NOT NULL,
     plus_zangi_count INT NOT NULL DEFAULT 0,
     custom_id INT REFERENCES custom_m(custom_id),
+    source_custom_id INT REFERENCES custom_m(custom_id),
     price INT NOT NULL,
     PRIMARY KEY (transaction_id, reservation_count)
 );

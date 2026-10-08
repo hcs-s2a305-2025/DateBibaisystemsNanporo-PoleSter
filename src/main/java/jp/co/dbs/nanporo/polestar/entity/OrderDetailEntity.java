@@ -42,6 +42,10 @@ public class OrderDetailEntity {
     // カスタムID
     @Column(name = "custom_id")
     private Integer customId;
+
+    // ソースカスタムID
+    @Column(name = "source_custom_id")
+    private Integer sourceCustomId;
     
 
     public Integer getSetGoodsId() {

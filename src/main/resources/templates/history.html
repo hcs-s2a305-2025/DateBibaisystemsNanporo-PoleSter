@@ -36,8 +36,17 @@
                         <h5 class="text-truncate mb-1" th:text="${#numbers.formatInteger(item.goodsPrice, 1, 'COMMA') + '円'}">780円</h5>
                         
                         <!-- トッピング・ソース情報 -->
+                        <div th:if="${item.riceName != null && item.riceName != '普通 (250g)'}">
+                            <p class="text-secondary mb-0 small" th:text="${'ご飯: ' + item.riceName + (item.ricePrice != 0 ? '(' + (item.ricePrice > 0 ? '+' : '') + item.ricePrice + '円)' : '')}">ご飯: 大盛り(+50円)</p>
+                        </div>
                         <div th:if="${item.customName != null}">
-                            <p class="text-secondary mb-0 small" th:text="${item.customName + '(+' + item.customPrice + '円)'}">タルタルソース(+80円)</p>
+                            <p class="text-secondary mb-0 small" th:text="${item.customName + (item.customPrice > 0 ? '(+' + item.customPrice + '円)' : '')}">タルタルソース(+80円)</p>
+                        </div>
+                        <div th:if="${item.zangiCount != null && item.zangiCount > 0}">
+                            <p class="text-secondary mb-0 small" th:text="${'追加ザンギ: ' + item.zangiCount + '個(+' + (item.zangiCount * 100) + '円)'}">追加ザンギ: 2個(+200円)</p>
+                        </div>
+                        <div th:if="${item.setGoodsName != null && item.setGoodsName != ''}">
+                            <p class="text-secondary mb-0 small" th:text="${'セット: ' + item.setGoodsName + (item.setGoodsPrice != null && item.setGoodsPrice > 0 ? '(+' + item.setGoodsPrice + '円)' : '')}">セット: 定番コンビセット(+200円)</p>
                         </div>
                     </div>
                     <!-- 右側：商品画像 -->

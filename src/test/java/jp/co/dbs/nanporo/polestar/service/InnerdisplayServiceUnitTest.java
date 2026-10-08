@@ -85,6 +85,7 @@ class InnerdisplayServiceUnitTest {
 		for (Object code : List.of(0, 10, 20, 30, 40, 999)) {
 			rows.add(row(orderId++, "B" + orderId, "商品", code, 1));
 		}
+
 		for (int code : new int[] {50, 51, 52, 60, 61, 62, 70, 71, 72, 80, 81, 82}) {
 			rows.add(row(orderId++, "B" + orderId, "商品", code, 1));
 		}
@@ -105,6 +106,56 @@ class InnerdisplayServiceUnitTest {
 						"自家製タルタルソース", "自家製タルタルソースだく", "自家製タルタルソースだくだく",
 						"油淋鶏風ネギダレ", "油淋鶏風ネギダレだく", "油淋鶏風ネギダレだくだく",
 						"皆辣麻婆ソース", "皆辣麻婆ソースだく", "皆辣麻婆ソースだくだく");
+	}
+
+	@Test
+	@DisplayName("同じ明細行のご飯とソースを表示し、商品を重複させない")
+	void getActiveOrdersWithRiceAndSourceOnOneDetail() {
+		Map<String, Object> row = row(20, "B020", "ザンギ弁当", 30, 1);
+		row.put("source_custom_id", 61);
+		row.put("plus_zangi_count", 2);
+		row.put("set_goods_id", 11);
+		row.put("set_goods_name", "満腹ザンギセット（味噌汁＋ポテトサラダ）");
+		row.put("set_goods_price", 200);
+		when(repository.getKitchenOrders()).thenReturn(List.of(row));
+
+		List<ActiveOrderResponse> orders = service.getActiveOrders("staff@example.com");
+
+		assertThat(orders).hasSize(1);
+		assertThat(orders.get(0).getDetails()).hasSize(1);
+		assertThat(orders.get(0).getDetails().get(0).getRiceAmount()).isEqualTo("大盛り (350g)");
+		assertThat(orders.get(0).getDetails().get(0).getSourceName()).isEqualTo("自家製タルタルソースだく");
+		assertThat(orders.get(0).getDetails().get(0).getSourcePrice()).isEqualTo(120);
+		assertThat(orders.get(0).getDetails().get(0).getZangiCount()).isEqualTo(2);
+		assertThat(orders.get(0).getDetails().get(0).getSetName())
+				.isEqualTo("満腹ザンギセット（味噌汁＋ポテトサラダ）");
+		assertThat(orders.get(0).getDetails().get(0).getSetPrice()).isEqualTo(200);
+	}
+
+	@Test
+	@DisplayName("厨房表示でセットと新形式ソースを扱い、未指定値は既定値にする")
+	void getActiveOrdersWithSetAndSourceFields() {
+		Map<String, Object> withOptions = row(30, "B030", "弁当", null, 1);
+		withOptions.put("plus_zangi_count", null);
+		withOptions.put("set_goods_id", 11);
+		withOptions.put("set_goods_name", "セット");
+		withOptions.put("set_goods_price", 200);
+		withOptions.put("source_custom_id", 61);
+		Map<String, Object> noOptions = row(31, "B031", "別商品", 20, 1);
+		noOptions.put("plus_zangi_count", null);
+		noOptions.put("set_goods_id", 0);
+		noOptions.put("source_custom_id", 0);
+		Map<String, Object> duplicateDifferentFormat = row(30, "B030", "弁当", 61, 1);
+		duplicateDifferentFormat.put("source_custom_id", 61);
+		when(repository.getKitchenOrders()).thenReturn(List.of(withOptions, noOptions, duplicateDifferentFormat));
+
+		List<ActiveOrderResponse> orders = service.getActiveOrders("staff@example.com");
+
+		assertThat(orders.get(0).getDetails()).hasSize(2);
+		assertThat(orders.get(0).getDetails().get(0).getZangiCount()).isZero();
+		assertThat(orders.get(0).getDetails().get(0).getSetName()).isEqualTo("セット");
+		assertThat(orders.get(0).getDetails().get(0).getSourceName()).isEqualTo("自家製タルタルソースだく");
+		assertThat(orders.get(0).getDetails().get(1).getZangiCount()).isZero();
 	}
 
 	@Test
@@ -166,6 +217,7 @@ class InnerdisplayServiceUnitTest {
 		row.put("goods_name", goodsName);
 		row.put("custom_id", customId);
 		row.put("count", count);
+		row.put("plus_zangi_count", 0);
 		return row;
 	}
 }

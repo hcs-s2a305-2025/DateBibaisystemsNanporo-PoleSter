@@ -43,6 +43,10 @@ public class TransactionDetailEntity {
     @Column(name = "custom_id")
     private Integer customId;
 
+    // ソースカスタムID
+    @Column(name = "source_custom_id")
+    private Integer sourceCustomId;
+
     // 小計
     @Column(name = "price", nullable = false)
     private Integer price;

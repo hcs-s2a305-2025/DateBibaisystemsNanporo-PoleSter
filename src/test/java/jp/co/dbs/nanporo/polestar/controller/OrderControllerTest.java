@@ -75,7 +75,8 @@ class OrderControllerTest {
 
         assertThat(controller.showAddPage("G1", null, session, model)).isEqualTo("menu/add");
         assertThat(model.asMap()).containsEntry("goods", goods)
-                .containsEntry("selectedRice", "20").containsEntry("selectedSource", "0");
+                .containsEntry("selectedRice", "20").containsEntry("selectedSource", "0")
+                .containsEntry("selectedZangiCount", 0).containsEntry("selectedSet", "0");
     }
 
     @Test
@@ -84,6 +85,8 @@ class OrderControllerTest {
         MockHttpSession session = new MockHttpSession();
         CartData cartItem = cartItem("cart-1", "G1", 100, "50");
         cartItem.setRiceCode("30");
+        cartItem.setZangiCount(2);
+        cartItem.setSetGoodsId("12");
         session.setAttribute("cart", List.of(cartItem));
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         var model = new ExtendedModelMap();
@@ -91,7 +94,8 @@ class OrderControllerTest {
         controller.showAddPage("G1", "cart-1", session, model);
 
         assertThat(model.asMap()).containsEntry("selectedRice", "30")
-                .containsEntry("selectedSource", "50").containsEntry("editCartItemId", "cart-1");
+                .containsEntry("selectedSource", "50").containsEntry("selectedZangiCount", 2)
+                .containsEntry("selectedSet", "12").containsEntry("editCartItemId", "cart-1");
     }
 
     @Test
@@ -105,6 +109,21 @@ class OrderControllerTest {
         controller.showAddPage("G1", "missing", session, model);
 
         assertThat(model.asMap()).containsEntry("selectedRice", "20").containsEntry("selectedSource", "0");
+    }
+
+    @Test
+    @DisplayName("編集対象の追加ザンギ数が未設定なら初期値を維持する")
+    void testShowAddPageWithNullZangiCount() {
+        MockHttpSession session = new MockHttpSession();
+        CartData cartItem = cartItem("cart-1", "G1", 100, "50");
+        cartItem.setZangiCount(null);
+        session.setAttribute("cart", List.of(cartItem));
+        when(storeService.getGoodsDetail("G1")).thenReturn(goods());
+        var model = new ExtendedModelMap();
+
+        controller.showAddPage("G1", "cart-1", session, model);
+
+        assertThat(model.asMap()).containsEntry("selectedZangiCount", 0);
     }
 
     @Test
@@ -221,7 +240,7 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         MockHttpSession session = new MockHttpSession();
 
-        assertThat(controller.addToCart("G1", 5, "20", "0", "0", null, session)).isEqualTo("redirect:/cart");
+        assertThat(controller.addToCart("G1", 0, "20", "0", "0", null, session)).isEqualTo("redirect:/cart");
 
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getGoodsId()).isEqualTo("G1");
@@ -249,12 +268,26 @@ class OrderControllerTest {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
         MockHttpSession session = new MockHttpSession();
 
-        controller.addToCart("G1", 6, riceCode, "0", "0", null, session);
+        controller.addToCart("G1", 1, riceCode, "0", "0", null, session);
 
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getRicePrice()).isEqualTo(expectedPrice);
         assertThat(item.getRiceAmount()).isEqualTo(expectedName);
         assertThat(item.getZangiPrice()).isEqualTo(100);
+    }
+
+    @ParameterizedTest(name = "追加ザンギ {0} 個の加算料金")
+    @CsvSource({"0, 0", "1, 100", "15, 1500"})
+    void testAddToCartZangiCountPrice(int zangiCount, int expectedPrice) {
+        when(storeService.getGoodsDetail("G1")).thenReturn(goods());
+        MockHttpSession session = new MockHttpSession();
+
+        controller.addToCart("G1", zangiCount, "20", "0", "0", null, session);
+
+        CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
+        assertThat(item.getZangiCount()).isEqualTo(zangiCount);
+        assertThat(item.getZangiPrice()).isEqualTo(expectedPrice);
+        assertThat(item.getTotalPrice()).isEqualTo(100 + expectedPrice);
     }
 
     @Test
@@ -274,9 +307,9 @@ class OrderControllerTest {
 
     @ParameterizedTest(name = "セット商品コード {0} の表示名と加算料金")
     @CsvSource({
-            "11, '満腹セット（味噌汁＋ポテトサラダ）'",
-            "12, '満腹セット（味噌汁＋大根サラダ）'",
-            "13, '満腹セット（味噌汁＋マカロニたまご）'",
+            "11, '満腹ザンギセット（味噌汁＋ポテトサラダ）'",
+            "12, '満腹ザンギセット（味噌汁＋大根サラダ）'",
+            "13, '満腹ザンギセット（味噌汁＋マカロニたまご）'",
             "20, '定番コンビセット'",
             "99, 'なし'"
     })
@@ -289,6 +322,7 @@ class OrderControllerTest {
         CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
         assertThat(item.getSetGoodsName()).isEqualTo(expectedName);
         assertThat(item.getSetPrice()).isEqualTo("99".equals(setGoodsCode) ? 0 : 200);
+        assertThat(item.getTotalPrice()).isEqualTo(100 + item.getSetPrice());
     }
 
     @ParameterizedTest(name = "ソースコード {0} の加算料金と表示名")
@@ -452,9 +486,10 @@ class OrderControllerTest {
         assertThat(request.getGetTime()).isEqualTo(pickupDate + "T14:00:00");
         assertThat(request.getSumMoney()).isEqualTo(450);
         assertThat(request.getMemo()).isEqualTo("少なめ");
-        assertThat(request.getOrderDetails()).hasSize(2);
-        assertThat(request.getOrderDetails()).extracting(detail -> detail.getSetGoodsId())
-                .containsExactly(20, 20);
+        assertThat(request.getOrderDetails()).hasSize(1);
+        assertThat(request.getOrderDetails().get(0).getSetGoodsId()).isEqualTo(20);
+        assertThat(request.getOrderDetails().get(0).getCustomId()).isEqualTo(20);
+        assertThat(request.getOrderDetails().get(0).getSourceCustomId()).isEqualTo(50);
         assertThat(session.getAttribute("cart")).isNull();
     }
 

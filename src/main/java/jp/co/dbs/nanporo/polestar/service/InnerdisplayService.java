@@ -64,19 +64,31 @@ public class InnerdisplayService {
             String goodsId = (String) row.get("goods_id");
             if (goodsId != null) {
                 Integer customId = toInteger(row.get("custom_id"));
+                Integer sourceCustomId = toInteger(row.get("source_custom_id"));
 
                 List<ActiveOrderResponse.OrderDetailItem> details = response.getDetails();
                 ActiveOrderResponse.OrderDetailItem lastItem = details.isEmpty() ? null : details.get(details.size() - 1);
 
-                // 直前の要素と同じ goodsId かつ customId がソースコード(50以上)なら既存の要素へまとめる
-                if (lastItem != null && goodsId.equals(lastItem.getGoodsId()) && customId != null && customId >= 50) {
-                    lastItem.setSourceName(getSourceName(String.valueOf(customId)));
+                // 旧形式でソースが別行に保存された注文は直前の商品へまとめる
+                if (lastItem != null && goodsId.equals(lastItem.getGoodsId())
+                        && sourceCustomId == null && customId != null && customId >= 50) {
+                    int sauceId = customId;
+                    lastItem.setSourceName(getSourceName(String.valueOf(sauceId)));
+                    lastItem.setSourcePrice(getSourcePrice(String.valueOf(sauceId)));
                 } else {
                     // 新しい商品として追加
                     ActiveOrderResponse.OrderDetailItem item = new ActiveOrderResponse.OrderDetailItem();
                     item.setGoodsId(goodsId);
                     item.setGoodsName((String) row.get("goods_name"));
                     item.setCount(toInteger(row.get("count")));
+                    Integer zangiCount = toInteger(row.get("plus_zangi_count"));
+                    item.setZangiCount(zangiCount != null ? zangiCount : 0);
+
+                    Integer setGoodsId = toInteger(row.get("set_goods_id"));
+                    if (setGoodsId != null && setGoodsId > 0) {
+                        item.setSetName((String) row.get("set_goods_name"));
+                        item.setSetPrice(toInteger(row.get("set_goods_price")));
+                    }
 
                     // ご飯の量判定
                     boolean isSideMenu = goodsId.toUpperCase().startsWith("S");
@@ -92,6 +104,10 @@ public class InnerdisplayService {
                     // 1行目にソースコードが入っている場合
                     if (customId != null && customId >= 50) {
                         item.setSourceName(getSourceName(String.valueOf(customId)));
+                        item.setSourcePrice(getSourcePrice(String.valueOf(customId)));
+                    } else if (sourceCustomId != null && sourceCustomId > 0) {
+                        item.setSourceName(getSourceName(String.valueOf(sourceCustomId)));
+                        item.setSourcePrice(getSourcePrice(String.valueOf(sourceCustomId)));
                     }
 
                     details.add(item);
@@ -144,6 +160,18 @@ public class InnerdisplayService {
             case "81" -> "皆辣麻婆ソースだく";
             case "82" -> "皆辣麻婆ソースだくだく";
             default -> "なし";
+        };
+    }
+
+    private int getSourcePrice(String key) {
+        return switch (key) {
+            case "50", "60", "70" -> 80;
+            case "51", "61", "71" -> 120;
+            case "52", "62", "72" -> 150;
+            case "80" -> 100;
+            case "81" -> 140;
+            case "82" -> 180;
+            default -> 0;
         };
     }
 

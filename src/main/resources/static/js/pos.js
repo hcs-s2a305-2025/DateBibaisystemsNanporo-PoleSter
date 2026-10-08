@@ -1471,6 +1471,7 @@ async function postPaymentResult() {
                     name: t.name,
                     price: t.price,
                     quantity: t.quantity,
+                    plusZangiCount: id === 'T009' ? Number(t.quantity || 0) : null,
                     customId: numericId,
                     setGoodsId: numericId,
                     sauceLevel: t.sauceLevel || null,

@@ -126,7 +126,8 @@ class OrderRepositoryTest {
         detail.setSetGoodsId(4);
         detail.setCount(2);
         detail.setPlusZangiCount(1);
-        detail.setCustomId(50);
+        detail.setCustomId(30);
+        detail.setSourceCustomId(50);
         when(jdbc.update(anyString(), anyMap())).thenReturn(1);
 
         assertThat(repository.insertOrderDetail(detail)).isEqualTo(1);
@@ -135,7 +136,8 @@ class OrderRepositoryTest {
         verify(jdbc).update(anyString(), params.capture());
         assertThat(params.getValue()).containsEntry("orderId", 3).containsEntry("orderCount", 2)
                 .containsEntry("goodsId", "G01").containsEntry("setGoodsId", 4)
-                .containsEntry("count", 2).containsEntry("plusZangiCount", 1).containsEntry("customId", 50);
+                .containsEntry("count", 2).containsEntry("plusZangiCount", 1)
+                .containsEntry("customId", 30).containsEntry("sourceCustomId", 50);
     }
 
     @Test

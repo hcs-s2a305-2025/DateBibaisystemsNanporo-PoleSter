@@ -16,6 +16,7 @@ public class ActiveOrderResponse {
         private String goodsId;
         private String goodsName;
         private Integer count;
+        private Integer zangiCount;
         
         // ご飯関係
         private String riceAmount;

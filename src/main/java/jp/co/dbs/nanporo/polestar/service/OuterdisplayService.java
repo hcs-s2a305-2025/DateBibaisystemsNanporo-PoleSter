@@ -52,11 +52,13 @@ public class OuterdisplayService {
                             ("受付".equals(o.getOrder().getStatus()) || "調理中".equals(o.getOrder().getStatus())))
                 .collect(Collectors.toList());
 
-        // 2. 画像右側: 「お呼び出し中」のリスト（ステータスが '完成' または '受取済' かつ 呼び出し開始から2分以内）
+        // 2. 予約注文は「完成」の間、店頭注文は「受取済」の後も呼び出し中に表示する
         LocalDateTime now = LocalDateTime.now();
         List<ActiveOrderResponse> callingList = allActiveOrders.stream()
-                .filter(o -> o.getOrder() != null && 
-                            ("完成".equals(o.getOrder().getStatus()) || "受取済".equals(o.getOrder().getStatus())))
+                .filter(o -> o.getOrder() != null && (
+                        "完成".equals(o.getOrder().getStatus())
+                                || ("受取済".equals(o.getOrder().getStatus())
+                                        && !isMobileOrder(o.getOrder().getOrderNumber()))))
                 .filter(o -> {
                     Integer orderId = o.getOrder().getOrderId();
                     // 初めてお呼び出し対象になった注文の時刻を記録（すでに存在する場合は保持）
@@ -78,6 +80,10 @@ public class OuterdisplayService {
         response.setCallingOrders(callingList);
 
         return response;
+    }
+
+    private boolean isMobileOrder(String orderNumber) {
+        return orderNumber != null && orderNumber.toUpperCase().startsWith("M");
     }
 
     /**

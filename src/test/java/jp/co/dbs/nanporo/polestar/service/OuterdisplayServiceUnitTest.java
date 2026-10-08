@@ -61,21 +61,31 @@ class OuterdisplayServiceUnitTest {
 	@DisplayName("注文状態を調理中と呼び出し中へ振り分ける")
 	void getDisplayOrders() {
 		LocalDate today = LocalDate.now();
+		Map<String, Object> receivedStoreOrder = row(4, "B004", "受取商品",
+				Timestamp.valueOf(today.atTime(13, 0)), "受取済", 400);
+		receivedStoreOrder.put("order_number", "0004");
+		Map<String, Object> completedWithoutOrderNumber = row(7, "B007", "完成注文番号なし",
+				Timestamp.valueOf(today.atTime(16, 0)), "受取済", 700);
+		completedWithoutOrderNumber.put("order_number", null);
 		when(repository.getAllActiveOrders()).thenReturn(List.of(
 				row(1, "B001", "受付商品", Timestamp.valueOf(today.atTime(10, 0)), "受付", 100),
 				row(2, "B002", "調理商品", Timestamp.valueOf(today.atTime(11, 0)), "調理中", 200),
-				row(3, "B003", "完成商品", Timestamp.valueOf(today.atTime(12, 0)), "完成", 300),
-				row(4, "B004", "受取商品", Timestamp.valueOf(today.atTime(13, 0)), "受取済", 400),
-				row(5, "B005", "その他", Timestamp.valueOf(today.atTime(14, 0)), "キャンセル", 500)));
+				row(3, "M003", "完成予約商品", Timestamp.valueOf(today.atTime(12, 0)), "完成", 300),
+				receivedStoreOrder,
+				row(5, "B005", "その他", Timestamp.valueOf(today.atTime(14, 0)), "キャンセル", 500),
+				row(6, "M006", "受取済予約商品", Timestamp.valueOf(today.atTime(15, 0)), "受取済", 600),
+				completedWithoutOrderNumber));
 
 		var response = service.getDisplayOrders();
 
 		assertThat(response.getCookingOrders()).hasSize(2);
 		assertThat(response.getCookingOrders()).extracting(order -> order.getOrder().getStatus())
 				.containsExactly("受付", "調理中");
-		assertThat(response.getCallingOrders()).hasSize(2);
+		assertThat(response.getCallingOrders()).hasSize(3);
 		assertThat(response.getCallingOrders()).extracting(order -> order.getOrder().getStatus())
-				.containsExactly("完成", "受取済");
+				.containsExactly("完成", "受取済", "受取済");
+		assertThat(response.getCallingOrders()).extracting(order -> order.getOrder().getOrderNumber())
+				.containsExactly("M3", "0004", null);
 	}
 
 	@Test

@@ -51,6 +51,7 @@ class OrderServiceUnitTest {
 		when(orderRepository.insertOrder(any(OrderData.class))).thenReturn(12);
 		when(orderRepository.insertOrderDetail(any(OrderDetailData.class))).thenReturn(1);
 		OrderDetailRequest regular = detail("B001", null, 1);
+		regular.setSourceCustomId(60);
 		OrderDetailRequest side = detail("s001", 55, 2);
 		OrderRegisterRequest request = orderRequest(List.of(regular, side));
 
@@ -67,6 +68,8 @@ class OrderServiceUnitTest {
 				.containsExactly(20, 0);
 		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getOrderCount)
 				.containsExactly(1, 2);
+		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getSourceCustomId)
+				.containsExactly(60, null);
 	}
 
 	@Test
@@ -109,6 +112,7 @@ class OrderServiceUnitTest {
 		OrderDetailRequest zeroSetGoods = detail("B001", 10, 1);
 		zeroSetGoods.setSetGoodsId(0);
 		zeroSetGoods.setPlusZangiCount(null);
+		zeroSetGoods.setSourceCustomId(0);
 		OrderDetailRequest nullSetGoods = detail("B002", 30, 1);
 		nullSetGoods.setSetGoodsId(null);
 		nullSetGoods.setPlusZangiCount(null);
@@ -119,7 +123,7 @@ class OrderServiceUnitTest {
 		org.mockito.Mockito.verify(orderRepository, org.mockito.Mockito.times(2))
 				.insertOrderDetail(detailCaptor.capture());
 		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getSetGoodsId)
-				.containsExactly(0, null);
+				.containsExactly(null, null);
 		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getPlusZangiCount)
 				.containsExactly(0, 0);
 	}
@@ -142,15 +146,50 @@ class OrderServiceUnitTest {
 
 		assertThat(orders).hasSize(4);
 		assertThat(orders.get(0).getOrder().getSumMoney()).isEqualTo(1200);
-		assertThat(orders.get(0).getDetails()).hasSize(2);
+		assertThat(orders.get(0).getDetails()).hasSize(4);
 		assertThat(orders.get(0).getDetails().get(0).getSourceName()).isEqualTo("自家製タルタルソース");
 		assertThat(orders.get(0).getDetails().get(0).getRiceAmount()).isEqualTo("普通 (250g)");
-		assertThat(orders.get(0).getDetails().get(1).getRiceAmount()).isEqualTo("なし");
+		assertThat(orders.get(0).getDetails().get(1).getRiceAmount()).isEqualTo("小盛り (150g)");
+		assertThat(orders.get(0).getDetails().get(2).getRiceAmount()).isEqualTo("普通 (250g)");
+		assertThat(orders.get(0).getDetails().get(3).getRiceAmount()).isEqualTo("なし");
 		assertThat(orders.get(0).getGoodsNames()).isEqualTo("弁当, サイド");
 		assertThat(orders.get(1).getOrder().getSumMoney()).isZero();
 		assertThat(orders.get(1).getDetails()).isEmpty();
 		assertThat(orders.get(2).getDetails().get(0).getRiceAmount()).isEqualTo("小盛り (150g)");
 		assertThat(orders.get(3).getDetails().get(0).getGoodsId()).isNull();
+	}
+
+	@Test
+	@DisplayName("アクティブ注文で同一行形式のソース・セット・ザンギを表示する")
+	void getActiveOrdersWithCurrentDetailOptions() {
+		Map<String, Object> currentDetail = activeRow(10, "B010", "弁当", 20, 1, 700, "調理中");
+		currentDetail.put("source_custom_id", 61);
+		currentDetail.put("set_goods_id", 11);
+		currentDetail.put("set_goods_name", null);
+		currentDetail.put("set_goods_price", null);
+		currentDetail.put("plus_zangi_count", null);
+		Map<String, Object> noOptions = activeRow(11, "B011", "商品", 20, 1, 700, "受付");
+		noOptions.put("source_custom_id", 0);
+		noOptions.put("set_goods_id", 0);
+		noOptions.put("plus_zangi_count", 2);
+		Map<String, Object> setWithNames = activeRow(12, "B012", "セットあり", 20, 1, 700, "受付");
+		setWithNames.put("set_goods_id", 20);
+		setWithNames.put("set_goods_name", "定番コンビセット");
+		setWithNames.put("set_goods_price", 150);
+		when(orderRepository.getActiveOrdersByMail("guest@example.com"))
+				.thenReturn(List.of(currentDetail, noOptions, setWithNames));
+
+		List<ActiveOrderResponse> orders = service.getActiveOrders("guest@example.com");
+
+		assertThat(orders.get(0).getDetails().get(0).getZangiCount()).isZero();
+		assertThat(orders.get(0).getDetails().get(0).getSetName())
+				.isEqualTo("満腹ザンギセット（味噌汁＋ポテトサラダ）");
+		assertThat(orders.get(0).getDetails().get(0).getSetPrice()).isZero();
+		assertThat(orders.get(0).getDetails().get(0).getSourceName()).isEqualTo("自家製タルタルソースだく");
+		assertThat(orders.get(1).getDetails().get(0).getZangiCount()).isEqualTo(2);
+		assertThat(orders.get(1).getDetails().get(0).getSetName()).isNull();
+		assertThat(orders.get(2).getDetails().get(0).getSetName()).isEqualTo("定番コンビセット");
+		assertThat(orders.get(2).getDetails().get(0).getSetPrice()).isEqualTo(150);
 	}
 
 	@Test
@@ -161,6 +200,10 @@ class OrderServiceUnitTest {
 				Timestamp.valueOf("2026-10-04 12:30:00"), null, null, null);
 		Map<String, Object> detail = historyRow(1, "M0001", 1200, null,
 				"B001", "", "82");
+		detail.put("plus_zangi_count", 2);
+		detail.put("set_goods_id", 11);
+		detail.put("set_goods_name", "満腹ザンギセット（味噌汁＋ポテトサラダ）");
+		detail.put("set_goods_price", 200);
 		Map<String, Object> second = historyRow(2, "M0002", 800, null,
 				"B002", "menu.png", null);
 		Map<String, Object> missingPhotoAndZeroCustom = historyRow(2, "M0002", 800, null,
@@ -175,10 +218,42 @@ class OrderServiceUnitTest {
 		assertThat(history.get(0).getItems().get(0).getPhoto()).isEqualTo("img/ザンギ弁当.jpg");
 		assertThat(history.get(0).getItems().get(0).getCustomName()).isEqualTo("皆辣麻婆ソースだくだく");
 		assertThat(history.get(0).getItems().get(0).getCustomPrice()).isEqualTo(180);
+		assertThat(history.get(0).getItems().get(0).getZangiCount()).isEqualTo(2);
+		assertThat(history.get(0).getItems().get(0).getSetGoodsName())
+				.isEqualTo("満腹ザンギセット（味噌汁＋ポテトサラダ）");
+		assertThat(history.get(0).getItems().get(0).getSetGoodsPrice()).isEqualTo(200);
 		assertThat(history.get(1).getItems().get(0).getPhoto()).isEqualTo("menu.png");
 		assertThat(history.get(1).getItems().get(0).getCustomName()).isNull();
 		assertThat(history.get(1).getItems().get(1).getPhoto()).isEqualTo("img/ザンギ弁当.jpg");
 		assertThat(history.get(1).getItems().get(1).getCustomName()).isNull();
+	}
+
+	@Test
+	@DisplayName("履歴で新旧ソース形式と各セット情報の欠損値を復元する")
+	void getOrderHistoryWithCurrentAndIncompleteOptions() {
+		Map<String, Object> explicitOptions = historyRow(20, "M0020", 1000, null,
+				"B020", "image.png", 10);
+		explicitOptions.put("source_custom_id", 51);
+		explicitOptions.put("set_goods_id", 20);
+		explicitOptions.put("set_goods_name", null);
+		explicitOptions.put("set_goods_price", null);
+		explicitOptions.put("plus_zangi_count", null);
+		Map<String, Object> emptyOptions = historyRow(20, "M0020", 1000, null,
+				"B021", "image.png", 20);
+		emptyOptions.put("set_goods_id", 0);
+		emptyOptions.put("source_custom_id", 0);
+		when(orderRepository.getOrderHistoryByMail("guest@example.com"))
+				.thenReturn(List.of(explicitOptions, emptyOptions));
+
+		List<OrderHistoryResponse> history = service.getOrderHistory("guest@example.com");
+
+		assertThat(history).hasSize(1);
+		assertThat(history.get(0).getItems().get(0).getSetGoodsName()).isEqualTo("定番コンビセット");
+		assertThat(history.get(0).getItems().get(0).getSetGoodsPrice()).isZero();
+		assertThat(history.get(0).getItems().get(0).getZangiCount()).isZero();
+		assertThat(history.get(0).getItems().get(0).getRiceName()).isEqualTo("小盛り (150g)");
+		assertThat(history.get(0).getItems().get(0).getCustomName()).isEqualTo("おろしポン酢ソースだく");
+		assertThat(history.get(0).getItems().get(1).getCustomName()).isNull();
 	}
 
 	@Test
@@ -233,11 +308,11 @@ class OrderServiceUnitTest {
 
 		assertThat(cart).hasSize(4);
 		assertThat(cart.get(0).getPrice()).isEqualTo(1000);
-		assertThat(cart.get(0).getZangiPrice()).isEqualTo(200);
+		assertThat(cart.get(0).getZangiPrice()).isEqualTo(700);
 		assertThat(cart.get(0).getSourceType()).isEqualTo("皆辣麻婆ソース");
 		assertThat(cart.get(0).getSourcePrice()).isEqualTo(100);
 		assertThat(cart.get(0).getRiceAmount()).isEqualTo("大盛り (350g)");
-		assertThat(cart.get(0).getTotalPrice()).isEqualTo(1350);
+		assertThat(cart.get(0).getTotalPrice()).isEqualTo(1850);
 		assertThat(cart.get(1).getPrice()).isZero();
 		assertThat(cart.get(1).getZangiCount()).isZero();
 		assertThat(cart.get(1).getRiceAmount()).isEqualTo("なし");
@@ -273,6 +348,60 @@ class OrderServiceUnitTest {
 		assertThat(rice).extracting(CartData::getRiceAmount)
 				.containsExactly("なし", "小盛り (150g)", "特盛 (450g)", "普通 (250g)", "普通 (250g)");
 		assertThat(rice).extracting(CartData::getRicePrice).containsExactly(0, -30, 100, 0, 0);
+	}
+
+	@Test
+	@DisplayName("カート復元でセット名の全分岐と欠損価格を処理する")
+	void restoreCartWithSetGoods() {
+		List<Map<String, Object>> rows = new ArrayList<>();
+		for (int id : new int[] {11, 12, 13, 20, 99}) {
+			Map<String, Object> row = cartRow("B001", "弁当", 700, 0, 0, 20);
+			row.put("set_goods_id", id);
+			row.put("set_goods_name", null);
+			row.put("set_price", null);
+			if (id == 11) {
+				row.put("set_goods_name", "DBセット");
+				row.put("set_price", 200);
+			}
+			rows.add(row);
+		}
+		Map<String, Object> noSet = cartRow("B002", "弁当", 700, 0, null, 0);
+		noSet.put("set_goods_id", 0);
+		rows.add(noSet);
+		when(orderRepository.getOrderDetailsByOrderId(30)).thenReturn(rows);
+
+		List<CartData> cart = service.restoreCartFromOrder(30);
+
+		assertThat(cart).extracting(CartData::getSetGoodsName)
+				.containsExactly("DBセット",
+						"満腹ザンギセット（味噌汁＋大根サラダ）",
+						"満腹ザンギセット（味噌汁＋マカロニたまご）",
+						"定番コンビセット", "なし", "なし");
+		assertThat(cart).extracting(CartData::getSetPrice).containsExactly(200, 0, 0, 0, 0, 0);
+	}
+
+	@Test
+	@DisplayName("カート復元で旧形式ソースと未指定カスタムIDを復元する")
+	void restoreCartWithLegacySourceAndNullCustomId() {
+		Map<String, Object> oldSource = cartRow("B001", "旧形式", 500, 0, 0, 0);
+		oldSource.put("custom_id", 50);
+		oldSource.put("source_custom_id", null);
+		oldSource.put("set_goods_id", 11);
+		oldSource.put("set_goods_name", "満腹セット");
+		oldSource.put("set_price", 200);
+		Map<String, Object> noCustom = cartRow("B002", "カスタムなし", 400, 0, 0, 0);
+		noCustom.put("custom_id", null);
+		noCustom.put("source_custom_id", null);
+		when(orderRepository.getOrderDetailsByOrderId(31)).thenReturn(List.of(oldSource, noCustom));
+
+		List<CartData> cart = service.restoreCartFromOrder(31);
+
+		assertThat(cart.get(0).getSourceCode()).isEqualTo("50");
+		assertThat(cart.get(0).getRiceCode()).isEqualTo("20");
+		assertThat(cart.get(0).getSetGoodsName()).isEqualTo("満腹セット");
+		assertThat(cart.get(0).getSetPrice()).isEqualTo(200);
+		assertThat(cart.get(1).getSourceCode()).isEqualTo("0");
+		assertThat(cart.get(1).getRiceCode()).isEqualTo("20");
 	}
 
 	private OrderRegisterRequest orderRequest(List<OrderDetailRequest> details) {
@@ -346,6 +475,7 @@ class OrderServiceUnitTest {
 		row.put("photo", photo);
 		row.put("count", "2");
 		row.put("custom_id", customId);
+		row.put("plus_zangi_count", 0);
 		return row;
 	}
 
@@ -357,8 +487,12 @@ class OrderServiceUnitTest {
 		row.put("price", price);
 		row.put("photo", "goods.png");
 		row.put("plus_zangi_count", zangiCount);
-		row.put("custom_id", customId);
-		row.put("set_goods_id", setGoodsId);
+		Integer legacySourceId = customId == null ? null : Integer.valueOf(customId.toString());
+		Integer legacyRiceId = setGoodsId == null ? null : Integer.valueOf(setGoodsId.toString());
+		row.put("custom_id", legacyRiceId != null && legacyRiceId >= 10 && legacyRiceId <= 40
+				? legacyRiceId : (goodsId != null && goodsId.startsWith("S") ? 0 : 20));
+		row.put("source_custom_id", legacySourceId != null && legacySourceId >= 50 ? legacySourceId : null);
+		row.put("set_goods_id", null);
 		return row;
 	}
 }

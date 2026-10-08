@@ -37,22 +37,28 @@
                 
                 <!-- トッピング・ご飯の量・ザンギ個数表示 -->
                 <div class="mt-2">
-                    <!-- ザンギの個数と加算料金 -->
-                    <p class="text-secondary mb-1" th:if="${item.zangiCount != null}" 
-                    th:text="${'ザンギの個数: ' + item.zangiCount + '個' + (item.zangiPrice > 0 ? '(+' + item.zangiPrice + '円)' : '')}">
-                        ザンギの個数: 6個(+100円)
+                    <!-- 追加ザンギの個数と加算料金 -->
+                    <p class="text-secondary mb-1" th:if="${item.zangiCount != null && item.zangiCount > 0}"
+                    th:text="${'ザンギ追加: ' + item.zangiCount + '個' + (item.zangiPrice > 0 ? '(+' + item.zangiPrice + '円)' : '')}">
+                        ザンギ追加: 1個(+100円)
                     </p>
                     
                     <!-- ご飯の量と加算料金 -->
-                    <p class="text-secondary mb-1" 
+                    <p class="text-secondary mb-1" th:if="${item.riceCode == '10' || item.riceCode == '30' || item.riceCode == '40'}"
                     th:text="${'ご飯: ' + item.riceAmount + (item.ricePrice > 0 ? '(+' + item.ricePrice + '円)' : '')}">
                         ご飯: 大盛り(+50円)
                     </p>
                     
                     <!-- トッピング・ソースと加算料金 -->
-                    <p class="text-secondary mb-1" 
+                    <p class="text-secondary mb-1" th:if="${item.sourceCode != null && item.sourceCode != '0'}"
                     th:text="${'ソース: ' + item.sourceType + (item.sourcePrice > 0 ? '(+' + item.sourcePrice + '円)' : '')}">
                         ソース: 自家製タルタルソース(+100円)
+                    </p>
+
+                    <!-- セット商品と加算料金 -->
+                    <p class="text-secondary mb-1" th:if="${item.setGoodsId != null && item.setGoodsId != '0'}"
+                    th:text="${'セット商品: ' + item.setGoodsName + (item.setPrice > 0 ? '(+' + item.setPrice + '円)' : '')}">
+                        セット商品: 定番コンビセット(+200円)
                     </p>
                 </div>
 
