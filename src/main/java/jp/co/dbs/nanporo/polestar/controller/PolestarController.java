@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Controller
-public class PolestarController2 {
+public class PolestarController {
 
     @Autowired 
     private OrderService orderService;
