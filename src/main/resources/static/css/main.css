@@ -132,3 +132,46 @@ h2,h3{
     aspect-ratio: 1 / 1;
     object-fit: cover;
 }
+
+
+/* メニューカード内のレイアウト調整 */
+.menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    padding: 15px;
+    margin-bottom: 12px;
+    background-color: #fffde8; /* 薄黄色背景 */
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.1s ease;
+}
+
+.menu-item:hover {
+    transform: translateY(-2px);
+}
+
+/* 削除ボタンの押しやすさ調整 */
+.action-block .btn {
+    z-index: 2;
+    background-color: #ffffff;
+}
+
+/* AI提案 */
+.bg-ai-green {
+    background-color: #20e08f !important;
+    color: #ffffff !important;
+}
+
+.btn-ai-green {
+    background-color: #20e08f !important;
+    color: #ffffff !important;
+    border: none;
+}
+
+.btn-ai-green:hover {
+    background-color: #1bc47d !important;
+    color: #ffffff !important;
+}

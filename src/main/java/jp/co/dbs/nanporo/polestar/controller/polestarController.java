@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import jp.co.dbs.nanporo.polestar.response.ActiveOrderResponse;
 import jp.co.dbs.nanporo.polestar.service.OrderService;
 import jp.co.dbs.nanporo.polestar.service.UserService;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @Controller
 public class PolestarController {
@@ -66,4 +68,10 @@ public class PolestarController {
     public String workerHome() {
         return "w/home"; // templates/w/home.html を表示
     }
+
+    @GetMapping("/menu/cart")
+    public String getcart() {
+        return "/menu/cart";
+    }
+    
 }
