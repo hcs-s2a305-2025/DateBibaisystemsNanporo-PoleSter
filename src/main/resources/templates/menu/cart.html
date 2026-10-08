@@ -32,7 +32,7 @@
                 <h5 th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>
                 
                 <!-- 商品画像 -->
-                <img class="product-img" src="../../static/img/ザンギ弁当.jpg" th:src="@{${item.photo}}" alt="商品画像">
+                <img class="product-img" src="../../static/img/ザンギ弁当.jpg" th:src="@{${item.photo}}" alt="商品画像" style="position: absolute; right: 10px; top: 10px;">
                 
                 
                 <!-- トッピング・ご飯の量・ザンギ個数表示 -->
