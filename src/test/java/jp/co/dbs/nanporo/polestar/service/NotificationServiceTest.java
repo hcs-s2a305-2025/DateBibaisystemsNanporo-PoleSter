@@ -62,13 +62,11 @@ public class NotificationServiceTest {
 		when(orderRepository.getOrderById(orderId))
 				.thenReturn(order(mail, "M0012", getTime));
 		when(userRepository.findByMail(mail)).thenReturn(Map.of("name", "田中"));
-		when(userRepository.getMaxNoticeId()).thenReturn(20);
 
 		service.sendOrderCompleteNotification(orderId);
 
-		// verify(userRepository).insertNoticeWithId(
-		// 		eq(21), eq(mail), any(LocalDateTime.class),
-		// 		eq("注文番号「M0012」のお弁当の受取準備が整いました。"));
+		verify(userRepository).insertNoticeWithId(eq(mail), any(LocalDateTime.class),
+				eq("注文番号「M0012」のお弁当の受取準備が整いました。"));
 		String sentBody = captureOrderCompleteMailBody(mail);
 		assertThat(sentBody).contains("田中 様", "注文番号：M0012", "受取予定日時：2026/02/03 04:05");
 	}
@@ -112,10 +110,11 @@ public class NotificationServiceTest {
 		String mail = "customer@example.com";
 		when(orderRepository.getOrderById(2)).thenReturn(order(mail, "M0002", null));
 		when(userRepository.findByMail(mail)).thenReturn(null);
-		when(userRepository.getMaxNoticeId()).thenReturn(0);
 
 		service.sendOrderCompleteNotification(2);
 
+		verify(userRepository).insertNoticeWithId(eq(mail), any(LocalDateTime.class),
+				eq("注文番号「M0002」のお弁当の受取準備が整いました。"));
 		String sentBody = captureOrderCompleteMailBody(mail);
 		assertThat(sentBody).contains("お客様 様", "受取予定日時：未設定");
 	}
@@ -126,10 +125,11 @@ public class NotificationServiceTest {
 		String mail = "customer@example.com";
 		when(orderRepository.getOrderById(3)).thenReturn(order(mail, "M0003", "予定日時"));
 		when(userRepository.findByMail(mail)).thenReturn(Map.of());
-		when(userRepository.getMaxNoticeId()).thenReturn(0);
 
 		service.sendOrderCompleteNotification(3);
 
+		verify(userRepository).insertNoticeWithId(eq(mail), any(LocalDateTime.class),
+				eq("注文番号「M0003」のお弁当の受取準備が整いました。"));
 		String sentBody = captureOrderCompleteMailBody(mail);
 		assertThat(sentBody).contains("お客様 様", "受取予定日時：予定日時");
 	}
@@ -140,12 +140,12 @@ public class NotificationServiceTest {
 		String mail = "customer@example.com";
 		when(orderRepository.getOrderById(4)).thenReturn(order(mail, "M0004", null));
 		when(userRepository.findByMail(mail)).thenThrow(new RuntimeException("DB error"));
-		when(userRepository.getMaxNoticeId()).thenReturn(0);
 
 		service.sendOrderCompleteNotification(4);
 
+		verify(userRepository).insertNoticeWithId(eq(mail), any(LocalDateTime.class),
+				eq("注文番号「M0004」のお弁当の受取準備が整いました。"));
 		assertThat(captureOrderCompleteMailBody(mail)).contains("お客様 様");
-		// verify(userRepository).insertNoticeWithId(eq(1), eq(mail), any(LocalDateTime.class), any(String.class));
 	}
 
 	@Test
@@ -155,13 +155,11 @@ public class NotificationServiceTest {
 		String orderNumber = "M".repeat(120);
 		when(orderRepository.getOrderById(5)).thenReturn(order(mail, orderNumber, null));
 		when(userRepository.findByMail(mail)).thenReturn(Map.of("name", "田中"));
-		when(userRepository.getMaxNoticeId()).thenReturn(0);
 		ArgumentCaptor<String> contentCaptor = ArgumentCaptor.forClass(String.class);
 
 		service.sendOrderCompleteNotification(5);
 
-		// verify(userRepository).insertNoticeWithId(
-				// eq(1), eq(mail), any(LocalDateTime.class), contentCaptor.capture());
+		verify(userRepository).insertNoticeWithId(eq(mail), any(LocalDateTime.class), contentCaptor.capture());
 		assertThat(contentCaptor.getValue()).hasSize(100);
 	}
 
@@ -222,9 +220,9 @@ public class NotificationServiceTest {
 		service.sendBroadcastNotification(content);
 
 		ArgumentCaptor<LocalDateTime> timeCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
-		// verify(userRepository).insertNoticeWithId(eq(41), eq(firstMail), timeCaptor.capture(), eq("営業時間のお知らせ"));
-		// verify(userRepository).insertNoticeWithId(eq(42), eq(secondMail), any(LocalDateTime.class), eq("営業時間のお知らせ"));
-		assertThat(timeCaptor.getValue()).isNotNull();
+		verify(userRepository).insertNoticeWithId(eq(firstMail), timeCaptor.capture(), eq("営業時間のお知らせ"));
+		verify(userRepository).insertNoticeWithId(eq(secondMail), timeCaptor.capture(), eq("営業時間のお知らせ"));
+		assertThat(timeCaptor.getAllValues()).hasSize(2).doesNotContainNull();
 		ArgumentCaptor<MailData> mailCaptor = ArgumentCaptor.forClass(MailData.class);
 		verify(mailComponent, org.mockito.Mockito.times(2)).send(mailCaptor.capture());
 		assertThat(mailCaptor.getAllValues()).extracting(MailData::getTo)

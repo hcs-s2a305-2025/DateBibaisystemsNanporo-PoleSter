@@ -226,7 +226,7 @@ public class UserRepository {
      * @return 注文数
      */
     public int countOrder(LocalDate getTime) {
-        String sql = "SELECT COUNT(*) FROM order_t WHERE DATE(get_time) = :getTime AND status != 'キャンセル'";
+        String sql = "SELECT COUNT(*) FROM order_t WHERE CAST(get_time AS DATE) = :getTime AND status != 'キャンセル'";
 
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("getTime", getTime);

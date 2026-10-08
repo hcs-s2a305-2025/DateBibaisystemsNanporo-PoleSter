@@ -277,13 +277,13 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("指定IDで通知を登録する")
+    @DisplayName("通知を登録する")
     void testInsertNoticeWithId() {
         LocalDateTime time = LocalDateTime.of(2026, 10, 1, 12, 0);
 
-        // repository.insertNoticeWithId(13, "user@example.com", time, "お知らせ");
+        repository.insertNoticeWithId("user@example.com", time, "お知らせ");
 
-        assertThat(captureUpdateParams()).containsEntry("noticeId", 13).containsEntry("mail", "user@example.com")
+        assertThat(captureUpdateParams()).containsEntry("mail", "user@example.com")
                 .containsEntry("registerTime", time).containsEntry("content", "お知らせ");
     }
 

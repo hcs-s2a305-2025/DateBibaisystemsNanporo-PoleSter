@@ -16,6 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import jp.co.dbs.nanporo.polestar.data.UserData;
 import jp.co.dbs.nanporo.polestar.entity.UserEntity;
@@ -24,6 +26,8 @@ import jp.co.dbs.nanporo.polestar.response.UserGetResponse;
 
 @SpringBootTest
 @Tag("integration")
+@ActiveProfiles("test")
+@Transactional
 class UserServiceTest {
 	
 	@Autowired
@@ -124,7 +128,8 @@ class UserServiceTest {
 		List<Map<String, Object>> response = service.getNotificationsByMail(mail);
 		
 		// 実行結果の確認
-		assertThat(response.get(1).get("content")).isEqualTo("ゴールド会員限定裏メニューをご利用いただけます。");
+		assertThat(response).hasSize(1);
+		assertThat(response.get(0).get("content")).isEqualTo("ゴールド会員限定裏メニューをご利用いただけます。");
 	}
 
 	@Test
@@ -228,7 +233,7 @@ class UserServiceTest {
 	void testCountOrder() {
 		LocalDate today = LocalDate.now();
 		Integer expectedCount = jdbc.queryForObject(
-				"SELECT COUNT(*) FROM order_t WHERE DATE(get_time) = :today AND status != 'キャンセル'",
+				"SELECT COUNT(*) FROM order_t WHERE CAST(get_time AS DATE) = :today AND status != 'キャンセル'",
 				Map.of("today", today), Integer.class);
 
 		// テスト対象メソッドを実行する

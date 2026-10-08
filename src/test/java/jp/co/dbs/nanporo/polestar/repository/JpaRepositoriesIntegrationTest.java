@@ -2,24 +2,20 @@ package jp.co.dbs.nanporo.polestar.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.InputStream;
 import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import jp.co.dbs.nanporo.polestar.entity.OrderDetailEntity;
@@ -30,7 +26,7 @@ import jp.co.dbs.nanporo.polestar.entity.TransactionEntity;
 @SpringBootTest(properties = "spring.sql.init.mode=never")
 @Transactional
 @Tag("integration")
-@EnabledIf("isPostgresSchemaAvailable")
+@ActiveProfiles("test")
 class JpaRepositoriesIntegrationTest {
 
 	@Autowired
@@ -62,26 +58,6 @@ class JpaRepositoriesIntegrationTest {
 
 	@Autowired
 	private OuterdisplayRepository outerdisplayRepository;
-
-	static boolean isPostgresSchemaAvailable() {
-		Properties properties = new Properties();
-		try (InputStream input = JpaRepositoriesIntegrationTest.class.getResourceAsStream("/application.properties")) {
-			if (input == null) {
-				return false;
-			}
-			properties.load(input);
-			try (var connection = DriverManager.getConnection(
-					properties.getProperty("spring.datasource.url"),
-					properties.getProperty("spring.datasource.username"),
-					properties.getProperty("spring.datasource.password"));
-				Statement statement = connection.createStatement()) {
-				statement.executeQuery("SELECT 1 FROM user_m, goods_m, order_t, order_detail_t, transaction_t, transaction_detail_t WHERE 1 = 0");
-				return true;
-			}
-		} catch (Exception exception) {
-			return false;
-		}
-	}
 
 	@Test
 	@DisplayName("JDBCとJPAの各Repositoryが同じ注文・商品・取引を読み書きする")
