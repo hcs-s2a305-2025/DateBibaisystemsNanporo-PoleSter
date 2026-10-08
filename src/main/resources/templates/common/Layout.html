@@ -18,10 +18,10 @@
     <!-- 中央エリア：システムタイトル -->
     <div class="header-center-group system-title noto-sans">
         <a href="/w/home.html" th:href="@{/w/home}" sec:authorize="hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
-            <h2 style="margin: 0;">ORDER ZANGI</h2>
+            <p style="margin: 0;">ORDER ZANGI</p>
         </a>
         <a href="/" th:href="@{/}" sec:authorize="!hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
-            <h2 style="margin: 0;">ORDER ZANGI</h2>
+            <p style="margin: 0;">ORDER ZANGI</p>
         </a>
     </div>
     <!-- 右エリア：ログアウトボタン -->
@@ -37,6 +37,11 @@
         </form>
     </div>
 </header>
+
+
+
+
+
 
 <!-- 顧客（または未ログイン）のみフッターを表示 -->
 <footer class="footer-content" th:fragment="common-footer" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" sec:authorize="hasAnyAuthority('顧客', 'ROLE_顧客') or isAnonymous()">
@@ -58,7 +63,11 @@
 </footer>
 
 
-<!-- head -->
+
+
+
+
+<!-- head-顧客 -->
 <head th:fragment="common-head" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -76,8 +85,31 @@
 
 	<!-- Bootstrap JS -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<link href="../static/css/main.css" th:href="@{/css/main.css}" rel="stylesheet" />
-    <link href="../static/css/fonts.css" th:href="@{/css/fonts.css}" rel="stylesheet" />
-    <link href="../static/css/components.css" th:href="@{/css/components.css}" rel="stylesheet" />
-    <link href="../static/css/common.css" th:href="@{/css/common.css}" rel="stylesheet" />
+	<link href="../static/css/c-main.css" th:href="@{/css/c-main.css}" rel="stylesheet" />
+    <link href="../static/css/c-fonts.css" th:href="@{/css/c-fonts.css}" rel="stylesheet" />
+    <link href="../static/css/c-components.css" th:href="@{/css/c-components.css}" rel="stylesheet" />
+    <link href="../static/css/c-common.css" th:href="@{/css/c-common.css}" rel="stylesheet" />
+</head>
+
+<!-- head-従業員 -->
+<head th:fragment="common-w-head" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Polestar | ORDER ZANGI</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+        <!-- 日本語対応の QRコードライブラリ (qrious) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+    <!-- font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="../../static/css/c-fonts.css" th:href="@{/css/c-fonts.css}" rel="stylesheet" />
+    <link href="../../static/css/c-common.css" th:href="@{/css/c-common.css}" rel="stylesheet" />
+    <link href="../../static/css/layout.css" th:href="@{/css/layout.css}" rel="stylesheet" />
 </head>

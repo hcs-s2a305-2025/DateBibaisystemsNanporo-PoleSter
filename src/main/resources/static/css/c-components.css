@@ -5,11 +5,11 @@
     position: relative;
     background-color: #fffce9;
     min-height: 100px;
-    min-width: 300px;
+    min-width: 0;
+    width: calc(100% - 40px);
     margin: 20px;
     padding: 15px;
     border-radius: 20px;
-    /* box-shadow: inset [横方向] [縦方向] [ぼかし] [広がり] [色]; */
     box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -20,23 +20,24 @@
 .item-block-text{
     color: gray;
     margin-right: 60px;
+    overflow-wrap: anywhere;
 }
 
 .item-block-info {
     display: flex;
-    flex-wrap: wrap; 
-    gap: 15px;   
+    flex-wrap: wrap;
+    gap: 15px;
     margin-bottom: 8px;
 }
 
 .item-block-info p {
-    margin: 0;      /* pタグのデフォルト余白をクリア */
+    margin: 0;
 }
 
 /* 拡大ボタン */
 .expansion-btn{
     cursor: pointer;
-    position: absolute; 
+    position: absolute;
     top: 0;
     right: 0;
     margin: 10px;
@@ -73,6 +74,7 @@
 
 .userEditBtn{
     height: 40px;
+    max-width: 100%;
 }
 
 .upper-item{
@@ -80,6 +82,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 }
 
 .lowwer-item{
@@ -93,16 +96,18 @@
     border-radius: 100%;
     margin-top: 30px;
     width: 15%;
+    max-width: 180px;
+    min-width: 80px;
     aspect-ratio: 1 / 1;
     object-fit: cover;
 }
 
 .username{
     margin-top: 10px;
+    overflow-wrap: anywhere;
 }
 
 /* スタンプカードスタイル */
-/* 全体でサイズ計算を正確にする設定 */
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -111,33 +116,32 @@
     共通カードサイズ設定（幅・アスペクト比を完全に統一）
    ========================================================= */
 
-/* 1. 上のスタンプカード（画像・3D親要素） */
-.stampcard-img, 
+.stampcard-img,
 .flip-card {
     width: 100%;
-    max-width: 585px;             /* 下のカードと完全に合わせる */
+    max-width: 585px;
     height: auto;
-    aspect-ratio: 585 / 350;      /* アスペクト比を統一 */
+    aspect-ratio: 585 / 350;
     display: block;
     margin: 0 auto;
     border-radius: 10px;
-    -webkit-user-select: none; /* Safari, Chrome, Operaなど */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;     /* IE, Edge（古いバージョン用） */
-    user-select: none;         /* 標準プロパティ */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
-/* 2. 下の会員カード */
+/* 下の会員カード */
 .member-card {
     width: 100%;
-    max-width: 585px;             /* 上のカードと完全に合わせる */
+    max-width: 585px;
     height: auto;
-    aspect-ratio: 585 / 350;      /* アスペクト比を統一 */
+    aspect-ratio: 585 / 350;
     border-radius: 10px;
     background-color: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     display: block;
-    margin: 15px auto 0;          /* 上との間隔 */
+    margin: 15px auto 0;
     padding: 20px;
 }
 
@@ -171,10 +175,7 @@
     margin: 4px 0;
 }
 
-/* =========================================================
-    3Dカード反転（フリップ）アニメーション
-   ========================================================= */
-
+/* 3Dカード反転 */
 .flip-card {
     background-color: transparent;
     perspective: 1000px;
@@ -214,33 +215,122 @@
     transform: rotateY(180deg);
 }
 
-.flip-card-front img, 
+.flip-card-front img,
 .flip-card-back img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-/* カード裏面を絶対配置の基準にする */
 .flip-card-back {
     position: relative;
 }
 
-/*  QRコードの位置と見た目の調整 */
+/* QRコード */
 #qrcode {
     position: absolute;
-    top: 55%;                      /* 上から55%の位置 */
-    left: 50%;                     /* 左から50%の位置 */
-    transform: translate(-50%, -50%); /* 上下左右の真ん中に移動 */
-    z-index: 10;                   /* 画像より前面に表示 */
-    
-    /* カード画像に合わせて表示サイズ調整（必要に応じてサイズ調整してください） */
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
     width: 140px !important;
     height: 140px !important;
-    
-    /* 画像のように角丸や白い枠線をつける場合（不要なら削除OK） */
     background-color: #ffffff;
     padding: 8px;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+
+/* =========================================================
+   スマホ・タブレット対応
+   ========================================================= */
+
+@media screen and (max-width: 800px) {
+    .item-block{
+        width: calc(100% - 24px);
+        margin: 12px;
+        padding: 12px;
+        border-radius: 16px;
+    }
+
+    .item-block-info{
+        gap: 8px 12px;
+    }
+
+    .item-block-text{
+        margin-right: 45px;
+    }
+
+    .footer-content{
+        height: 56px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .stampcard-img,
+    .flip-card,
+    .member-card{
+        max-width: 100%;
+    }
+
+    .member-card{
+        padding: 4vw;
+    }
+
+    .member-card-content h1 {
+        font-size: 7vw;
+        margin: 4vw 0;
+    }
+
+    .member-card-content h3 {
+        font-size: 3.5vw;
+        margin-top: 2vw;
+    }
+
+    .member-card-content h5 {
+        font-size: 2.5vw;
+        margin: 1vw 0;
+    }
+
+    #qrcode{
+        width: clamp(80px, 25vw, 140px) !important;
+        height: clamp(80px, 25vw, 140px) !important;
+        padding: clamp(5px, 1.5vw, 8px);
+    }
+}
+
+@media screen and (max-width: 520px) {
+    .footer-content{
+        height: 54px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .lowwer-item img{
+        width: 25%;
+        min-width: 70px;
+    }
+
+    .upper-item{
+        flex-wrap: wrap;
+    }
+
+    .item-block{
+        width: calc(100% - 20px);
+        margin: 10px;
+        padding: 10px;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .footer-content{
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    .item-block{
+        width: calc(100% - 16px);
+        margin: 8px;
+    }
 }

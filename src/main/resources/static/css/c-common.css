@@ -1,0 +1,228 @@
+@charset "UTF-8";
+
+/* 共通基本レイアウト用のCSS */
+
+html,body{
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 基本 */
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    height: 100%;
+    display: flex;
+    margin: 0;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #f9f9f9;
+}
+
+.main-content{
+    padding-top: 20px;
+    padding-left: clamp(16px, 7vw, 100px);
+    padding-right: clamp(16px, 7vw, 100px);
+    flex: 1;
+    overflow-y: auto;
+}
+
+h2,h3{
+    cursor: default;
+}
+
+/* ヘッダー部分 */
+.header-content{
+    flex-shrink: 0;
+    background-color: #fffce9;
+    height: 70px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 3グループ均等分割（中央タイトル固定用） */
+.header-left-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px;
+}
+
+.header-center-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.header-right-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.system-title {
+    min-width: 0;
+    font-size: 2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.system-title a{
+    color: #393939;
+    text-decoration: none;
+}
+
+.header-btn{
+    width: 73px;
+    max-width: 100%;
+}
+
+.header-stampcard{
+    cursor: pointer;
+    padding-right: 3px;
+}
+
+.header-btn-w{
+    width: 150px;
+    max-width: 100%;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+.header-btn-w a{
+    color: #393939;
+    text-decoration: none;
+}
+
+/* ログアウトボタン */
+.btn-logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background-color: #dc3545;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 18px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-logout:hover {
+    background-color: #bb2d3b;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-logout:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   スマホ・タブレット対応
+   ========================================================= */
+
+@media screen and (max-width: 800px) {
+    .header-content{
+        height: auto;
+        min-height: 60px;
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .header-left-group,
+    .header-center-group,
+    .header-right-group {
+        min-width: 0;
+    }
+
+    .header-left-group{
+        gap: 6px;
+    }
+
+    .header-btn{
+        width: clamp(46px, 11vw, 73px);
+    }
+
+    .header-btn-w{
+        width: auto;
+        max-width: 32vw;
+        margin-left: 3px;
+        margin-right: 3px;
+    }
+
+    .btn-logout{
+        padding: 5px 9px;
+        font-size: clamp(0.68rem, 2vw, 0.8rem);
+    }
+
+    .system-title {
+        font-size: 1.4rem;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    .header-content{
+        min-height: 54px;
+        padding: 6px 7px;
+    }
+
+    .header-left-group{
+        gap: 4px;
+    }
+
+    .header-center-group{
+        flex: 1.2;
+    }
+
+    .header-right-group{
+        gap: 4px;
+    }
+
+    .header-btn-w{
+        max-width: 30vw;
+    }
+
+    .btn-logout{
+        padding: 4px 7px;
+        border-radius: 15px;
+    }
+}
+
+@media screen and (max-width: 375px) {
+    .header-content{
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .header-btn-w{
+        max-width: 28vw;
+        margin-left: 1px;
+        margin-right: 1px;
+    }
+
+    .header-stampcard{
+        padding-right: 0;
+    }
+
+    .system-title {
+        font-size: 1rem;
+    }
+}

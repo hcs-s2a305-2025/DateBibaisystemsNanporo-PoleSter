@@ -2,26 +2,9 @@
 <html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>polestarpos</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
-
-    <!-- font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-
+    <div th:replace="~{common/Layout :: common-w-head}"></div>
 	<!-- Bootstrap JS -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="../../static/css/w-layout.css" th:href="@{/css/w-layout.css}" rel="stylesheet" />
-    <link href="../../static/css/start.css" th:href="@{/css/start.css}" rel="stylesheet" />
-    <link href="../../static/css/account.css" th:href="@{/css/account.css}" rel="stylesheet" />
     <link href="../../static/css/modal.css" th:href="@{/css/modal.css}" rel="stylesheet" />
-    <link href="../../static/css/fonts.css" th:href="@{/css/fonts.css}" rel="stylesheet" />
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 	<meta name="_csrf" th:content="${_csrf.token}" />
 	<meta name="_csrf_header" th:content="${_csrf.headerName}" />
@@ -30,27 +13,32 @@
 <body>
     <!-- ヘッダー部 -->
     <header class="header-content">
-        <div class="header-btn">
-            <h3><a href="/w/home.html" th:href="@{/w/home}">＜戻る</a></h3>
-        </div>
-        <div class="header-item">
-            <p>ログイン：店長</p>
+        <!-- 左エリア：スタンプカード -->
+        <div class="header-left-group">
+            <div class="header-btn" sec:authorize="hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
+                <h3><a href="/w/home.html" th:href="@{/w/home}" style="font-size: 20px; color: #555; text-decoration: none; font-weight: bold;">＜戻る</a></h3>
+            </div>
+            <div class="header-item" sec:authorize="hasAnyAuthority('店長', 'ROLE_店長', '店員', 'ROLE_店員')">
+                <p sec:authorize="hasAnyAuthority('店長', 'ROLE_店長')" style="margin: 0;">ログイン：店長</p>
+                <p sec:authorize="hasAnyAuthority('店員', 'ROLE_店員')" style="margin: 0;">ログイン：店員</p>
+            </div>
         </div>
         <div class="system-title">
             <a href="/w/home.html" th:href="@{/w/home}">
                 <h2><span class="orbitron">Pole<span style="color: #ffd736;">star</span></span> POS SYSTEM</h2>
             </a>
         </div>
-        <div class="header-item d-flex justify-content-end">
-        </div>
-        <div class="header-btn">
-            <h5 id="date"></h5>
-            <h5 class="clock"></h5>
+        <!-- 右エリア：ログアウトボタン -->
+        <div class="header-right-group">
+            <div class="header-item">
+                <h5 id="date"></h5>
+                <h5 class="clock"></h5>
+            </div>
         </div>
     </header>
 
     <!-- メインコンテンツ部 -->
-    <main class="main-content">
+    <main class="main-content-pos">
 
             <!-- =====================================================
                 Thymeleaf連携用スロット
@@ -316,22 +304,22 @@
                             <div class="row selectbutton">
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T001" data-topping-name="ごはん小盛り" data-topping-price="-50">
                                     <p>ごはん小盛り</p>
-                                    <p>-50円</p>
+                                    <p class="price-modal">-50円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T001">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T002" data-topping-name="ごはん普通" data-topping-price="0">
                                     <p>ごはん普通</p>
-                                    <p>0円</p>
+                                    <p class="price-modal">0円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T002">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T003" data-topping-name="ごはん大盛り" data-topping-price="50">
-                                        <p>ごはん大盛り</p>
-                                        <p>+50円</p>
-                                        <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T003">0</span>
-                                    </button>
+                                    <p>ごはん大盛り</p>
+                                    <p class="price-modal">+50円</p>
+                                    <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T003">0</span>
+                                </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T004" data-topping-name="ごはん特盛" data-topping-price="100">
                                     <p>ごはん特盛</p>
-                                    <p>+100円</p>
+                                    <p class="price-modal">+100円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T004">0</span>
                                 </button>
                                 <button class="col selecter-Button-modal">
@@ -342,22 +330,22 @@
                             <div class="row selectbutton">
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T005" data-topping-name="おろしポン酢" data-topping-price="50">
                                     <p>おろしポン酢</p>
-                                    <p>+50円</p>
+                                    <p class="price-modal">+50円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T005">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T006" data-topping-name="自家製タルタル" data-topping-price="80">
                                     <p>自家製タルタル</p>
-                                    <p>+80円</p>
+                                    <p class="price-modal">+80円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T006">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T007" data-topping-name="油淋鶏風ネギダレ" data-topping-price="80">
                                     <p>油淋鶏風ネギダレ</p>
-                                    <p>+80円</p>
+                                    <p class="price-modal">+80円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T007">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T008" data-topping-name="旨辣麻婆ソース" data-topping-price="100">
                                     <p>旨辣麻婆ソース</p>
-                                    <p>+100円</p>
+                                    <p class="price-modal">+100円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T008">0</span>
                                 </button>
                                 <button class="col selecter-Button-modal">
@@ -368,27 +356,27 @@
                             <div class="row selectbutton">
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T009" data-topping-name="追加ザンギ" data-topping-price="100">
                                     <p>追加ザンギ</p>
-                                    <p>+100円</p>
+                                    <p class="price-modal">+100円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T009">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T010" data-topping-name="満腹ザンギセット（味噌汁＋ポテトサラダ）" data-topping-price="200">
                                     <p>満腹ザンギセット（味噌汁＋ポテトサラダ）</p>
-                                    <p>+200円</p>
+                                    <p class="price-modal">+200円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T010">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T011" data-topping-name="満腹ザンギセット（味噌汁＋大根サラダ）" data-topping-price="200">
                                     <p>満腹ザンギセット（味噌汁＋大根サラダ）</p>
-                                    <p>+200円</p>
+                                    <p class="price-modal">+200円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T011">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T012" data-topping-name="満腹ザンギセット（味噌汁＋マカロニたまごサラダ）" data-topping-price="200">
                                     <p>満腹ザンギセット（味噌汁＋マカロニたまごサラダ）</p>
-                                    <p>+200円</p>
+                                    <p class="price-modal">+200円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T012">0</span>
                                 </button>
                                 <button type="button" class="col selecter-Button-modal modal-nomal topping-button" data-topping-id="T013" data-topping-name="定番コンビセット（味噌汁＋緑茶）" data-topping-price="200">
                                     <p>定番コンビセット（味噌汁＋緑茶）</p>
-                                    <p>+200円</p>
+                                    <p class="price-modal">+200円</p>
                                     <span class="quantity-badge quantity-badge-small d-none" data-topping-count="T013">0</span>
                                 </button>
                             </div>

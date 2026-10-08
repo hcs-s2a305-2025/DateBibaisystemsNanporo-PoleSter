@@ -116,19 +116,6 @@
 }
 
 /* メニューカード内のレイアウト調整 */
-.menu-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-    padding: 15px;
-    margin-bottom: 12px;
-    background-color: #fffde8; /* 薄黄色背景 */
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: transform 0.1s ease;
-}
 
 .menu-item:hover {
     transform: translateY(-2px);

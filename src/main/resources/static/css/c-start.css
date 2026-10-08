@@ -12,11 +12,11 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding: 60px 30px;
-    z-index: 99999; /* ログインフォームやリンク(z-index: 999)よりも前面に表示 */
+    padding: clamp(30px, 6vw, 60px) clamp(16px, 4vw, 30px);
+    z-index: 99999;
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.6s ease, visibility 0.6s ease; /* スムーズなフェードアウト効果 */
+    transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 
 /* フェードアウト用 */
@@ -29,21 +29,30 @@
 .splash-center {
     text-align: center;
     margin: auto 0;
+    width: 100%;
 }
 
 .splash-center p {
-    font-size: 14px;
+    font-size: clamp(12px, 2vw, 14px);
     margin-bottom: 4px;
     color: #333;
 }
 
 .splash-center h1.orbitron {
-    font-size: 38px;
+    font-size: clamp(26px, 5vw, 38px);
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.splash-footer{
+    width: 100%;
+    text-align: center;
 }
 
 .splash-footer h2.saira {
-    font-size: 28px;
+    font-size: clamp(20px, 4vw, 28px);
     margin: 0;
+    overflow-wrap: anywhere;
 }
 
 
@@ -53,7 +62,7 @@ main{
     height: 100vh;
     justify-content: space-between;
     align-items: center;
-    padding: 30px;
+    padding: clamp(16px, 4vw, 30px);
 }
 
 p, h1{
@@ -65,6 +74,7 @@ p, h1{
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
 }
 
 .login-input{
@@ -72,30 +82,64 @@ p, h1{
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 400px;
+    width: min(400px, 100%);
 }
 
-/* 1. リンクの色とホバー効果をセット */
+/* リンクの色とホバー効果 */
 .login-input a {
-    color: #0d6efd; /* Bootstrap標準の青 */
+    color: #0d6efd;
     text-decoration: underline;
     cursor: pointer;
     position: relative;
-    z-index: 10; /* 前面に配置して確実にクリックできるようにする */
+    z-index: 10;
 }
 
 .login-input a:hover {
     color: #0a58ca;
 }
 
-/* 2. フォーム全体を前面に持ち上げて被さりを防止 */
+/* フォーム全体を前面に持ち上げて被さりを防止 */
 .login-input {
     position: relative;
     z-index: 5;
 }
 
 @media screen and (max-width: 800px) {
+    #splash-screen{
+        padding: 30px 18px;
+    }
+
+    main{
+        padding: 20px 14px;
+    }
+
     .login-input{
-        width: auto;
+        width: min(400px, 100%);
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    #splash-screen{
+        padding: 24px 12px;
+    }
+
+    main{
+        padding: 16px 10px;
+    }
+
+    .splash-center p{
+        font-size: 12px;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    #splash-screen{
+        padding: 18px 8px;
+    }
+
+    main{
+        padding: 12px 7px;
     }
 }

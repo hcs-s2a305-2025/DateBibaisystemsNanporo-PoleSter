@@ -1,6 +1,7 @@
 .modal-window{
-    width: 70%;
-    height: auto;
+    width: min(90%, 1100px);
+    max-height: 90vh;
+    overflow-y: auto;
     background-color: #fffce9;
     position: fixed;
     box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
@@ -14,7 +15,9 @@
 
 .modal-title{
     width: 100%;
-    height: 70px;
+    min-height: 70px;
+    height: auto;
+    padding: 10px 16px;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
     text-align: center;
@@ -24,9 +27,16 @@
     background: linear-gradient(to left, #ffca9b, #fcfcfc 50%, #ffca9b);
 }
 
+.modal-title h1,
+.modal-title h2,
+.modal-title h3{
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
 .modal-body{
     width: 100%;
-    height: 100%;
+    height: 90%;
     margin-top: 5px;
     padding: 10px;
     border-bottom-left-radius: 15px;
@@ -35,14 +45,15 @@
 }
 
 .modal-select{
-    width: 90%;
+    width: 100%;
     height: auto;
     margin: 0 auto;
 }
 
 .selecter-Button-modal{
-    width: 130px;
-    height: 120px;
+    width: 170px;
+    height: 135px;
+    max-width: calc(100% - 12px);
     box-shadow: inset -3px -4px 1px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
@@ -52,6 +63,25 @@
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
+    text-align: center;
+    overflow: hidden;
+}
+
+.price-modal{
+    margin-bottom: 35px;
+}
+
+.selecter-Button-modal h3,
+.selecter-Button-modal p{
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    display: -webkit-box;         /* フレックスボックスの特殊なボックスモデル */
+    -webkit-box-orient: vertical; /* ボックスの配置方向を垂直に指定 */
+    -webkit-line-clamp: 2;        /* 表示する行数を指定（2行） */
+    overflow: hidden;
+    /* 必須：横幅または行高の指定が必要になる場合があります */
+    line-height: 1.4;             /* 行高（デザインに合わせて調整） */
+    max-height: calc(1.4em * 2);  /* 万が一の崩れを防ぐ高さ制限（任意） */
 }
 
 .modal-nomal{
@@ -71,7 +101,7 @@
 
 .modal-submit{
     color: #fff;
-    background: linear-gradient(to bottom, #FFB265, #fabf83 50%, #FFB265);;
+    background: linear-gradient(to bottom, #FFB265, #fabf83 50%, #FFB265);
 }
 
 .modal-close{
@@ -146,14 +176,15 @@
 
 .modal-productname{
     width: 95%;
-    height: 100px;
-    margin: 0 auto;
-    margin-top: 10px;
-    padding: 5px;
+    min-height: 100px;
+    height: auto;
+    margin: 10px auto 0;
+    padding: 8px;
     background-color: #fff;
     display: flex;
-    font-size: 20px;
+    font-size: clamp(15px, 2vw, 20px);
     font-weight: bold;
+    overflow-wrap: anywhere;
 }
 
 /* Bootstrapのモーダル構造のデフォルト装飾を無効化 */
@@ -164,10 +195,94 @@
 }
 
 .modal-window .modal-content {
-    background-color: transparent !important; 
-    border: none !important;  
-    border-radius: 0 !important; 
-    box-shadow: none !important; 
-
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     width: auto !important;
+}
+
+
+/* =========================================================
+   スマホ・タブレット対応
+   ========================================================= */
+
+@media screen and (max-width: 800px) {
+    .modal-window{
+        width: calc(100% - 24px);
+        max-height: 92vh;
+        border-radius: 16px;
+        padding: 6px;
+    }
+
+    .modal-title{
+        min-height: 58px;
+        padding: 8px 12px;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .modal-body{
+        padding: 8px;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .modal-select{
+        width: 100%;
+    }
+
+    .selecter-Button-modal{
+        width: clamp(95px, 28vw, 130px);
+        height: clamp(88px, 24vw, 120px);
+        margin: 6px;
+    }
+
+    .modal-productname{
+        width: 100%;
+        min-height: 70px;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    .modal-window{
+        width: calc(100% - 14px);
+        max-height: 94vh;
+        border-radius: 12px;
+        padding: 4px;
+    }
+
+    .modal-title{
+        min-height: 50px;
+        padding: 7px 9px;
+    }
+
+    .modal-body{
+        padding: 6px;
+    }
+
+    .selecter-Button-modal{
+        width: calc(50vw - 24px);
+        max-width: 130px;
+        height: 92px;
+        margin: 4px;
+    }
+
+    .modal-productname{
+        font-size: 15px;
+        min-height: 58px;
+        padding: 6px;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .modal-window{
+        width: calc(100% - 8px);
+    }
+
+    .selecter-Button-modal{
+        width: calc(50vw - 18px);
+        max-width: 125px;
+        height: 86px;
+    }
 }

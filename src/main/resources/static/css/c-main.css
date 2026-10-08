@@ -1,36 +1,5 @@
 @charset "UTF-8";
 
-/* 共通基本レイアウト用のCSS */
-
-html,body{
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* 基本 */
-body {
-    font-family: 'Noto Sans JP', sans-serif;
-    height: 100vh;
-    display: flex;
-    margin: 0;
-    flex-direction: column;
-    overflow: hidden;
-    background-color: #f9f9f9;
-}
-
-.main-content{
-    padding-top: 20px;
-    padding-left: 100px;
-    padding-right: 100px;
-    flex: 1;
-    overflow-y: auto;
-}
-
-h2,h3{
-    cursor: default;
-}
-
 /* メニュー画面 アイテムブロック */
 .product-img{
     width: 75px;
@@ -55,7 +24,6 @@ h2,h3{
     transition: transform 0.1s ease;
 }
 
-
 .name-block{
     flex: 1;
     min-width: 0;
@@ -64,7 +32,7 @@ h2,h3{
 
 .menu-item h3{
     white-space: nowrap;
-    overflow: hidden; 
+    overflow: hidden;
     text-overflow: ellipsis;
 }
 
@@ -85,7 +53,8 @@ h2,h3{
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-left: 0 15px;
+    padding-left: 0;
+    padding-right: 0;
     box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -96,6 +65,7 @@ h2,h3{
     align-items: center;
     width: 100%;
     max-width: 800px;
+    gap: 4px;
 }
 
 .foot-menu-select-button{
@@ -105,17 +75,17 @@ h2,h3{
     font-weight: bold;
     font-size: 15px;
     white-space: nowrap;
-    padding: 5px 0;
+    padding: 5px 6px;
+    text-align: center;
 }
 
 /* 選択中のカテゴリの強調表示 */
 .foot-menu-select-button.active-category {
     color: #000 !important;
-    border-bottom: 3px solid #20e08f; /* 選択中の下線 */
+    border-bottom: 3px solid #20e08f;
 }
 
 /* 商品追加 */
-
 .additem-block{
     background-color: #fff;
     width:100%;
@@ -127,12 +97,11 @@ h2,h3{
 }
 
 .add-product-img{
-    height: 300px;
+    height: min(300px, 70vw);
     width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
 }
-
 
 /* メニューカード内のレイアウト調整 */
 .menu-item {
@@ -143,7 +112,7 @@ h2,h3{
     position: relative;
     padding: 15px;
     margin-bottom: 12px;
-    background-color: #fffde8; /* 薄黄色背景 */
+    background-color: #fffde8;
     border-radius: 12px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     transition: transform 0.1s ease;
@@ -174,4 +143,130 @@ h2,h3{
 .btn-ai-green:hover {
     background-color: #1bc47d !important;
     color: #ffffff !important;
+}
+
+
+/* =========================================================
+   スマホ・タブレット対応
+   ========================================================= */
+
+@media screen and (max-width: 800px) {
+    .main-content{
+        padding-top: 14px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .product-img,
+    .menu-item img{
+        width: 62px;
+        height: 62px;
+    }
+
+    .menu-item{
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .name-block{
+        margin-right: 8px;
+    }
+
+    .foot-menu{
+        height: 56px;
+    }
+
+    .foot-menu-select-button{
+        font-size: clamp(11px, 2.7vw, 15px);
+        padding-left: 3px;
+        padding-right: 3px;
+    }
+
+    .add-select{
+        padding: 14px;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    .main-content{
+        padding-top: 10px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .product-img,
+    .menu-item img{
+        width: 54px;
+        height: 54px;
+    }
+
+    .menu-item{
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .foot-menu{
+        height: 54px;
+    }
+
+    .foot-menu-select{
+        gap: 0;
+    }
+
+    .foot-menu-select-button{
+        font-size: clamp(10px, 3vw, 13px);
+        padding: 4px 2px;
+    }
+
+    .add-select{
+        padding: 10px;
+    }
+
+    .add-product-img{
+        height: min(300px, 80vw);
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .main-content{
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    .menu-item{
+        padding: 8px;
+    }
+
+    .product-img,
+    .menu-item img{
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+    }
+
+    .foot-menu-select-button{
+        font-size: 10px;
+    }
+}
+
+
+.icon-option {
+        cursor: pointer;
+        /* 非選択時は透明な枠線を付けてサイズズレを防止 */
+        border: 3px solid transparent; 
+        border-radius: 50%;
+        padding: 3px;
+        transition: all 0.2s ease-in-out;
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+    }
+    .icon-option:hover {
+        transform: scale(1.08);
+        opacity: 0.9;
+    }
+    /* ラジオボタンがチェックされた時の選択枠（細い実線枠） */
+    .btn-check:checked + label .icon-option {
+    border: 3px solid #FFE380;
+    box-shadow: none;
 }
