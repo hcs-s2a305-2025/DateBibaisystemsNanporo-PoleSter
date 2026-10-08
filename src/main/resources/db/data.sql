@@ -89,6 +89,52 @@ VALUES
     0,
     0,
     'agetate!zangitti.png'
+),
+-- 受入テスト用ユーザー（顧客、店員、店長（管理者）一つずつ）
+-- 顧客（受入用）
+(
+    '20243003-ishidaharu@hcs.ac.jp',
+    '石田陽',
+    '$2a$10$xRTXvpMWly0oGiu65WZlm.3YL95LGVV2ASFjDhe6WF4.Qji1huIPa',
+    '顧客',
+    'ゴールド',
+    '男',
+    '2005-04-07',
+    0,
+    FALSE,
+    0,
+    5,
+    'sibainu1.png'
+),
+-- 店員（受入用）
+(
+    '20242010-murokishoon@hcs.ac.jp',
+    '室木渚音',
+    '$2a$10$xRTXvpMWly0oGiu65WZlm.3YL95LGVV2ASFjDhe6WF4.Qji1huIPa',
+    '店員',
+    '一般',
+    '男',
+    '2005-07-27',
+    0,
+    FALSE,
+    0,
+    0,
+    'sibainu2.png'
+),
+-- 店長（受入用）
+(
+    '20243057-koserayuuki@hcs.ac.jp',
+    '小瀬良優希',
+    '$2a$10$xRTXvpMWly0oGiu65WZlm.3YL95LGVV2ASFjDhe6WF4.Qji1huIPa',
+    '店長',
+    '一般',
+    '女',
+    '2005-08-09',
+    0,
+    FALSE,
+    0,
+    0,
+    'sibainu3.png'
 );
 
 
