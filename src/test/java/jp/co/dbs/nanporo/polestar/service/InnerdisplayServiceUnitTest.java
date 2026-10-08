@@ -108,7 +108,7 @@ class InnerdisplayServiceUnitTest {
 	}
 
 	@Test
-	@DisplayName("調理完了時に注文状態を更新し、宛先がある場合だけ追加通知する")
+	@DisplayName("調理完了時にモバイル注文は完成通知し、店頭注文は受取済にする")
 	void completeCook() {
 		when(repository.getOrderById(1)).thenReturn(Map.of("mail", "guest@example.com", "order_number", "M0001"));
 		when(repository.getOrderById(2)).thenReturn(Map.of("mail", "", "order_number", "M0002"));
@@ -117,23 +117,32 @@ class InnerdisplayServiceUnitTest {
 		orderWithoutMail.put("mail", null);
 		orderWithoutMail.put("order_number", "M0004");
 		when(repository.getOrderById(4)).thenReturn(orderWithoutMail);
+		when(repository.getOrderById(5)).thenReturn(Map.of("mail", "guest@example.com", "order_number", "T0005"));
+		Map<String, Object> orderWithoutNumber = new HashMap<>();
+		orderWithoutNumber.put("mail", "guest@example.com");
+		orderWithoutNumber.put("order_number", null);
+		when(repository.getOrderById(6)).thenReturn(orderWithoutNumber);
 
 		service.completeCook(1);
 		service.completeCook(2);
 		service.completeCook(3);
 		service.completeCook(4);
+		service.completeCook(5);
+		service.completeCook(6);
 
-		// verify(repository).updateStatusToReady(1);
-		// verify(repository).updateStatusToReady(2);
-		// verify(repository).updateStatusToReady(4);
-		// verify(repository, never()).updateStatusToReady(3);
-		verify(repository).insertNotice("guest@example.com", "モバイル予約(M0001)の受取準備が整いました。");
-		verify(repository, never()).insertNotice("", "モバイル予約(M0002)の受取準備が整いました。");
-		verify(repository, never()).insertNotice(null, "モバイル予約(M0004)の受取準備が整いました。");
+		verify(repository).updateStatus(1, "完成");
+		verify(repository).updateStatus(2, "完成");
+		verify(repository).updateStatus(4, "完成");
+		verify(repository).updateStatus(5, "受取済");
+		verify(repository).updateStatus(6, "受取済");
+		verify(repository, never()).updateStatus(3, "完成");
+		verify(repository, never()).updateStatus(3, "受取済");
 		verify(notificationService).sendOrderCompleteNotification(1);
 		verify(notificationService).sendOrderCompleteNotification(2);
-		verify(notificationService).sendOrderCompleteNotification(3);
 		verify(notificationService).sendOrderCompleteNotification(4);
+		verify(notificationService, never()).sendOrderCompleteNotification(3);
+		verify(notificationService, never()).sendOrderCompleteNotification(5);
+		verify(notificationService, never()).sendOrderCompleteNotification(6);
 	}
 
 	@Test

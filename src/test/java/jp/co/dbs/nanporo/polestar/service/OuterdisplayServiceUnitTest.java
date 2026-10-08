@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import jp.co.dbs.nanporo.polestar.repository.OuterdisplayRepository;
 import jp.co.dbs.nanporo.polestar.response.ActiveOrderResponse;
@@ -62,9 +64,9 @@ class OuterdisplayServiceUnitTest {
 		when(repository.getAllActiveOrders()).thenReturn(List.of(
 				row(1, "B001", "受付商品", Timestamp.valueOf(today.atTime(10, 0)), "受付", 100),
 				row(2, "B002", "調理商品", Timestamp.valueOf(today.atTime(11, 0)), "調理中", 200),
-				row(3, "B003", "受取商品", Timestamp.valueOf(today.atTime(12, 0)), "受取可", 300),
-				row(4, "B004", "呼出商品", Timestamp.valueOf(today.atTime(13, 0)), "呼び出し中", 400),
-				row(5, "B005", "その他", Timestamp.valueOf(today.atTime(14, 0)), "完了", 500)));
+				row(3, "B003", "完成商品", Timestamp.valueOf(today.atTime(12, 0)), "完成", 300),
+				row(4, "B004", "受取商品", Timestamp.valueOf(today.atTime(13, 0)), "受取済", 400),
+				row(5, "B005", "その他", Timestamp.valueOf(today.atTime(14, 0)), "キャンセル", 500)));
 
 		var response = service.getDisplayOrders();
 
@@ -73,7 +75,7 @@ class OuterdisplayServiceUnitTest {
 				.containsExactly("受付", "調理中");
 		assertThat(response.getCallingOrders()).hasSize(2);
 		assertThat(response.getCallingOrders()).extracting(order -> order.getOrder().getStatus())
-				.containsExactly("受取可", "呼び出し中");
+				.containsExactly("完成", "受取済");
 	}
 
 	@Test
@@ -86,6 +88,25 @@ class OuterdisplayServiceUnitTest {
 
 		assertThat(response.getCookingOrders()).isEmpty();
 		assertThat(response.getCallingOrders()).isEmpty();
+	}
+
+	@Test
+	@DisplayName("5分を過ぎた呼び出し注文を除外し1時間経過したキャッシュを削除する")
+	void getDisplayOrdersExpiresCallingOrdersAndCache() {
+		LocalDate today = LocalDate.now();
+		when(repository.getAllActiveOrders()).thenReturn(List.of(
+				row(7, "B007", "期限切れ注文", Timestamp.valueOf(today.atTime(12, 0)), "完成", 700)));
+
+		@SuppressWarnings("unchecked")
+		Map<Integer, LocalDateTime> startTimes = (Map<Integer, LocalDateTime>) ReflectionTestUtils
+				.getField(service, "callingStartTimeMap");
+		startTimes.put(7, LocalDateTime.now().minusMinutes(6));
+		startTimes.put(99, LocalDateTime.now().minusHours(2));
+
+		var response = service.getDisplayOrders();
+
+		assertThat(response.getCallingOrders()).isEmpty();
+		assertThat(startTimes).containsKey(7).doesNotContainKey(99);
 	}
 
 	@Test

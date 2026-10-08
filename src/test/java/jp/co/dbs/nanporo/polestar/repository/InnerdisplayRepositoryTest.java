@@ -61,11 +61,12 @@ class InnerdisplayRepositoryTest {
     @Test
     @DisplayName("注文ステータスを受取可能に更新する")
     void testUpdateStatusToReady() {
-        // repository.updateStatusToReady(15);
+        repository.updateStatus(15, "受取可");
 
         ArgumentCaptor<MapSqlParameterSource> params = ArgumentCaptor.forClass(MapSqlParameterSource.class);
         verify(jdbc).update(anyString(), params.capture());
         assertThat(params.getValue().getValue("orderId")).isEqualTo(15);
+        assertThat(params.getValue().getValue("status")).isEqualTo("受取可");
     }
 
     @Test

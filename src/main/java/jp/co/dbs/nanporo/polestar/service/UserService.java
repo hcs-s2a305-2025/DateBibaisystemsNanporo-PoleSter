@@ -49,6 +49,10 @@ public class UserService {
     @Value("${ollama.api.url:http://localhost:11434/api/generate}")
     private String aiApiUrl = "http://localhost:11434/api/generate";
 
+    // Docker用修正:
+    // @Value("${ollama.api.url:http://host.docker.internal:11434/api/generate}")
+    // private String aiApiUrl = "http://host.docker.internal:11434/api/generate";
+
     /**
      * 指定されたメールアドレスからユーザを検索するメソッド
      * @param data ユーザデータ

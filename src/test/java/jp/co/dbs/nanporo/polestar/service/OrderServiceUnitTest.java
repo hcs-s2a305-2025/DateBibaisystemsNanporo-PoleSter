@@ -64,7 +64,7 @@ class OrderServiceUnitTest {
 		org.mockito.Mockito.verify(orderRepository, org.mockito.Mockito.times(2))
 				.insertOrderDetail(detailCaptor.capture());
 		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getCustomId)
-				.containsExactly(null, 55);
+				.containsExactly(20, 0);
 		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getOrderCount)
 				.containsExactly(1, 2);
 	}
@@ -97,7 +97,31 @@ class OrderServiceUnitTest {
 		ArgumentCaptor<OrderDetailData> detailCaptor = ArgumentCaptor.forClass(OrderDetailData.class);
 		verify(orderRepository).insertOrderDetail(detailCaptor.capture());
 		assertThat(detailCaptor.getValue().getGoodsId()).isNull();
-		assertThat(detailCaptor.getValue().getCustomId()).isZero();
+		assertThat(detailCaptor.getValue().getCustomId()).isEqualTo(20);
+	}
+
+	@Test
+	@DisplayName("セット商品IDが0またはnullでザンギ数がnullの明細を登録する")
+	void insertOrderWithEmptySetGoodsAndZangiCount() {
+		when(orderRepository.insertOrder(any(OrderData.class))).thenReturn(24);
+		when(orderRepository.insertOrderDetail(any(OrderDetailData.class))).thenReturn(1);
+
+		OrderDetailRequest zeroSetGoods = detail("B001", 10, 1);
+		zeroSetGoods.setSetGoodsId(0);
+		zeroSetGoods.setPlusZangiCount(null);
+		OrderDetailRequest nullSetGoods = detail("B002", 30, 1);
+		nullSetGoods.setSetGoodsId(null);
+		nullSetGoods.setPlusZangiCount(null);
+
+		service.insertOrder(orderRequest(List.of(zeroSetGoods, nullSetGoods)));
+
+		ArgumentCaptor<OrderDetailData> detailCaptor = ArgumentCaptor.forClass(OrderDetailData.class);
+		org.mockito.Mockito.verify(orderRepository, org.mockito.Mockito.times(2))
+				.insertOrderDetail(detailCaptor.capture());
+		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getSetGoodsId)
+				.containsExactly(0, null);
+		assertThat(detailCaptor.getAllValues()).extracting(OrderDetailData::getPlusZangiCount)
+				.containsExactly(0, 0);
 	}
 
 	@Test

@@ -96,6 +96,33 @@ class DataClassesTest {
     }
 
     @Test
+    @DisplayName("セット商品データの各項目を取得・設定する")
+    void testSetGoodsData() {
+        SetGoodsData data = new SetGoodsData();
+
+        assertThat(data.getSetGoodsId()).isNull();
+        assertThat(data.getSetName()).isNull();
+        assertThat(data.getSetPrice()).isNull();
+        assertThat(data.getCalorie()).isNull();
+        assertThat(data.getAllergy()).isNull();
+        assertThat(data.getSoldOut()).isNull();
+
+        data.setSetGoodsId(3);
+        data.setSetName("ご飯セット");
+        data.setSetPrice(100);
+        data.setCalorie(250);
+        data.setAllergy(1);
+        data.setSoldOut(true);
+
+        assertThat(data.getSetGoodsId()).isEqualTo(3);
+        assertThat(data.getSetName()).isEqualTo("ご飯セット");
+        assertThat(data.getSetPrice()).isEqualTo(100);
+        assertThat(data.getCalorie()).isEqualTo(250);
+        assertThat(data.getAllergy()).isEqualTo(1);
+        assertThat(data.getSoldOut()).isTrue();
+    }
+
+    @Test
     @DisplayName("商品データの各項目と独自アクセサを保持する")
     void testGoodsData() {
         GoodsData data = new GoodsData();
@@ -185,6 +212,34 @@ class DataClassesTest {
         expected.setChecked(true);
 
         assertEquivalent(data, expected);
+        assertThat(data.getId()).isEqualTo("A01");
+        assertThat(data.getName()).isEqualTo("小麦");
+        assertThat(data.getChecked()).isTrue();
+    }
+
+    @Test
+    @DisplayName("アレルゲンデータのnull値と各項目のequals分岐を確認する")
+    void testAllergenDataNullAndEqualityCases() {
+        AllergenData empty = new AllergenData();
+        AllergenData anotherEmpty = new AllergenData();
+
+        assertThat(empty.getId()).isNull();
+        assertThat(empty.getName()).isNull();
+        assertThat(empty.getChecked()).isNull();
+        assertThat(empty).isEqualTo(anotherEmpty);
+        assertThat(empty).isEqualTo(empty);
+        assertThat(empty.hashCode()).isEqualTo(anotherEmpty.hashCode());
+        assertThat(empty).isNotEqualTo(null);
+        assertThat(empty).isNotEqualTo("not allergen data");
+
+        AllergenData populated = allergenData("A01", "小麦", true);
+        assertAllergenDataDiffers(populated, allergenData("A02", "小麦", true));
+        assertAllergenDataDiffers(populated, allergenData("A01", "卵", true));
+        assertAllergenDataDiffers(populated, allergenData("A01", "小麦", false));
+
+        assertAllergenDataDiffers(populated, allergenData(null, "小麦", true));
+        assertAllergenDataDiffers(populated, allergenData("A01", null, true));
+        assertAllergenDataDiffers(populated, allergenData("A01", "小麦", null));
     }
 
     @Test
@@ -249,5 +304,20 @@ class DataClassesTest {
         assertThat(actual).isEqualTo(expected);
         assertThat(actual.hashCode()).isEqualTo(expected.hashCode());
         assertThat(actual.toString()).isNotBlank();
+    }
+
+    @Test
+    @DisplayName("カスタムデータのequalsとhashCodeの分岐を確認する")
+    private AllergenData allergenData(String id, String name, Boolean checked) {
+        AllergenData data = new AllergenData();
+        data.setId(id);
+        data.setName(name);
+        data.setChecked(checked);
+        return data;
+    }
+
+    private void assertAllergenDataDiffers(AllergenData expected, AllergenData actual) {
+        assertThat(expected).isNotEqualTo(actual);
+        assertThat(actual).isNotEqualTo(expected);
     }
 }

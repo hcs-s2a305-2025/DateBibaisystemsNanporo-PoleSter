@@ -272,6 +272,25 @@ class OrderControllerTest {
         assertThat(item.getSourcePrice()).isZero();
     }
 
+    @ParameterizedTest(name = "セット商品コード {0} の表示名と加算料金")
+    @CsvSource({
+            "11, '満腹セット（味噌汁＋ポテトサラダ）'",
+            "12, '満腹セット（味噌汁＋大根サラダ）'",
+            "13, '満腹セット（味噌汁＋マカロニたまご）'",
+            "20, '定番コンビセット'",
+            "99, 'なし'"
+    })
+    void testAddToCartSetGoodsOptions(String setGoodsCode, String expectedName) {
+        when(storeService.getGoodsDetail("G1")).thenReturn(goods());
+        MockHttpSession session = new MockHttpSession();
+
+        controller.addToCart("G1", 0, "20", "0", setGoodsCode, null, session);
+
+        CartData item = ((List<CartData>) session.getAttribute("cart")).get(0);
+        assertThat(item.getSetGoodsName()).isEqualTo(expectedName);
+        assertThat(item.getSetPrice()).isEqualTo("99".equals(setGoodsCode) ? 0 : 200);
+    }
+
     @ParameterizedTest(name = "ソースコード {0} の加算料金と表示名")
     @CsvSource({
             "50, 80, 'おろしポン酢ソース'", "51, 120, 'おろしポン酢ソースだく'", "52, 150, 'おろしポン酢ソースだくだく'",
@@ -395,9 +414,9 @@ class OrderControllerTest {
     }
 
     @Test
-    @DisplayName("15時を超える受取時刻は拒否する")
+    @DisplayName("18時を超える受取時刻は拒否する")
     void testCheckoutAfterClosingTime() {
-        assertInvalidPickup(LocalDate.now().plusDays(1).toString(), "15:01");
+        assertInvalidPickup(LocalDate.now().plusDays(1).toString(), "18:01");
     }
 
     @Test
@@ -417,6 +436,7 @@ class OrderControllerTest {
         MockHttpSession session = new MockHttpSession();
         CartData item = cartItem("1", "G1", 450, "50");
         item.setZangiCount(2);
+        item.setSetGoodsId("20");
         session.setAttribute("cart", List.of(item));
         Principal principal = () -> "customer@example.com";
         String pickupDate = LocalDate.now().plusDays(1).toString();
@@ -433,6 +453,8 @@ class OrderControllerTest {
         assertThat(request.getSumMoney()).isEqualTo(450);
         assertThat(request.getMemo()).isEqualTo("少なめ");
         assertThat(request.getOrderDetails()).hasSize(2);
+        assertThat(request.getOrderDetails()).extracting(detail -> detail.getSetGoodsId())
+                .containsExactly(20, 20);
         assertThat(session.getAttribute("cart")).isNull();
     }
 
@@ -442,11 +464,13 @@ class OrderControllerTest {
         MockHttpSession session = new MockHttpSession();
         CartData invalidOptions = cartItem("invalid", "B1", 100, "not-a-number");
         invalidOptions.setRiceCode("not-a-number");
+        invalidOptions.setSetGoodsId("not-a-number");
         invalidOptions.setZangiCount(null);
         CartData validRice = cartItem("valid", "B2", 200, "0");
         validRice.setRiceCode("30");
         CartData emptyRice = cartItem("empty", "B3", 300, null);
         emptyRice.setRiceCode("");
+        emptyRice.setSetGoodsId("");
         session.setAttribute("cart", List.of(invalidOptions, validRice, emptyRice));
 
         String pickupDate = LocalDate.now().plusDays(1).toString();
@@ -458,6 +482,8 @@ class OrderControllerTest {
         assertThat(requestCaptor.getValue().getOrderDetails()).hasSize(3)
                 .extracting(detail -> detail.getCustomId())
                 .containsExactly(20, 30, 20);
+        assertThat(requestCaptor.getValue().getOrderDetails()).extracting(detail -> detail.getSetGoodsId())
+                .containsExactly(0, 0, 0);
         assertThat(requestCaptor.getValue().getOrderDetails()).extracting(detail -> detail.getPlusZangiCount())
                 .containsExactly(0, 0, 0);
     }
