@@ -450,9 +450,11 @@
 .selector-area{
     background-color: #d9d9d9;
     width: 520px;
-    height: 800px;
+    height: 630px;
     border-radius: 10px;
     padding: 20px;
+    margin-top: 20px;
+    overflow-y: scroll;
 }
 
 /* 通常 */
@@ -463,7 +465,7 @@
     box-shadow: inset -3px -4px 1px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
     margin: 10px;
     cursor: pointer;
@@ -479,7 +481,7 @@
 /* 計算エリア */
 .clac-area{
     width: 50vw;
-    height: 800px;
+    height: 640px;
     padding: 20px;
     margin-left: 50px;
 }
@@ -489,12 +491,13 @@
 /* 通常 */
 .selecter-Button{
     width: 130px;
-    height: 100px;
+    height: 75px;
     background-color: #fff;
     box-shadow: inset -3px -4px 1px rgba(0, 0, 0, 0.3);
     display: flex;
     justify-content: center;
     align-items: center;
+    text-align: center;
     margin: 10px;
     cursor: pointer;
     user-select: none;
@@ -504,7 +507,7 @@
 /* 狭い */
 .selecter-Button-narrow{
     width: 130px;
-    height: 75px;
+    height: 50px;
     background-color: #fff;
     box-shadow: inset -3px -4px 1px rgba(0, 0, 0, 0.3);
     display: flex;
@@ -576,35 +579,27 @@
 
 /* 計算機ボタンのフォントスタイル */
 .clac-button .row .selecter-Button p{
-    font-size: 3rem;
+    margin: 0;
+    font-size: 1.7rem;
     color: #0047A3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .selectbutton .selecter-Button-item p{
-    font-size: 1rem;
+
+    font-size: 0.8rem;
     color: #0047A3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .clac-button .row .selecter-Button-narrow p{
-    font-size: 2.2rem;
+    margin: 0;
+    font-size: 1.8rem;
     color: #0047A3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .clac-button .row .selecter-Button-square p{
+    margin: 0;
     font-size: 1rem;
     color: #0047A3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 /* 計算機ボタンのカラースタイル */

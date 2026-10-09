@@ -104,6 +104,9 @@
             <!-- アクション3小計用画面切り替え -->
             <div class="selector-area action-group-4 d-none col-5">
                 <div class="pay-disp position-relative">
+                    <button class="edit-btn" id="back-to-subtotal" style="cursor: pointer;">
+                        <p style="color: #0047A3; text-decoration: none;" >戻る</p>
+                    </button>
                     <div class="pay-amount">
                         <h3>小計</h3>
                         <h1 id="subtotal-display">660</h1>
@@ -160,9 +163,6 @@
                     <button class="col selecter-Button-item">
                     </button>
                 </div>
-                <button class="edit-btn" id="back-to-subtotal" style="cursor: pointer;">
-                    <p style="color: #0047A3; text-decoration: none;" >戻る</p>
-                </button>
             </div>
 
             <!-- 計算エリア -->
@@ -265,13 +265,6 @@
                             </div>
 
                             <!-- アクション2拡張ボタン -->
-                            <button type="button" class="selecter-Button-square yellow-btn action-group-2 d-none" id="exchange-btn">
-                                <p>両替</p>
-                            </button>
-                            <button type="button" class="selecter-Button-square action-group-2 d-none" id="receipt-btn">
-                                <p>領収書</p>
-                            </button>
-
                             <button class="col selecter-Button-narrow orange-btn action-group-3" id="toggle-action-pay">
                                 <p>小計</p>
                             </button>
@@ -471,7 +464,6 @@
         </div>
     </main>
 
-    <h4 class="notUsingMiniDisplay">現在の画面比率には対応していません。</h4>
 
     <script src="../../static/js/pos.js" th:src="@{/js/pos.js}"></script>
 </body>
