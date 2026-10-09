@@ -557,20 +557,20 @@ VALUES
 6. 通知トラン (notice_t)
 - 通知コード
 -------------------------------------------------- */
-INSERT INTO notice_t(notice_id, mail, register_time, content)
-VALUES
-(
-    1,
-    'murokishoon@example.com',
-    '2026-09-15 13:30:00', 
-    'モバイル予約(M0001)の受取準備が整いました。'
-),
-(
-    2,
-    'isidaharu@example.com',
-    '2026-09-16 10:00:00',
-    'ゴールド会員限定裏メニューをご利用いただけます。'
-);
+-- INSERT INTO notice_t(notice_id, mail, register_time, content)
+-- VALUES
+-- (
+--     1,
+--     'murokishoon@example.com',
+--     '2026-09-15 13:30:00', 
+--     'モバイル予約(M0001)の受取準備が整いました。'
+-- ),
+-- (
+--     2,
+--     'isidaharu@example.com',
+--     '2026-09-16 10:00:00',
+--     'ゴールド会員限定裏メニューをご利用いただけます。'
+-- );
 
 
 /* --------------------------------------------------
@@ -578,117 +578,117 @@ VALUES
 - 店頭予約番号 (0001～)
 - モバイル予約 (M0001～)
 -------------------------------------------------- */
-INSERT INTO order_t(order_id, order_number, get_time, mail, register_time, sum_money, memo, status)
-VALUES
-(
-    1,
-    'M0001',
-    '2026-09-15 13:30:00',
-    'murokishoon@example.com',
-    '2026-09-15 11:00:00',
-    830,
-    'なし',
-    '受取済'
-),
-(
-    2,
-    'M0001',
-    '2026-10-07 11:12:00',
-    'isidaharu@example.com',
-    '2026-10-07 10:00:00',
-    2780,
-    '無地袋希望',
-    '受付'
-),
-(
-    3,
-    'M0002',
-    '2026-10-07 12:30:00',
-    'murokishoon@example.com',
-    '2026-10-07 11:00:00',
-    860,
-    'なし',
-    '受付'
-);
+-- INSERT INTO order_t(order_id, order_number, get_time, mail, register_time, sum_money, memo, status)
+-- VALUES
+-- (
+--     1,
+--     'M0001',
+--     '2026-09-15 13:30:00',
+--     'murokishoon@example.com',
+--     '2026-09-15 11:00:00',
+--     830,
+--     'なし',
+--     '受取済'
+-- ),
+-- (
+--     2,
+--     'M0001',
+--     '2026-10-07 11:12:00',
+--     'isidaharu@example.com',
+--     '2026-10-07 10:00:00',
+--     2780,
+--     '無地袋希望',
+--     '受付'
+-- ),
+-- (
+--     3,
+--     'M0002',
+--     '2026-10-07 12:30:00',
+--     'murokishoon@example.com',
+--     '2026-10-07 11:00:00',
+--     860,
+--     'なし',
+--     '受付'
+-- );
 
 
 /* --------------------------------------------------
 8. 注文明細トラン (order_detail_t)
 -------------------------------------------------- */
-INSERT INTO order_detail_t(order_id, order_count, goods_id, set_goods_id, count, plus_zangi_count, custom_id)
-VALUES
--- 注文1: 元祖ザンギ弁当(3個) + 満腹セット(味噌汁＋ポテトサラダ) + ご飯大盛り
-(
-    1,
-    1,
-    'B001',
-    11,
-    1,
-    3,
-    30
-),
--- 注文2: 特上海鮮丼 + 満腹セット(味噌汁＋大根サラダ) + 名物！ザンギ弁当（5個）
-(
-    2,
-    1,
-    'U001',
-    12,
-    1,
-    0,
-    NULL
-),
-(
-    2,
-    2,
-    'B003',
-    NULL,
-    1,
-    0,
-    NULL
-),
--- 注文3: 名物！ザンギ弁当（5個入り）+ 自家製タルタルソース
-(
-    3,
-    1, 
-    'B003',
-    NULL,
-    1,
-    0,
-    60
-);
+-- INSERT INTO order_detail_t(order_id, order_count, goods_id, set_goods_id, count, plus_zangi_count, custom_id)
+-- VALUES
+-- -- 注文1: 元祖ザンギ弁当(3個) + 満腹セット(味噌汁＋ポテトサラダ) + ご飯大盛り
+-- (
+--     1,
+--     1,
+--     'B001',
+--     11,
+--     1,
+--     3,
+--     30
+-- ),
+-- -- 注文2: 特上海鮮丼 + 満腹セット(味噌汁＋大根サラダ) + 名物！ザンギ弁当（5個）
+-- (
+--     2,
+--     1,
+--     'U001',
+--     12,
+--     1,
+--     0,
+--     NULL
+-- ),
+-- (
+--     2,
+--     2,
+--     'B003',
+--     NULL,
+--     1,
+--     0,
+--     NULL
+-- ),
+-- -- 注文3: 名物！ザンギ弁当（5個入り）+ 自家製タルタルソース
+-- (
+--     3,
+--     1, 
+--     'B003',
+--     NULL,
+--     1,
+--     0,
+--     60
+-- );
 
 
 /* --------------------------------------------------
 9. 取引トラン (transaction_t)
     取引履歴コード
 -------------------------------------------------- */
-INSERT INTO transaction_t(transaction_id, order_id, mail, transaction_date, use_coupon, received_money, change_money, sum_money) VALUES
-(
-    1,
-    1,
-    'murokishoon@example.com',
-    '2026-09-15 12:05:00',
-    '100円引き',
-    1000,
-    270,
-    830
-);
+-- INSERT INTO transaction_t(transaction_id, order_id, mail, transaction_date, use_coupon, received_money, change_money, sum_money) VALUES
+-- (
+--     1,
+--     1,
+--     'murokishoon@example.com',
+--     '2026-09-15 12:05:00',
+--     '100円引き',
+--     1000,
+--     270,
+--     830
+-- );
 
-/* --------------------------------------------------
-10. 取引明細トラン (transaction_detail_t)
--------------------------------------------------- */
-INSERT INTO transaction_detail_t(transaction_id, reservation_count, goods_name, set_goods_name, count, plus_zangi_count, custom_id, price)
-VALUES
-(
-    1,
-    1,
-    '名物！ザンギ弁当（3個入り）',
-    '満腹セット（味噌汁＋ポテトサラダ）',
-    1,
-    0,
-    30,
-    830
-);
+-- /* --------------------------------------------------
+-- 10. 取引明細トラン (transaction_detail_t)
+-- -------------------------------------------------- */
+-- INSERT INTO transaction_detail_t(transaction_id, reservation_count, goods_name, set_goods_name, count, plus_zangi_count, custom_id, price)
+-- VALUES
+-- (
+--     1,
+--     1,
+--     '名物！ザンギ弁当（3個入り）',
+--     '満腹セット（味噌汁＋ポテトサラダ）',
+--     1,
+--     0,
+--     30,
+--     830
+-- );
 /* --------------------------------------------------
 11. 自動採番シーケンスの同期（修正版）
 -------------------------------------------------- */

@@ -62,6 +62,11 @@ public class OrderController {
         // DBから該当商品の詳細情報を取得
         GoodsData goods = storeService.getGoodsDetail(goodsId);
 
+        // 販売停止中の商品は追加画面を開かせない
+        if (goods != null && Boolean.TRUE.equals(goods.getSoldOut())) {
+            return "redirect:/menu";
+        }
+
         // 初期値（新規追加時）
         String selectedRice = "20";
         String selectedSource = "0";
@@ -166,7 +171,7 @@ public class OrderController {
             HttpSession session) {
 
         GoodsData goods = storeService.getGoodsDetail(goodsId);
-        if (goods == null) {
+        if (goods == null || Boolean.TRUE.equals(goods.getSoldOut())) {
             return "redirect:/menu";
         }
 

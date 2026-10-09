@@ -25,14 +25,17 @@
             <!-- メニューデータが存在する場合（th:eachでループ） -->
             <div class="item-block menu-item"
                 th:each="item : ${menuList}"
-                th:onclick="|location.href='@{/menu/add(goodsId=${item.goodsId})}'|"
-                style="cursor: pointer;">
+                th:with="soldOut=${item.soldOut != null and item.soldOut}"
+                th:onclick="${soldOut} ? null : |location.href='@{/menu/add(goodsId=${item.goodsId})}'|"
+                th:style="${soldOut} ? 'cursor: not-allowed; opacity: 0.55;' : 'cursor: pointer;'">
                     <div class="name-block" style="min-width: 0;" > <!-- min-width: 0 でflex要素内の ellipsis 崩れを防止 -->
                         <!-- 商品名（はみ出したら...で切り取り） -->
                         <h3 class="text-truncate" th:text="${item.goodsName}">元祖ザンギ弁当（3個）</h3>
                         
                         <!-- 金額 -->
-                        <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>                
+                        <h5 class="text-secondary" th:text="${#numbers.formatInteger(item.price, 1, 'COMMA') + '円'}">780円</h5>
+                        <!-- 販売停止表示 -->
+                        <span class="badge bg-danger" th:if="${soldOut}">販売停止中</span>
                     </div>
 
                     <!-- 商品画像 -->

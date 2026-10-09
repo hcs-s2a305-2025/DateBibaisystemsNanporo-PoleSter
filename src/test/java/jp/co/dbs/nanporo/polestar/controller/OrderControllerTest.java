@@ -235,6 +235,29 @@ class OrderControllerTest {
     }
 
     @Test
+    @DisplayName("販売停止中の商品はカートに追加せずメニューへ戻る")
+    void testAddToCartWhenSoldOut() {
+        GoodsData soldOut = goods();
+        soldOut.setSoldOut(true);
+        when(storeService.getGoodsDetail("G1")).thenReturn(soldOut);
+        MockHttpSession session = new MockHttpSession();
+
+        assertThat(controller.addToCart("G1", 0, "20", "0", "0", null, session)).isEqualTo("redirect:/menu");
+        assertThat(session.getAttribute("cart")).isNull();
+    }
+
+    @Test
+    @DisplayName("販売停止中の商品の追加画面はメニューへ戻る")
+    void testShowAddPageWhenSoldOut() {
+        GoodsData soldOut = goods();
+        soldOut.setSoldOut(true);
+        when(storeService.getGoodsDetail("G1")).thenReturn(soldOut);
+
+        assertThat(controller.showAddPage("G1", null, new MockHttpSession(), new ExtendedModelMap()))
+                .isEqualTo("redirect:/menu");
+    }
+
+    @Test
     @DisplayName("商品を標準オプションでカートに追加する")
     void testAddToCartNewItem() {
         when(storeService.getGoodsDetail("G1")).thenReturn(goods());
