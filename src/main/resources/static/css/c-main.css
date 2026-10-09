@@ -89,7 +89,7 @@
 .additem-block{
     background-color: #fff;
     width:100%;
-    height: max-content + 50px;
+    height: max-content;
 }
 
 .add-select{

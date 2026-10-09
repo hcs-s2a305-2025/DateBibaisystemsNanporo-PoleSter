@@ -880,7 +880,7 @@
 @media screen and (max-width: 1177px) {
     /* 基本 */
 
-    .main-content{
+    .main-content-pos{
         display: none;
     }
 

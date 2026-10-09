@@ -23,6 +23,7 @@ body {
 }
 
 .main-content{
+    display: block;
     padding-top: 20px;
     padding-left: clamp(16px, 7vw, 100px);
     padding-right: clamp(16px, 7vw, 100px);
@@ -139,8 +140,13 @@ h2,h3{
 }
 
 
+.notUsingMiniDisplay{
+    display: none;
+}
+
+
 /* =========================================================
-   スマホ・タブレット対応
+    スマホ・タブレット対応
    ========================================================= */
 
 @media screen and (max-width: 800px) {
@@ -179,6 +185,18 @@ h2,h3{
 
     .system-title {
         font-size: 1.4rem;
+    }
+
+    .main-content{
+        display: none;
+    }
+
+    .notUsingMiniDisplay{
+        display: block;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
 }
 
