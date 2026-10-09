@@ -125,8 +125,18 @@ public class StoreController {
 
     @PostMapping("/product/update")
     public String updateProduct(@ModelAttribute GoodsEditRequest request,
-                                @RequestParam(value="photoFile", required = false) MultipartFile photoFile
+                                @RequestParam(value="photoFile", required = false) MultipartFile photoFile,
+                                RedirectAttributes redirectAttributes
     ) {
+        // 金額がマイナスの商品は保存させない
+        if (request.getPrice() != null && request.getPrice() < 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "金額には0以上の値を入力してください。");
+            String id = request.getGoodsId();
+            return (id == null || id.isEmpty())
+                    ? "redirect:/w/editmenu/edit"
+                    : "redirect:/w/editmenu/edit?goodsId=" + id;
+        }
+
         // アルファベット（例: "B"）が取得できます（未選択の場合は "" や null）
         String prefix = request.getCategoryId(); 
         
