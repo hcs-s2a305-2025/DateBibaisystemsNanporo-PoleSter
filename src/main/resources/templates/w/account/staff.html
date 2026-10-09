@@ -2,6 +2,9 @@
 <html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <head>
     <div th:replace="~{common/Layout :: common-w-head}"></div>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+        <link href="../../static/css/account.css" th:href="@{/css/account.css}" rel="stylesheet" />
         <link href="../../static/css/account.css" th:href="@{/css/account.css}" rel="stylesheet" />
     </head>
     <body>
@@ -47,17 +50,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- <tr>
-                        <td>1</td>
-                        <td>zangui.staff@ben.com</td>
-                        <td>店長</td>
-                        <td>店長</td>
-                        <td>有効</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-primary">編集</button>
-                            <button type="button" class="btn btn-sm btn-outline-danger ms-1">削除</button>
-                        </td>
-                    </tr> -->
                     <tr th:each="user, stat : ${response.users}" class="user-row">
                         <!-- 番号 -->
                         <td th:text="${stat.count}">1</td>
@@ -184,18 +176,19 @@
                 </div>
             </div>
         </div>
+
         <script>
             let editModal;
+            let registerModal;
 
             document.addEventListener('DOMContentLoaded', function() {
-                // Bootstrapモーダルの初期化
                 editModal = new bootstrap.Modal(document.getElementById('editModal'));
+                registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
             });
 
             function openEditModal(button) {
                 const mail = button.getAttribute('data-mail');
 
-                // 編集ボタン押下時
                 fetch(`/w/account/staff/detail?mail=${encodeURIComponent(mail)}`)
                     .then(response => response.json())
                     .then(data => {
@@ -238,7 +231,6 @@
                 const mail = button.getAttribute('data-mail');
                 const { token, header } = getCsrfInfo();
 
-                // 確認ダイアログを表示
                 if (confirm('このユーザを削除してもよろしいですか。')) {
                     fetch(`/w/account/staff/delete?mail=${encodeURIComponent(mail)}`, {
                         method: 'POST',
@@ -261,76 +253,69 @@
                 }
             }
 
-            let registerModal;
+            // 登録モーダルを開く
+            function openRegisterModal() {
+                document.getElementById('registerForm').reset();
+                registerModal.show();
+            }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            editModal = new bootstrap.Modal(document.getElementById('editModal'));
-            // 登録用モーダルの初期化
-            registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
-        });
-
-        // 登録モーダルを開く
-        function openRegisterModal() {
-            document.getElementById('registerForm').reset(); // フォームのリセット
-            registerModal.show();
-        }
-
-        // 登録処理
-        function submitRegister() {
-            const form = document.getElementById('registerForm');
-            const formData = new FormData(form);
-            const { token, header } = getCsrfInfo();
-
-            fetch('/w/account/staff/register', {
-                method: 'POST',
-                headers: {
-                    [header]: token
-                },
-                body: formData
-            })
-            .then(response => {
-                if (response.status === 200) {
-                    alert('変更を保存しました。');
-                    location.reload();
-                } else if (response.status === 409) { // 重複エラー
-                    alert('すでに登録済みのアカウントです。');
-                } else {
-                    alert('ユーザの登録に失敗しました。もう一度お試しください。');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('ユーザの登録に失敗しました。もう一度お試しください。');
-            });
-        }
-
-        // 検索処理
-        function filterTable() {
-            // 入力値を取得
-            const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            // すべての行を取得
-            const rows = document.querySelectorAll('.user-row');
-
-            // 各行と入力値を比較
-            rows.forEach(row => {
-                const rowText = row.textContent.toLowerCase();
+            // 登録処理
+            function submitRegister() {
+                const form = document.getElementById('registerForm');
                 
-                // 含まれていれば表示、含まれていなければ非表示
-                if (rowText.includes(keyword)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+                // 未入力（required）チェック
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
                 }
-            });
-        }
 
-        // CSRFトークンとヘッダー名を取得する
-        function getCsrfInfo() {
-            const token = document.querySelector("meta[name='_csrf']").getAttribute("content");
-            const header = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
-            return { token, header };
-        }
+                const formData = new FormData(form);
+                const { token, header } = getCsrfInfo();
+
+                fetch('/w/account/staff/register', {
+                    method: 'POST',
+                    headers: {
+                        [header]: token
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (response.status === 200) {
+                        alert('変更を保存しました。');
+                        location.reload();
+                    } else if (response.status === 409) {
+                        alert('すでに登録済みのアカウントです。');
+                    } else {
+                        alert('ユーザの登録に失敗しました。もう一度お試しください。');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('ユーザの登録に失敗しました。もう一度お試しください。');
+                });
+            }
+
+            // 検索処理
+            function filterTable() {
+                const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+                const rows = document.querySelectorAll('.user-row');
+
+                rows.forEach(row => {
+                    const rowText = row.textContent.toLowerCase();
+                    if (rowText.includes(keyword)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            // CSRFトークンとヘッダー名を取得する
+            function getCsrfInfo() {
+                const token = document.querySelector("meta[name='_csrf']").getAttribute("content");
+                const header = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+                return { token, header };
+            }
         </script>
     </body>
-</html> 
+</html>

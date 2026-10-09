@@ -3,6 +3,8 @@
     <head>
     <div th:replace="~{common/Layout :: common-w-head}"></div>
         <link href="../../static/css/account.css" th:href="@{/css/account.css}" rel="stylesheet" />
+        <meta name="_csrf" th:content="${_csrf.token}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     </head>
     
         <div th:replace="~{common/Layout :: common-header}"></div>
@@ -184,9 +186,33 @@
 
         // CSRFトークンを取得する共通処理
         function getCsrfHeaders() {
-            const token = document.querySelector("meta[name='_csrf']").getAttribute("content");
-            const header = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+            const token = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
+            const header = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
             return { [header]: token };
+        }
+
+        // 削除ボタン押下時
+        function deleteCustomer(button) {
+            const mail = button.getAttribute('data-mail');
+
+            if (confirm('このユーザを削除してもよろしいですか。')) {
+                fetch(`/w/account/customer/delete?mail=${encodeURIComponent(mail)}`, {
+                    method: 'POST',
+                    headers: getCsrfHeaders()
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('変更を保存しました。');
+                        location.reload();
+                    } else {
+                        alert('変更できませんでした。もう一度お試しください。');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('変更できませんでした。もう一度お試しください。');
+                });
+            }
         }
 
         // 停止ボタン押下時
@@ -231,17 +257,11 @@
 
         // 検索処理
         function filterTable() {
-            // 入力値を取得
             const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            // すべての行を取得
             const rows = document.querySelectorAll('.user-row');
 
-            // 各行と入力値を比較
             rows.forEach(row => {
                 const rowText = row.textContent.toLowerCase();
-                
-                // 含まれていれば表示、含まれていなければ非表示
                 if (rowText.includes(keyword)) {
                     row.style.display = '';
                 } else {
