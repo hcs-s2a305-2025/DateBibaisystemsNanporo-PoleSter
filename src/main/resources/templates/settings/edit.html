@@ -24,29 +24,38 @@
                                     <label class="form-label fw-bold d-block mb-3">アイコン画像を選択</label>
                                     
                                     <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                                        <!-- agetate!zangitti.png -->
+                                        <div>
+                                            <input type="radio" class="btn-check" name="icon" id="icon1" value="agetate!zangitti.png" 
+                                                th:checked="${user.icon == 'agetate!zangitti.png' or user.icon == null}">
+                                            <label for="icon1">
+                                                <img th:src="@{/img/agetate!zangitti.png}" src="../../static/img/agetate!zangitti.png" class="icon-option" alt="ざんぎっち">
+                                            </label>
+                                        </div>
+
                                         <!-- sibainu1.jpg -->
                                         <div>
-                                            <input type="radio" class="btn-check" name="icon" id="icon1" value="sibainu1.jpg" 
+                                            <input type="radio" class="btn-check" name="icon" id="icon2" value="sibainu1.jpg" 
                                                 th:checked="${user.icon == 'sibainu1.jpg' or user.icon == null}">
-                                            <label for="icon1">
+                                            <label for="icon2">
                                                 <img th:src="@{/img/sibainu1.jpg}" src="../../static/img/sibainu1.jpg" class="icon-option" alt="柴犬1">
                                             </label>
                                         </div>
 
                                         <!-- sibainu2.png -->
                                         <div>
-                                            <input type="radio" class="btn-check" name="icon" id="icon2" value="sibainu2.png" 
+                                            <input type="radio" class="btn-check" name="icon" id="icon3" value="sibainu2.png" 
                                                 th:checked="${user.icon == 'sibainu2.png'}">
-                                            <label for="icon2">
+                                            <label for="icon3">
                                                 <img th:src="@{/img/sibainu2.png}" src="../../static/img/sibainu2.png" class="icon-option" alt="柴犬2">
                                             </label>
                                         </div>
 
                                         <!-- sibainu3.png -->
                                         <div>
-                                            <input type="radio" class="btn-check" name="icon" id="icon3" value="sibainu3.png" 
+                                            <input type="radio" class="btn-check" name="icon" id="icon4" value="sibainu3.png" 
                                                 th:checked="${user.icon == 'sibainu3.png'}">
-                                            <label for="icon3">
+                                            <label for="icon4">
                                                 <img th:src="@{/img/sibainu3.png}" src="../../static/img/sibainu3.png" class="icon-option" alt="柴犬3">
                                             </label>
                                         </div>
