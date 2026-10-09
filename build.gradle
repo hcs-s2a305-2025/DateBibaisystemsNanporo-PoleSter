@@ -33,6 +33,7 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.seleniumhq.selenium:selenium-java:4.33.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'com.h2database:h2'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -42,11 +43,27 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags 'selenium'
+	}
+}
+
+// Selenium(要Chrome): .\gradlew.bat seleniumTest
+tasks.register('seleniumTest', Test) {
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'selenium'
+	}
+	shouldRunAfter test
 }
 
 jacocoTestReport {
 	dependsOn test
+	mustRunAfter 'seleniumTest'
+	// Selenium実行済みならそのカバレッジも合算する
+	executionData.setFrom(fileTree(layout.buildDirectory.dir('jacoco')).matching { include '*.exec' })
 	reports {
 		xml.required = true
 		html.required = true

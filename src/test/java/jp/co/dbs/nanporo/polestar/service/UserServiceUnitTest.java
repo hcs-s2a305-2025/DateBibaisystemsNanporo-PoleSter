@@ -335,7 +335,8 @@ class UserServiceUnitTest {
     private HttpEntity captureAiRequest(MockedConstruction<RestTemplate> restTemplates) {
         ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplates.constructed().get(0)).postForEntity(
-                eq("http://localhost:11434/api/generate"), requestCaptor.capture(), eq(Map.class));
+                eq((String) org.springframework.test.util.ReflectionTestUtils.getField(service, "aiApiUrl")),
+                requestCaptor.capture(), eq(Map.class));
         return requestCaptor.getValue();
     }
 
