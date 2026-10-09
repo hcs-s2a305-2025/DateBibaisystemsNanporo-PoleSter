@@ -290,7 +290,6 @@
                     <div class="modal-body">
                         <div class="modal-productname row">
                             <h2 class="col" id="modal-product-name" th:text="${product?.name}">商品を選択してください</h2>
-                            <hr class="my-1">
                             <h4 class="col" id="modal-product-description" th:text="${product?.description}">商品内容</h4>
                         </div>
                         <div class="modal-select col-5">
@@ -382,13 +381,13 @@
                                         <h3>円</h3>
                                     </div>
                                 </div>
-                                <button type="button" class="col selecter-Button-modal modal-warning" id="stop-sale-btn">
+                                <button type="button" class="col selecter-Button-modal-narrow modal-warning" id="stop-sale-btn">
                                     <h3>販売停止</h3>
                                 </button>
-                                <button type="button" class="col selecter-Button-modal modal-add" id="add-product-btn">
+                                <button type="button" class="col selecter-Button-modal-narrow modal-add" id="add-product-btn">
                                     <h3>追加する</h3>
                                 </button>
-                                <button type="button" class="col selecter-Button-modal modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
+                                <button type="button" class="col selecter-Button-modal-narrow modal-close" data-bs-dismiss="modal" style="cursor: pointer;">
                                     <h3>閉じる</h3>
                                 </button>
                             </div>
