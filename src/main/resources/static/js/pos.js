@@ -1743,7 +1743,7 @@ async function handleQrScan(decodedText) {
     setQrStatus(`ID「${id}」を取得しました。`);
     await stopQrScanner();
 
-    alert(`QR ID「${id}」を取得しました。\n会計時にJava側へ送信します。`);
+    alert(`スキャンしました。\n ID：「${id}」`);
 
     const modalElem = document.getElementById('qrModal');
     if (modalElem && window.bootstrap) {

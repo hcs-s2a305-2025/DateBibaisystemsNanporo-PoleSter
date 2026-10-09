@@ -174,7 +174,7 @@ class StoreControllerTest {
     void testUpdateProductWithoutPhoto() {
         GoodsEditRequest request = new GoodsEditRequest();
 
-        assertThat(controller.updateProduct(request, null)).isEqualTo("redirect:/w/editmenu");
+        assertThat(controller.updateProduct(request, null, new RedirectAttributesModelMap())).isEqualTo("redirect:/w/editmenu");
         verify(storeService).saveGoods(request);
     }
 
@@ -186,7 +186,7 @@ class StoreControllerTest {
         MultipartFile photo = org.mockito.Mockito.mock(MultipartFile.class);
         when(photo.isEmpty()).thenReturn(true);
 
-        assertThat(controller.updateProduct(request, photo)).isEqualTo("redirect:/w/editmenu");
+        assertThat(controller.updateProduct(request, photo, new RedirectAttributesModelMap())).isEqualTo("redirect:/w/editmenu");
         verify(storeService).saveGoods(request);
     }
 
@@ -200,7 +200,7 @@ class StoreControllerTest {
         org.mockito.Mockito.doThrow(new java.io.IOException("write failed"))
                 .when(photo).transferTo(any(File.class));
 
-        assertThat(controller.updateProduct(request, photo)).isEqualTo("redirect:/w/editmenu");
+        assertThat(controller.updateProduct(request, photo, new RedirectAttributesModelMap())).isEqualTo("redirect:/w/editmenu");
         assertThat(request.getPhoto()).isNull();
         verify(storeService).saveGoods(request);
     }
@@ -215,7 +215,7 @@ class StoreControllerTest {
         when(photo.getOriginalFilename()).thenReturn("photo.png");
         doNothing().when(photo).transferTo(any(File.class));
 
-        assertThat(controller.updateProduct(request, photo)).isEqualTo("redirect:/w/editmenu");
+        assertThat(controller.updateProduct(request, photo, new RedirectAttributesModelMap())).isEqualTo("redirect:/w/editmenu");
         assertThat(request.getPhoto()).isEqualTo("photo.png");
         verify(photo).transferTo(any(File.class));
         verify(storeService).saveGoods(request);
@@ -235,7 +235,7 @@ class StoreControllerTest {
             files.when(() -> Files.exists(uploadDir)).thenReturn(false);
             files.when(() -> Files.createDirectories(uploadDir)).thenReturn(uploadDir);
 
-            assertThat(controller.updateProduct(request, photo)).isEqualTo("redirect:/w/editmenu");
+            assertThat(controller.updateProduct(request, photo, new RedirectAttributesModelMap())).isEqualTo("redirect:/w/editmenu");
 
             files.verify(() -> Files.createDirectories(uploadDir));
         }
