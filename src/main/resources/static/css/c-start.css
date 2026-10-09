@@ -7,6 +7,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -60,6 +61,7 @@ main{
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     justify-content: space-between;
     align-items: center;
     padding: clamp(16px, 4vw, 30px);

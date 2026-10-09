@@ -95,8 +95,9 @@
                     <!-- th:text="${'合計：￥' + #numbers.formatInteger(goods.price, 1, 'COMMA') + '円'}">合計：￥960円</h1> -->
                     <div class="gap-2 pt-2" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <button id="changesConfirmedBtn" type="submit" class="btn btn-warning mt-4" style="width: 50%;">カートに入れる</button>
-                        <a href="/menu" th:href="@{/menu}" id="discardChanges" class="btn btn-outline-secondary mt-3" style="width: 30%;">破棄して戻る</a>
+                        <a href="/menu" th:href="@{/menu}" id="discardChanges" class="btn btn-outline-secondary mt-3" style="font-size: 0.8rem; width: 40%;">破棄して戻る</a>
                     </div>
+                    <br><br><br>
                 </div>
             </form>
         </div>

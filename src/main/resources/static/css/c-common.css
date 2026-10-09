@@ -4,14 +4,17 @@
 
 html,body{
     margin: 0;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
+    touch-action: manipulation;
 }
 
 /* 基本 */
 body {
     font-family: 'Noto Sans JP', sans-serif;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
     display: flex;
     margin: 0;
     flex-direction: column;
@@ -24,6 +27,7 @@ body {
     padding-left: clamp(16px, 7vw, 100px);
     padding-right: clamp(16px, 7vw, 100px);
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 

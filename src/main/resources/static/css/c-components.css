@@ -36,6 +36,8 @@
 
 /* 拡大ボタン */
 .expansion-btn{
+    height: 50px;
+    width: auto;
     cursor: pointer;
     position: absolute;
     top: 0;
@@ -48,7 +50,7 @@
 .footer-content{
     flex-shrink: 0;
     background-color: #fffce9;
-    height: 60px;
+    height: 70px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -371,7 +373,7 @@
     }
 
     .footer-content{
-        height: 56px;
+        height: 65px;
         padding-left: 20px;
         padding-right: 20px;
     }
@@ -401,6 +403,12 @@
         margin: 1vw 0;
     }
 
+    /* 拡大ボタン */
+    .expansion-btn{
+        height: 30px;
+        width: auto;
+    }
+
     #qrcode{
         width: clamp(80px, 25vw, 140px) !important;
         height: clamp(80px, 25vw, 140px) !important;
@@ -410,9 +418,9 @@
 
 @media screen and (max-width: 520px) {
     .footer-content{
-        height: 54px;
-        padding-left: 10px;
-        padding-right: 10px;
+        height: 70px;
+        padding-left: 20px;
+        padding-right: 20px;
     }
 
     .lowwer-item img{
@@ -440,5 +448,11 @@
     .item-block{
         width: calc(100% - 16px);
         margin: 8px;
+    }
+
+    /* 拡大ボタン */
+    .expansion-btn{
+        height: 15px;
+        width: auto;
     }
 }

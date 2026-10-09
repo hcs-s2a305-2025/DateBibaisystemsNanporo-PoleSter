@@ -30,7 +30,7 @@
                     <p th:text="${'ステータス：' + item.order.status}">ステータス：受付</p>
                 </div>
                 <h3 th:text="${'注文商品：' + item.goodsNames}">注文商品：元祖ザンギ弁当（5個）</h3>
-                <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
+                <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大">
 
             <!-- 注文詳細モーダル -->
                 <div class="modal fade text-start" th:id="${'orderModal-' + item.order.orderId}" tabindex="-1" aria-hidden="true" onclick="event.stopPropagation();">
@@ -91,7 +91,7 @@
                 <!-- 通知データが存在する場合 -->
                 <div class="item-block" th:each="notice : ${notificationList}" th:unless="${#lists.isEmpty(notificationList)}">
                     <p class="item-block-text" th:text="${notice.content}">通知の内容がここに入ります。</p>
-                    <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大" style="width: 50px; height: auto;">
+                    <img class="expansion-btn" src="../static/img/拡大ボタン.png" th:src="@{/img/拡大ボタン.png}" alt="拡大">
                 </div>
             </div>
         </div>
