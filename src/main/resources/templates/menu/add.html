@@ -50,7 +50,7 @@
 
                     <!-- 3. ソース：ザンギ弁当（BまたはUから始まるID）のみ表示 -->
                     <div class="add-selector d-flex align-items-center mb-3"
-                        th:if="${#strings.startsWith(goods.goodsId, 'B') || #strings.startsWith(goods.goodsId, 'U')}">
+                        th:if="${#strings.contains(goods.goodsName, 'ザンギ')}">
                         <h2 class="fs-5 me-3 mb-0 col-auto">　ソース：</h2>
                         <select id="sourceSelect" class="form-select form-select-sm col" name="sourceType">
                             <option value="0" data-price="0" th:selected="${selectedSource == '0'}">なし</option>
